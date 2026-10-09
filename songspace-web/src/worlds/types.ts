@@ -20,7 +20,7 @@ export const WORLD_OPTIONS = [
     title: '大海',
     artist: '张雨生',
     english: 'THE OCEAN',
-    description: '海风从远处吹来。骑过海岸公路，看灯塔、帆船，和一直延伸到天边的蓝。',
+    description: '海风从远处吹来。沿着海岸公路前行，看灯塔、帆船，和一直延伸到天边的蓝。',
     scene: '海岸 · 灯塔 · 滨海公路',
     color: '#337a86',
     atmosphere: '海风与晴空',
@@ -38,6 +38,7 @@ export const WORLD_OPTIONS = [
 ] as const
 
 export interface Decoration {
+  songId?: string
   kind: DecorationKind
   x: number
   z: number

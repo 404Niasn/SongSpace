@@ -51,5 +51,17 @@ assert.equal(openPack('theme')[0].kind,'map')
 assert.equal(game.pity,19)
 const upgradeSong=catalog.songs.find(s=>kindFor(s)==='item')
 game.owned[upgradeSong.id]=4
-assert.match(cardFor(upgradeSong).effect,/10 秒/)
+assert.match(cardFor(upgradeSong).effect,/LV\.2/)
 console.log('PASS: zero-score anti-farming, specialized pools at pity threshold, duplicate upgrades')
+
+const beforeRestricted=game.notes;game.notes=10000;const rewardStock=game.packs.five,themeStock=game.packs.theme;assert.equal(buyPack('five'),false);assert.equal(buyPack('theme'),false);assert.equal(game.notes,10000);assert.equal(game.packs.five,rewardStock);assert.equal(game.packs.theme,themeStock);game.notes=beforeRestricted;console.log('PASS: reward five-pack and map-pack purchases rejected even with sufficient funds');
+const mapIndex = catalog.songs.findIndex(song => kindFor(song) === 'map')
+assert.ok(mapIndex >= 0)
+const randomValues = crypto.getRandomValues.bind(crypto)
+try {
+  crypto.getRandomValues = array => { array[0] = Math.floor((mapIndex + .5) / catalog.songs.length * 4294967296); return array }
+  game.pity = 0
+  game.packs.single = 1
+  assert.equal(openPack('single')[0].kind, 'map')
+} finally { crypto.getRandomValues = randomValues }
+console.log('PASS: ordinary song packs include map cards')

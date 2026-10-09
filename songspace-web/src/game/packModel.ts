@@ -1,5 +1,10 @@
 import * as T from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { disposeObject } from '@/worlds/models'
+
+const SEAM_Y = 1.51
+const SEAL_HEIGHT = .15
+const POUCH_HALF_WIDTH = 1.0925 // Includes the outside edge of the side folds.
 
 export class PackModel {
   private renderer: T.WebGLRenderer
@@ -9,8 +14,15 @@ export class PackModel {
   private seal = new T.Group()
   private observer: ResizeObserver
   private frame = 0
+  private environment:T.WebGLRenderTarget
   private disposed = false
-  private start = performance.now()
+  private openingProgress = 0
+  private tearStart = 0
+  private ribbons: { geometry: T.BufferGeometry; side: number }[] = []
+  private lips: { geometry: T.PlaneGeometry; side: number }[] = []
+  private pullTab = new T.Group()
+  private tabAnchor = new T.Vector3()
+  private mouth?: T.Mesh<T.PlaneGeometry, T.MeshBasicMaterial>
   private dirty = true
   private target = 0
   private tearing = 0
@@ -26,12 +38,13 @@ export class PackModel {
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5))
     this.renderer.toneMapping = T.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1.05
+    const pmrem=new T.PMREMGenerator(this.renderer),room=new RoomEnvironment();this.environment=pmrem.fromScene(room,.04);this.scene.environment=this.environment.texture;room.dispose();pmrem.dispose()
     host.append(this.renderer.domElement)
     this.camera.position.set(0, 0, 7.2)
     this.scene.add(new T.HemisphereLight('#e9f8ff', '#1d283c', 2))
     for (const [x, c, intensity] of [
-      [-3, '#fff0d2', 4],
-      [3, '#a1d9ed', 2],
+      [-3, '#effbff', 2],
+      [3, '#e6dfff', 1.5],
     ] as const) {
       const l = new T.DirectionalLight(c, intensity)
       l.position.set(x, 3, 5)
@@ -58,157 +71,124 @@ export class PackModel {
     canvas.height = 1536
     const texture = new T.CanvasTexture(canvas)
     texture.colorSpace = T.SRGBColorSpace
-    const front = new T.MeshStandardMaterial({
+    const front = new T.MeshPhysicalMaterial({
       map: texture,
-      metalness: 0.18,
-      roughness: 0.53,
+      metalness: 0.78,
+      roughness: 0.28,
+      clearcoat: 1,
+      clearcoatRoughness: .13,
       side: T.DoubleSide,
     })
     const ctx = canvas.getContext('2d')!
-    const bg =
-      tone === 'gold'
-        ? '#47372c'
-        : tone === 'rainbow'
-          ? '#313f55'
-          : tone === 'blue'
-            ? '#263f52'
-            : '#294941'
-    const ink =
-      tone === 'gold'
-        ? '#ead3a0'
-        : tone === 'rainbow'
-          ? '#c6cbe6'
-          : tone === 'blue'
-            ? '#b5d3e4'
-            : '#c9dfbd'
-    ctx.fillStyle = bg
-    ctx.fillRect(0, 0, 1024, 1536)
-    ctx.strokeStyle = ink
-    ctx.fillStyle = ink
-    ctx.lineWidth = 3
-    ctx.strokeRect(48, 62, 928, 1412)
-    ctx.font = '500 29px sans-serif'
-    ctx.fillText('S O N G S P A C E', 92, 166)
-    ctx.font = 'bold 88px serif'
-    ctx.fillText(title, 86, 298)
-    ctx.font = '24px sans-serif'
-    ctx.fillText('MUSIC COLLECTION  /  VOL. 01', 92, 354)
-    ctx.save()
-    ctx.translate(512, 824)
-    ctx.lineWidth = 7
-    if (title.includes('载具')) {
-      for (const x of [-208, 208]) {
-        ctx.beginPath()
-        ctx.arc(x, 98, 132, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.lineWidth = 2
-        for (let i = 0; i < 12; i++) {
-          const a = (i * Math.PI) / 6
-          ctx.moveTo(x, 98)
-          ctx.lineTo(x + Math.cos(a) * 124, 98 + Math.sin(a) * 124)
-          ctx.stroke()
-        }
-        ctx.lineWidth = 7
-      }
-      ctx.beginPath()
-      ctx.moveTo(-208, 98)
-      ctx.lineTo(-60, -105)
-      ctx.lineTo(45, 98)
-      ctx.lineTo(-208, 98)
-      ctx.lineTo(140, -95)
-      ctx.lineTo(208, 98)
-      ctx.moveTo(140, -95)
-      ctx.lineTo(120, -158)
-      ctx.lineTo(58, -158)
-      ctx.moveTo(-60, -105)
-      ctx.lineTo(-95, -155)
-      ctx.stroke()
-      ctx.fillRect(-128, -168, 88, 14)
-    } else if (title.includes('主题')) {
-      ctx.beginPath()
-      ctx.arc(0, 0, 240, 0, Math.PI * 2)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.ellipse(0, 0, 110, 240, 0, 0, Math.PI * 2)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.ellipse(0, 0, 240, 84, 0, 0, Math.PI * 2)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(-235, 0)
-      ctx.lineTo(235, 0)
-      ctx.stroke()
-    } else {
-      ctx.beginPath()
-      ctx.arc(0, 0, 242, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.fillStyle = bg
-      ctx.beginPath()
-      ctx.arc(0, 0, 72, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.strokeStyle = bg
-      ctx.lineWidth = 2
-      for (let r = 100; r < 225; r += 18) {
-        ctx.beginPath()
-        ctx.arc(0, 0, r, 0.35, Math.PI * 1.83)
-        ctx.stroke()
-      }
-      ctx.fillStyle = ink
-      ctx.beginPath()
-      ctx.arc(0, 0, 10, 0, Math.PI * 2)
-      ctx.fill()
-    }
-    ctx.restore()
-    ctx.strokeStyle = ink
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.moveTo(92, 1212)
-    ctx.lineTo(932, 1212)
-    ctx.stroke()
-    ctx.fillStyle = ink
-    ctx.font = 'bold 72px sans-serif'
-    ctx.fillText(String(count).padStart(2, '0'), 90, 1324)
-    ctx.font = '24px sans-serif'
-    ctx.fillText('CARDS INSIDE', 236, 1310)
-    ctx.font = '21px sans-serif'
-    ctx.fillText('一首好歌，一段新的旅程。', 92, 1408)
+
+    ctx.fillStyle='#ebedf0';ctx.fillRect(0,0,1024,1536)
+    const accent=tone==='gold'?['#e6c670','#efa382']:tone==='blue'?['#78ccde','#939be2']:tone==='rainbow'?['#99d4d3','#d4a9dc']:['#99d2b9','#85b8db']
+    ctx.fillStyle='#252936';ctx.font='600 25px sans-serif';ctx.fillText('MUSIC COLLECTIBLE / 01',82,148)
+    ctx.font='900 148px sans-serif';ctx.fillText('SONG',72,380);ctx.fillText('SPACE',72,515)
+    const gradient=ctx.createLinearGradient(130,610,850,1070);gradient.addColorStop(0,accent[0]!);gradient.addColorStop(.5,'#dde5f4');gradient.addColorStop(1,accent[1]!)
+    ctx.fillStyle=gradient;ctx.fillRect(82,630,860,450)
+    ctx.fillStyle='#303947';for(let i=0;i<17;i++){const height=65+Math.pow(Math.sin(i*.65+.2),2)*235;ctx.fillRect(135+i*44,850-height/2,20,height)}
+    ctx.fillStyle='#282d3b';ctx.font='bold 59px sans-serif';ctx.fillText(title,80,1210)
+    ctx.font='500 26px sans-serif';ctx.fillText('SONGSPACE ORIGINAL',82,1280)
+    ctx.font='bold 76px sans-serif';ctx.fillText(String(count).padStart(2,'0'),80,1405);ctx.font='24px sans-serif';ctx.fillText('CARDS',200,1384)
+    ctx.lineWidth=3;ctx.strokeStyle='#5b6372';ctx.beginPath();ctx.moveTo(910,145);ctx.lineTo(942,145);ctx.lineTo(942,178);ctx.moveTo(82,1436);ctx.lineTo(82,1460);ctx.lineTo(116,1460);ctx.stroke()
+    for(let i=0;i<35;i++){ctx.fillStyle='#3c4351';ctx.fillRect(700+i*6,1340,1+(i%3),65)}
     texture.needsUpdate = true
     // Subdivided surfaces create a pillowed foil pouch, pinched into sealed edges.
     for (const side of [1, -1]) {
-      const geo = new T.PlaneGeometry(2.12, 3.1, 36, 48),
+      const geo = new T.PlaneGeometry(2.12, 3.1, 64, 80),
         p = geo.attributes.position!
       for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i),
-          y = p.getY(i)
+        const x = p.getX(i)
+        const originalY = p.getY(i)
+        const y = originalY > 1.35 ? 1.35 + (originalY - 1.35) * .8 : originalY
+        p.setY(i, y)
         const bulge =
           Math.pow(
             Math.max(0, Math.cos((x / 2.12) * Math.PI) * Math.cos((y / 3.1) * Math.PI)),
             0.65,
           ) * 0.24
-        const wrinkle = Math.sin(x * 29 + y * 9) * 0.018 * Math.pow(Math.abs(x / 1.06), 5)
-        p.setZ(i, side * (0.045 + bulge + wrinkle))
+        const edge = Math.pow(Math.abs(x / 1.06), 2.8)
+        const sealCrease = Math.pow(Math.abs(y / 1.55), 5)
+        const topFade = y > 1.25 ? Math.max(0, (1.55 - y) / .3) : 1
+        const wrinkle = (Math.sin(x * 38 + y * 5) * .035 * edge
+          + Math.sin(y * 27 + x * 11) * .025 * sealCrease
+          + Math.sin((x + y * .7) * 20) * .018 * edge * sealCrease) * topFade
+        const pinch = Math.min(1, Math.max(0, (SEAM_Y - y) / .16))
+        p.setZ(i, side * (.05 + (bulge + wrinkle - .005) * pinch))
       }
       geo.computeVertexNormals()
+      this.lips.push({ geometry: geo, side })
       const m = new T.Mesh(geo, side === 1 ? front : foil)
       this.bag.add(m)
     }
     for (const side of [-1, 1]) {
-      const fold = new T.Mesh(new T.BoxGeometry(0.045, 3.12, 0.1), foil)
-      fold.position.x = side * 1.07
+      const fold = new T.Mesh(new T.BoxGeometry(0.045, 3.07, 0.1), foil)
+      fold.position.set(side * 1.07, -.025, 0)
       this.bag.add(fold)
     }
     this.bag.add(this.seal)
+    // Heat-pressed foil: the crimp is embossed into the strip, not separate teeth.
+    const sealCanvas = document.createElement('canvas')
+    sealCanvas.width = 1024
+    sealCanvas.height = 96
+    const sealInk = sealCanvas.getContext('2d')!
+    sealInk.fillStyle = '#b9c2c2'
+    sealInk.fillRect(0, 0, 1024, 96)
+    for (let x = 6; x < 1024; x += 18) {
+      sealInk.fillStyle = '#eef3f2'
+      sealInk.fillRect(x, 9, 3, 68)
+      sealInk.fillStyle = '#7e9291'
+      sealInk.fillRect(x + 3, 9, 3, 68)
+    }
+    sealInk.fillStyle = '#b6c1c0'
+    sealInk.fillRect(0, 83, 1024, 1)
+    const sealTexture = new T.CanvasTexture(sealCanvas)
+    sealTexture.colorSpace = T.SRGBColorSpace
+    const sealMaterial = new T.MeshPhysicalMaterial({ color, map: sealTexture, bumpMap: sealTexture,
+      bumpScale: .012, metalness: .85, roughness: .42, clearcoat: .25, side: T.DoubleSide })
+    this.seal.position.set(-POUCH_HALF_WIDTH, SEAM_Y + SEAL_HEIGHT / 2, 0)
     for (const top of [-1, 1]) {
       const parent = top === 1 ? this.seal : this.bag
-      const strip = new T.Mesh(new T.BoxGeometry(2.17, 0.18, 0.1), foil)
-      strip.position.y = top * 1.59
+      const stripGeometry = top === 1
+        ? new T.PlaneGeometry(POUCH_HALF_WIDTH * 2, SEAL_HEIGHT, 56, 4)
+        : new T.BoxGeometry(2.17, .18, .1)
+      const strip = new T.Mesh(stripGeometry, top === 1 ? sealMaterial : foil)
+      strip.position.set(top === 1 ? POUCH_HALF_WIDTH : 0, top === 1 ? 0 : -1.59, top === 1 ? .05 : 0)
       parent.add(strip)
-      for (let i = 0; i < 48; i++) {
-        const rib = new T.Mesh(new T.BoxGeometry(0.012, 0.17, 0.012), foil)
-        rib.position.set(-1.03 + i * 0.044, top * 1.59, 0.058)
-        parent.add(rib)
+      if (top === 1) {
+        this.ribbons.push({ geometry: stripGeometry, side: 1 })
+        const backGeometry = stripGeometry.clone()
+        const back = new T.Mesh(backGeometry, sealMaterial)
+        back.position.set(POUCH_HALF_WIDTH, 0, -.05)
+        parent.add(back)
+        this.ribbons.push({ geometry: backGeometry, side: -1 })
+      }
+      if (top !== 1) {
+        for (let i = 0; i < 48; i++) {
+          const rib = new T.Mesh(new T.BoxGeometry(.012, .17, .012), foil)
+          rib.position.set(-1.03 + i * .044, -1.59, .058)
+          parent.add(rib)
+        }
       }
     }
+    const tabShape = new T.Shape()
+    tabShape.moveTo(-.06, -.075)
+    tabShape.lineTo(.23, -.075)
+    tabShape.quadraticCurveTo(.29, -.075, .29, -.025)
+    tabShape.lineTo(.29, .025)
+    tabShape.quadraticCurveTo(.29, .075, .23, .075)
+    tabShape.lineTo(-.06, .075)
+    tabShape.closePath()
+    const tab = new T.Mesh(new T.ShapeGeometry(tabShape), sealMaterial)
+    this.pullTab.add(tab)
+    // Keep the grip inside the pouch silhouette instead of extending the seal sideways.
+    this.pullTab.position.set(POUCH_HALF_WIDTH * 2 - .29, 0, .056)
+    this.seal.add(this.pullTab)
+    this.mouth = new T.Mesh(new T.PlaneGeometry(1.98, .12),
+      new T.MeshBasicMaterial({ color: '#47534e', transparent: true, opacity: 0, side: T.DoubleSide }))
+    this.mouth.position.set(0, 1.515, 0)
+    this.bag.add(this.mouth)
     this.observer = new ResizeObserver(() => this.resize())
     this.observer.observe(host)
     this.resize()
@@ -219,10 +199,16 @@ export class PackModel {
   }
   tear(value: number) {
     this.tearing = value
+    this.dirty = true
   }
   open() {
     this.opening = true
-    this.start = performance.now()
+    this.tearStart = this.tearing
+    this.dirty = true
+  }
+  openingAt(value: number) {
+    this.openingProgress = value
+    this.dirty = true
   }
   private resize() {
     this.dirty = true
@@ -237,20 +223,60 @@ export class PackModel {
     this.frame = requestAnimationFrame(this.animate)
     if (document.hidden || !this.host.clientWidth) return
     const t = performance.now() / 1000
-    const target = -0.38 + this.target * 0.35
+    const target = -0.22 + (this.opening || this.tearing ? 0 : this.target * 0.18)
     if (this.preview && !this.dirty && Math.abs(this.bag.rotation.y - target) < 0.001) return
     this.bag.rotation.y += (target - this.bag.rotation.y) * 0.08
     this.bag.rotation.z = -0.08 + (this.preview ? 0 : Math.sin(t * 0.65) * 0.025)
-    this.seal.position.x = this.tearing * 0.65
-    this.seal.rotation.z = -this.tearing * 0.15
-    if (this.opening) {
-      const p = Math.min(1, (performance.now() - this.start) / 850)
-      this.seal.position.set(p * 2, p * 1.3, 0)
-      this.seal.rotation.z = -p * 0.8
-      this.bag.position.y = -p * p * 3
-      this.bag.rotation.x = p * 0.6
+    const p = this.opening ? this.tearStart * .5 + this.openingProgress * (1 - this.tearStart * .5) : this.tearing * .5
+    const released = Math.max(0, (p - .78) / .22)
+    this.seal.position.set(-POUCH_HALF_WIDTH + released * .85, SEAM_Y + SEAL_HEIGHT / 2 + released * .55, released * .3)
+    this.seal.rotation.set(released * .4, released * -.2, released * .28)
+    if (p > 0 || this.dirty) {
+      for (const { geometry } of this.ribbons) {
+        const position = geometry.attributes.position!
+        for (let i = 0; i < position.count; i++) {
+          const x = position.getX(i)
+          // Peel right to left while the left end stays attached until release.
+          const u = (x + POUCH_HALF_WIDTH) / (POUCH_HALF_WIDTH * 2)
+          const peeled = Math.max(0, (u - (1 - p)) / Math.max(p, .001))
+          const row = Math.floor(i / 57)
+          position.setY(i, SEAL_HEIGHT / 2 - row * SEAL_HEIGHT / 4 + peeled * peeled * p * .28)
+          position.setZ(i, Math.sin(peeled * Math.PI * .7) * p * .22)
+        }
+        position.needsUpdate = true
+        geometry.computeVertexNormals()
+      }
+      this.pullTab.position.y = p * .28
+      this.pullTab.position.z = .056 + Math.sin(p * Math.PI * .7) * .22
+      this.pullTab.rotation.x = p * .65
+      for (const { geometry, side } of this.lips) {
+        const position = geometry.attributes.position!
+        for (let i = 0; i < position.count; i++) {
+          const y = position.getY(i)
+          if (y < 1.4) continue
+          const x = position.getX(i)
+          const opening = Math.max(0, 1 - Math.abs(x / 1.06)) * ((y - 1.4) / (SEAM_Y - 1.4))
+          const bulge = Math.pow(Math.max(0, Math.cos(x / 2.12 * Math.PI) * Math.cos(y / 3.1 * Math.PI)), .65) * .24
+          const edge = Math.pow(Math.abs(x / 1.06), 2.8)
+          const crease = Math.pow(Math.abs(y / 1.55), 5)
+          const wrinkle = (Math.sin(x * 38 + y * 5) * .035 * edge + Math.sin(y * 27 + x * 11) * .025 * crease
+            + Math.sin((x + y * .7) * 20) * .018 * edge * crease) * Math.max(0, (1.55 - y) / .3)
+          const pinch = Math.min(1, Math.max(0, (SEAM_Y - y) / .16))
+          position.setZ(i, side * (.05 + (bulge + wrinkle - .005) * pinch + opening * p * .13))
+        }
+        position.needsUpdate = true
+        geometry.computeVertexNormals()
+      }
+      if (this.mouth) this.mouth.material.opacity = Math.min(.8, p * 1.2)
+      this.seal.visible = p < .98
     }
     this.renderer.render(this.scene, this.camera)
+    // Project the actual foil tab into this canvas, including rotation and resize.
+    this.tabAnchor.set(.12, 0, .006)
+    this.pullTab.localToWorld(this.tabAnchor)
+    this.tabAnchor.project(this.camera)
+    this.host.style.setProperty('--pull-x', `${(this.tabAnchor.x + 1) * this.host.clientWidth / 2}px`)
+    this.host.style.setProperty('--pull-y', `${(1 - this.tabAnchor.y) * this.host.clientHeight / 2}px`)
     this.dirty = false
   }
   dispose() {
@@ -258,6 +284,7 @@ export class PackModel {
     cancelAnimationFrame(this.frame)
     this.observer.disconnect()
     disposeObject(this.scene)
+    this.environment.dispose()
     this.renderer.dispose()
     this.renderer.domElement.remove()
   }

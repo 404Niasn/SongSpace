@@ -1,0 +1,11 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌境 · 独立测试存档</title></head><body><div id="app"></div><script type="module">
+import { game, catalog, loadCatalog } from '/src/game/save.ts'
+import { imagery } from '/src/game/imagery.ts'
+await loadCatalog()
+for (const song of catalog.songs) game.owned[song.id] = 4
+game.equippedItems = catalog.songs.filter(s => ['心墙','你要的全拿走'].includes(s.title)).map(s=>s.id)
+const decoration=catalog.songs.find(s=>s.title==='夏夜最后的烟火')
+imagery.sea=[{songId:decoration.id,x:-12,z:12,rotation:0}]
+history.replaceState(null, '', '/')
+await import('/src/main.ts')
+</script></body></html>

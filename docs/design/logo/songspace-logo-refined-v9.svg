@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 640 640">
+  <defs>
+    <rect id="card" x="0" y="-126" width="90" height="126" rx="7"/>
+  </defs>
+  <rect width="640" height="640" fill="#fafbfc"/>
+  <circle cx="320" cy="320" r="240" fill="#b4cadb"/>
+  <!-- Five exact copies, 5:7 proportions, evenly spaced rotations. -->
+  <g transform="translate(230 230) scale(.60)" stroke="#fafbf7" stroke-width="5" stroke-linejoin="round">
+    <g transform="rotate(-90)"><use href="#card" fill="#789aaf"/></g>
+    <g transform="rotate(-67.5)"><use href="#card" fill="#a3bfd3"/></g>
+    <g transform="rotate(-45)"><use href="#card" fill="#a9d2c3"/></g>
+    <g transform="rotate(-22.5)"><use href="#card" fill="#d9e5eb"/></g>
+    <use href="#card" fill="#fafbf7"/>
+  </g>
+  <circle cx="320" cy="320" r="72" fill="#fafbf7"/>
+  <g fill="none" stroke="#405d70" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m286 313 34-30 34 30m-61-5v40h54v-40"/>
+    <path d="M312 348v-17a8 8 0 0 1 16 0v17"/>
+  </g>
+  <g fill="none" stroke="#fafbf7" stroke-width="5" stroke-linecap="round">
+    <path d="M476 320a156 156 0 0 1-156 156"/>
+    <path d="M518 320a198 198 0 0 1-198 198"/>
+  </g>
+</svg>

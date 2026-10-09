@@ -28,6 +28,7 @@ function guess() {
   answer.value = ''
   if (a === question.title) {
     game.challengeWon = true
+    game.challengeWins++
     const attempts = game.challengeAttempts.length
     const pack = attempts === 1 ? 'five' : attempts <= 3 ? 'triple' : 'single'
     game.packs[pack] = (game.packs[pack] || 0) + 1

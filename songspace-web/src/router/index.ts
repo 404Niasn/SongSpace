@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { hasSession } from '@/game/cloud'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,9 +7,14 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('../views/HomeView.vue'),
     },
+    { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
   ],
+})
+
+router.beforeEach((to) => {
+  if (to.name !== 'login' && !hasSession()) return { name: 'login' }
 })
 
 export default router

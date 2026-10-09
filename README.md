@@ -2,7 +2,7 @@
 
 Build with AI. Build with Music.
 
-歌曲逐渐成为个人世界的建造材料。本阶段仅实现后端基础设施与基础数据模型。
+歌曲逐渐成为个人世界的建造材料。当前已实现后端基础设施、基础数据模型及游戏存档同步。
 
 ## 本地运行（PowerShell）
 
@@ -60,7 +60,7 @@ docs/plans/           当前基础架构实施计划
 songspace-web/        已有前端
 ```
 
-Router 调用 Service，Service 使用 Session 和 Model，Schema 定义 HTTP 契约。当前只暴露健康接口，没有产品 CRUD。
+Router 调用 Service，Service 使用 Session 和 Model，Schema 定义 HTTP 契约。当前暴露健康接口与游戏会话、存档同步接口。
 每个请求使用独立 Session，异常回滚并关闭。依赖不自动 commit；未来写入 Service 使用 `with session.begin():` 管理一个业务动作的事务。
 连接池启用 `pool_pre_ping`；连接和 SQL 查询超时当前各为 5 秒。应用关闭时释放连接池。
 
@@ -110,3 +110,15 @@ Remove-Item Env:TEST_DATABASE_URL
 也可以将 `.env` 的连接值填入 `TEST_DATABASE_URL`。集成测试创建随机命名的 `songspace_test_<uuid>` schema，验证迁移升级/降级/再升级、模型一致性、数据写入、唯一约束、来源外键、级联删除和缩放约束；结束后清理该 schema，不清理 public。测试账户需要 CREATE SCHEMA 权限。
 
 当前没有 AI、音乐平台、登录、JWT、WebSocket、任务队列或部署功能；后续按具体业务需求逐步增加。
+
+## 游戏存档接口
+
+本机已创建 PostgreSQL 数据库 `songspace`，连接配置位于被 Git 忽略的 `.env`。迁移 `0002_game_profiles` 为游戏存档新增独立表，不替代原有世界模型。
+
+- `POST /api/v1/game/sessions`：以初始游戏快照建立会话，仅返回一次原始令牌，数据库保存哈希。
+- `GET /api/v1/game/save`：Bearer 令牌读取当前存档。
+- `PATCH /api/v1/game/save`：提交修订号和完整状态，冲突返回 409，不覆盖较新的存档。
+
+前端 Vite 的 `/api` 代理到本机 8000。浏览器保留离线缓存并显示同步状态。独立登录页 `/login` 上方输入名字作为账号 ID，通过 `POST /api/v1/game/accounts` 注册（重复 ID 返回 409）；下方通过 `POST /api/v1/game/sessions/restore` 验证已有 ID 并恢复存档，兼容旧游戏 ID。ID 相当于密码，数据库只保存凭据哈希。服务端抽卡结算、反作弊和共享排行榜尚未实现。
+
+本次使用根目录 `.venv` 安装依赖。启动后端：`.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000`；前端在 `songspace-web` 执行 `npm run dev -- --host 127.0.0.1 --port 5173`。

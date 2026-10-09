@@ -2,7 +2,9 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { Race, type RaceStatus } from '@/game/race'
 import type { WorldId } from '@/worlds/types'
-const props = defineProps<{ world: WorldId; color: string; baseSpeed: number; evening: boolean }>()
+import type { SkillSlot } from '@/game/skills'
+import type { OutfitDefinition } from '@/game/outfits'
+const props = defineProps<{ world: WorldId; color: string; baseSpeed: number; evening: boolean; skills: SkillSlot[]; outfits: OutfitDefinition[] }>()
 const emit = defineEmits<{ status: [RaceStatus]; end: [RaceStatus]; ready: []; error: [string] }>()
 const host = ref<HTMLElement>()
 let race: Race | undefined
@@ -16,6 +18,8 @@ onMounted(() => {
       props.color,
       props.baseSpeed,
       props.evening,
+      props.skills,
+      props.outfits,
     )
     emit('ready')
   } catch (e) {
@@ -27,10 +31,12 @@ onBeforeUnmount(() => race?.dispose())
 defineExpose({
   camera: (mode: number) => race?.setCamera(mode),
   start: () => race?.start(),
+  enter: () => race?.enter() ?? Promise.resolve(false),
   finish: () => race?.finish(),
   pause: () => race?.togglePause(),
   control: (a: string) => race?.control(a),
   boost: (seconds: number) => race?.useBoost(seconds),
+  useSkill: (index: number) => race?.useSkill(index) || false,
 })
 </script>
 <template><div ref="host" class="race-canvas" /></template>

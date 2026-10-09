@@ -7,6 +7,7 @@ const props = defineProps<{
   tone: string
   tear?: number
   opening?: boolean
+  openingProgress?: number
   preview?: boolean
 }>()
 const host = ref<HTMLElement>()
@@ -25,6 +26,7 @@ watch(
     if (v) model?.open()
   },
 )
+watch(() => props.openingProgress, (value) => model?.openingAt(value || 0))
 onBeforeUnmount(() => model?.dispose())
 function move(e: PointerEvent) {
   const rect = host.value!.getBoundingClientRect()
@@ -32,5 +34,5 @@ function move(e: PointerEvent) {
 }
 </script>
 <template>
-  <div ref="host" class="pack-model" @pointermove="move" @pointerleave="model?.tilt(0)" />
+  <div ref="host" class="pack-model" @pointermove="move" @pointerleave="model?.tilt(0)"><slot /></div>
 </template>

@@ -28,7 +28,7 @@ const filtered = computed(() => {
     `${song.title} ${artists(song)} ${song.album}`.toLocaleLowerCase().includes(search),
   )
   return result.sort((a, b) =>
-    sort.value === 'rank' ? a.rank - b.rank : a.title.localeCompare(b.title, 'zh-CN'),
+    sort.value === 'rank' ? (a.rank || Infinity) - (b.rank || Infinity) : a.title.localeCompare(b.title, 'zh-CN'),
   )
 })
 
@@ -41,7 +41,7 @@ async function load() {
     })
     if (!response.ok) throw new Error('Could not load the song catalog')
     const catalog = await response.json()
-    if (!Array.isArray(catalog.songs) || catalog.songs.length !== 100)
+    if (!Array.isArray(catalog.songs) || !catalog.songs.length)
       throw new Error('Invalid song catalog')
     songs.value = catalog.songs
     chartDate.value = catalog.source.chart_date
@@ -119,7 +119,7 @@ onBeforeUnmount(() => abort.abort())
         <div class="song-cover">
           <img :src="cover(song)" :alt="`${song.album} 专辑封面`" loading="lazy" /><span
             class="song-rank"
-            >{{ String(song.rank).padStart(2, '0') }}</span
+            >{{ song.rank ? String(song.rank).padStart(2, '0') : '特选' }}</span
           ><span class="cover-open">查看歌曲 ↗</span>
         </div>
         <h2 :title="song.title">{{ song.title }}</h2>
@@ -131,7 +131,7 @@ onBeforeUnmount(() => abort.abort())
         ><button class="dialog-close" aria-label="关闭歌曲详情" @click="close">×</button
         ><img class="detail-cover" :src="cover(selected)" :alt="`${selected.album} 专辑封面`" />
         <div class="song-detail-body">
-          <p class="section-label">热歌榜第 {{ selected.rank }} 名</p>
+          <p class="section-label">{{ selected.rank ? `热歌榜第 ${selected.rank} 名` : '特选歌曲 · 榜单外补充' }}</p>
           <h2>{{ selected.title }}</h2>
           <p class="detail-artist">{{ artists(selected) }}</p>
           <dl>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { WorldEngine, type WorldStatus } from '@/worlds/engine'
-import type { DecorationKind, ViewMode, WorldId } from '@/worlds/types'
+import type { ViewMode, WorldId } from '@/worlds/types'
 
 const props = defineProps<{
   world: WorldId
@@ -9,7 +9,7 @@ const props = defineProps<{
   evening: boolean
   firstPerson: boolean
   transport: 'bike' | 'walk'
-  placement: DecorationKind | null
+  placement: string | null
 }>()
 const emit = defineEmits<{
   status: [status: WorldStatus]
@@ -35,6 +35,7 @@ onMounted(() => {
       () => emit('cancelPlacement'),
     )
     engine.setEvening(props.evening)
+    engine.setPlacement(props.placement)
     emit('ready')
   } catch (cause) {
     console.error('Could not create the song world', cause)

@@ -6,7 +6,7 @@ import { WORLD_OPTIONS, type WorldId } from './types'
 export function renderWorldThumbnails(): Record<WorldId, string> {
   const thumbnails = {} as Record<WorldId, string>
   const renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setSize(240, 160)
+  renderer.setSize(600, 400)
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.15
   renderer.shadowMap.enabled = true

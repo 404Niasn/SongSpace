@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import SongCard from './SongCard.vue'
-import { catalog, game, cardFor, KIND_NAMES, ownedCount, persist, type GameCard } from '@/game/save'
-const emit = defineEmits<{ equip: [GameCard]; decorate: [] }>()
+import CharacterWardrobe from './CharacterWardrobe.vue'
+import { catalog, game, cardFor, KIND_NAMES, ownedCount, persist, equipOutfit, type GameCard } from '@/game/save'
+import { artPath, imageryFor, skillLevel } from '@/game/content'
+import { availableImagery, placedCount } from '@/game/imagery'
+const emit = defineEmits<{ equip: [GameCard]; decorate: [GameCard]; message: [text: string] }>()
+const section = ref<'songs' | 'outfits'>('songs')
+const base = import.meta.env.BASE_URL
 const query = ref(''),
   filter = ref('all'),
   ownedOnly = ref(false),
@@ -19,8 +24,12 @@ const cards = computed(() =>
 )
 function use(c: GameCard) {
   if (!c.count) return
+  if (c.outfit && equipOutfit(c.outfit.id)) {
+    section.value = 'outfits'
+    emit('message', `已穿戴${c.outfit.name}，进入探索即可看到。`)
+  }
   if (c.kind === 'item' || c.kind === 'vehicle' || c.kind === 'map') emit('equip', c)
-  else if (c.kind === 'decoration') emit('decorate')
+  else if (c.kind === 'decoration') emit('decorate', c)
   selected.value = null
   persist()
 }
@@ -31,12 +40,17 @@ function use(c: GameCard) {
       <div>
         <p class="eyebrow">SONGSPACE / COLLECTION</p>
         <h1>
-          我的歌曲仓库 <span>{{ ownedCount }}<small>/100</small></span>
+          我的歌曲仓库 <span>{{ ownedCount }}<small>/{{ catalog.songs.length }}</small></span>
         </h1>
         <p>拥有的歌亮起来，还没遇见的歌等你拆开。</p>
       </div>
-      <label class="owned-toggle"><input type="checkbox" v-model="ownedOnly" />只看已拥有</label>
+      <label v-if="section === 'songs'" class="owned-toggle"><input type="checkbox" v-model="ownedOnly" />只看已拥有</label>
     </div>
+    <div class="filter-tabs wardrobe-sections" aria-label="仓库分类">
+      <button :class="{ active: section === 'songs' }" :aria-pressed="section === 'songs'" @click="section = 'songs'">歌曲收藏</button>
+      <button :class="{ active: section === 'outfits' }" :aria-pressed="section === 'outfits'" @click="section = 'outfits'">人物装扮</button>
+    </div>
+    <template v-if="section === 'songs'">
     <div class="warehouse-tools">
       <div class="filter-tabs">
         <button
@@ -46,6 +60,7 @@ function use(c: GameCard) {
             item: '道具',
             vehicle: '载具',
             map: '地图',
+            outfit: '装扮',
           }"
           :key="key"
           :class="{ active: filter === key }"
@@ -74,6 +89,8 @@ function use(c: GameCard) {
         <SongCard :card="card" />
       </button>
     </div>
+    </template>
+    <CharacterWardrobe v-else @message="emit('message', $event)" />
   </section>
   <div
     v-if="selected"
@@ -96,21 +113,23 @@ function use(c: GameCard) {
         <h2>{{ selected.song.title }}</h2>
         <p>{{ selected.song.artists.map((a) => a.name).join(' / ') }}</p>
         <p>{{ selected.effect }}</p>
+        <div v-if="selected.outfit" class="outfit-card-detail"><img :src="base + selected.outfit.preview" :alt="selected.outfit.name" /><p>{{ selected.outfit.description }}</p></div>
+        <div v-if="selected.art" class="imagery-detail"><img :src="artPath(selected.art)" :alt="selected.effect"/><blockquote>{{ selected.prose }}</blockquote></div>
         <p>
           {{
             selected.count
-              ? `拥有 ${selected.count} 张 · 等级 ${1 + Math.floor((selected.count - 1) / 3)}`
+              ? selected.outfit ? `拥有 ${selected.count} 张 · 装扮已解锁，穿戴不消耗卡片` : selected.kind === 'decoration' ? `总拥有 ${selected.count} 件 · 已摆放 ${placedCount(selected.id)} 件 · 可用 ${availableImagery(selected.id)} 件 · 每件装饰值 +${imageryFor(selected.song.title).value}` : `拥有 ${selected.count} 张 · 等级 ${skillLevel(selected.count)}`
               : '未获得 · 可以通过卡包收集'
           }}
         </p>
-        <button v-if="selected.count" class="lime-btn" @click="use(selected)">
+        <button v-if="selected.count" class="lime-btn" :disabled="selected.kind === 'decoration' && availableImagery(selected.id) < 1" @click="use(selected)">
           {{
-            selected.kind === 'map'
-              ? '启用夜骑主题'
+            selected.outfit ? '穿戴这件装扮' : selected.kind === 'map'
+              ? '启用夜间探索主题'
               : selected.kind === 'vehicle'
                 ? '装备自行车'
                 : selected.kind === 'item'
-                  ? '装备助力道具'
+                  ? '携带这件道具'
                   : '去布置意象装饰'
           }}
         </button>
@@ -128,3 +147,6 @@ function use(c: GameCard) {
     </article>
   </div>
 </template>
+<style scoped>
+.wardrobe-sections{display:flex;width:fit-content;margin-bottom:20px}.wardrobe-sections button{padding:11px 20px;font-size:12px}.outfit-card-detail{display:flex;gap:12px;align-items:center;margin:16px 0}.outfit-card-detail img{width:95px;height:95px;border-radius:8px}.outfit-card-detail p{font-size:12px;line-height:1.7}
+</style>

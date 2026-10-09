@@ -2,8 +2,15 @@ import * as T from 'three'
 import { jiangnanHouse, canalBoat } from '@/worlds/jiangnan'
 import { atmosphere } from '@/worlds/atmosphere'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { disposeObject } from '@/worlds/models'
+import { buildWorld, disposeObject } from '@/worlds/models'
 import type { WorldId } from '@/worlds/types'
+import { Skills, type SkillSlot } from './skills'
+import { catalog } from './save'
+import { imageryFor } from './content'
+import { validPlacements } from './imagery'
+import { buildImagery, buildSkillEffect } from '@/worlds/imageryModels'
+import { addCharacterOutfits } from '@/worlds/outfitModels'
+import type { OutfitDefinition } from './outfits'
 export interface RaceStatus {
   distance: number
   score: number
@@ -13,6 +20,8 @@ export interface RaceStatus {
   stage: number
   paused: boolean
   boost: number
+  skills?: { name: string; id: string; used: boolean; active: string; automatic: boolean }[]
+  event?: string
 }
 export class Race {
   private renderer: T.WebGLRenderer
@@ -26,6 +35,7 @@ export class Race {
     lane: number
     taken: boolean
     obstacle: boolean
+    dynamic: boolean
   }[] = []
   private wheels: T.Group[] = []
   private legs: { upper: T.Mesh; lower: T.Mesh; shoe: T.Mesh; pedal: T.Mesh; side: number }[] = []
@@ -54,6 +64,19 @@ export class Race {
   private cameraMode = 0
   private cameraLook = new T.Vector3(0, 1.5, -5)
   private waveUniform = { value: 0 }
+  private skills: Skills
+  private bonusCoins = 0
+  private elapsed = 0
+  private event = ''
+  private eventUntil = 0
+  private effects = new T.Group()
+  private effectId = ''
+  private effectUntil = 0
+  private scenic: { group: T.Group; distance: number }[] = []
+  private snapshots: { time: number; distance: number; coins: number; bonus: number; health: number; lane: number; x: number; jump: number; taken: string[] }[] = []
+  private miniature: ReturnType<typeof buildWorld> | undefined
+  private enteringAt = 0
+  private entered: ((ok: boolean) => void) | undefined
   constructor(
     private host: HTMLElement,
     private world: WorldId,
@@ -62,7 +85,10 @@ export class Race {
     private vehicleColor = '#50c5b4',
     private baseSpeed = 13,
     private evening = false,
+    slots: SkillSlot[] = [],
+    private outfits: OutfitDefinition[] = [],
   ) {
+    this.skills = new Skills(slots.slice(0, 2))
     this.sky = new T.Color(world === 'sea' ? '#f7d7b2' : world === 'forest' ? '#cce0cf' : '#d6e7e8')
     if (this.evening) this.sky.set('#283c54')
     this.scene.background = this.sky
@@ -75,7 +101,7 @@ export class Race {
     this.renderer.toneMapping = T.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1.1
     this.renderer.domElement.tabIndex = 0
-    this.renderer.domElement.setAttribute('aria-label', '第三人称骑行闯关场景')
+    this.renderer.domElement.setAttribute('aria-label', '第三人称探索闯关场景')
     host.append(this.renderer.domElement)
     const sun = new T.DirectionalLight(
       this.evening ? '#aecbe6' : '#ffefd5',
@@ -124,8 +150,20 @@ export class Race {
     this.makeBike()
     this.updatePedals()
     this.scene.add(this.bike)
+    this.scene.add(this.effects)
+    for (const [i, p] of validPlacements(world).entries()) {
+      const song = catalog.songs.find(s => s.id === p.songId)!
+      const group = buildImagery(imageryFor(song.title).model)
+      group.position.set((p.x < 0 ? -1 : 1) * (5.7 + Math.min(1.4, Math.abs(p.x) / 20)), 0, -20 - i * 9)
+      group.rotation.y = p.rotation
+      this.scenic.push({ group, distance: 20 + i * 9 })
+      this.scene.add(group)
+    }
     while (this.nextRow < 160) this.addRow()
     for (const token of this.tokens) token.mesh.position.z = -token.z
+    this.miniature = buildWorld(world)
+    this.scene.add(this.miniature.group)
+    this.showRoad(false)
     this.camera.position.set(1.15, 2.6, 5.7)
     this.camera.lookAt(0, 1.4, -7)
     window.addEventListener(
@@ -136,6 +174,8 @@ export class Race {
         if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key))
           e.preventDefault()
         if (e.repeat) return
+        if (e.key === '1' || e.key === '2') { this.useSkill(Number(e.key) - 1); return }
+        if (this.paused && e.key !== 'Escape') return
         this.keys.add(e.key.toLowerCase())
         if (['a', 'arrowleft'].includes(e.key.toLowerCase())) this.control('left')
         if (['d', 'arrowright'].includes(e.key.toLowerCase())) this.control('right')
@@ -532,7 +572,7 @@ export class Race {
     ])
       this.link(b, u!, v!, 0.042, this.vehicleColor)
     this.link(b, e, new T.Vector3(0, 1.36, 0.4), 0.028, '#566466')
-    this.box(b, '#324c51', 0, 1.4, 0.4, 0.4, 0.1, 0.35)
+    this.mesh(new RoundedBoxGeometry(0.29, 0.08, 0.38, 3, 0.035), '#324c51', b, 0, 1.38, 0.4)
     this.link(b, f, new T.Vector3(0, 1.45, -0.72), 0.028, '#566466')
     this.link(
       b,
@@ -545,7 +585,8 @@ export class Race {
     this.box(b, '#344348', 0.39, 1.46, -0.72, 0.15, 0.07, 0.1)
     const chain = this.mesh(new T.TorusGeometry(0.16, 0.016, 8, 24), '#bac8bd', b, 0.07, 0.7, 0.05)
     chain.rotation.y = Math.PI / 2
-    const body = this.mesh(new T.CapsuleGeometry(0.29, 0.46, 8, 20), '#f6f1e6', b, 0, 1.77, 0.28)
+    // Keep the torso above the saddle; hips sit outside its edges rather than inside it.
+    const body = this.mesh(new T.CapsuleGeometry(0.26, 0.42, 8, 20), '#f6f1e6', b, 0, 1.91, 0.25)
     body.rotation.x = -0.3
     const head = this.mesh(new T.SphereGeometry(0.32, 24, 16), '#fff9ec', b, 0, 2.35, 0.06)
     head.scale.set(1, 1.06, 1)
@@ -574,16 +615,29 @@ export class Race {
       const pedal = this.mesh(new T.BoxGeometry(0.2, 0.045, 0.15), '#a3aa9e', b)
       this.legs.push({ upper, lower, shoe, pedal, side })
     }
-    this.mesh(new RoundedBoxGeometry(0.4, 0.48, 0.22, 3, 0.065), '#ca8d68', b, 0, 1.92, 0.62)
+    addCharacterOutfits(b, this.outfits)
     this.mesh(new T.TorusGeometry(0.2, 0.055, 10, 24), '#c96753', b, 0, 2.07, 0.16).rotation.x =
       Math.PI / 2
   }
   start() {
+    if (this.miniature) this.miniature.group.visible = false
+    this.scene.fog = new T.Fog(this.sky, 70, 180)
+    this.showRoad(true)
     this.running = true
     this.paused = false
     this.host.querySelector('canvas')?.focus()
   }
+  private showRoad(visible: boolean) {
+    for (const object of [...this.chunks, ...this.tokens.map(t => t.mesh), ...this.scenic.map(p => p.group), this.bike, this.effects]) object.visible = visible
+  }
+  enter(): Promise<boolean> {
+    if (this.entered) return Promise.resolve(false)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.start(); return Promise.resolve(true) }
+    this.enteringAt = performance.now()
+    return new Promise(resolve => { this.entered = resolve })
+  }
   control(action: string) {
+    if (!this.running || this.paused) return
     if (action === 'left') this.lane = Math.max(-1, this.lane - 1)
     if (action === 'right') this.lane = Math.min(1, this.lane + 1)
     if (action === 'jump' && this.jump <= 0) this.jump = 0.85
@@ -591,6 +645,36 @@ export class Race {
   useBoost(seconds = 8) {
     this.boost = seconds
     this.onStatus(this.status())
+  }
+  useSkill(index: number) {
+    if (!this.running || this.paused || this.completed) return false
+    const past = this.snapshots.filter(s => s.time <= this.elapsed - 3 && s.health > 0).at(-1)
+    const outcome = this.skills.use(index, this.health, !!past)
+    if (!outcome.accepted) return false
+    this.health = outcome.health
+    if (outcome.rewind && past) {
+      this.distance = past.distance; this.coins = past.coins; this.bonusCoins = past.bonus
+      this.health = past.health; this.lane = past.lane; this.x = past.x; this.jump = past.jump
+      this.invincible = 1.6
+      this.skills.protection = Math.max(this.skills.protection, this.skills.slots[index]!.level - 1)
+      for (const t of this.tokens) { this.scene.remove(t.mesh); disposeObject(t.mesh) }
+      this.tokens = []
+      this.nextRow = Math.max(15, 15 + Math.floor((this.distance - 12 - 15) / 7) * 7)
+      while (this.nextRow < this.distance + 160) this.addRow()
+      for (const t of this.tokens) { t.taken = past.taken.includes(`${t.z}:${t.lane}`); t.mesh.visible = !t.taken; t.mesh.position.z = this.distance - t.z }
+      for (const [i, c] of this.chunks.entries()) c.position.z = 32 - i * 32 + (this.distance % 32)
+      this.snapshots = []
+    }
+    const slot = this.skills.slots[index]!
+    this.feedback(slot.id, `${slot.name}已发动`)
+    this.onStatus(this.status())
+    return true
+  }
+  private feedback(id: SkillSlot['id'], text: string, broken = false) {
+    this.event = text; this.eventUntil = this.elapsed + 2.5
+    this.scene.remove(this.effects); disposeObject(this.effects)
+    this.effects = buildSkillEffect(id, broken); this.effectId = id; this.effectUntil = this.elapsed + 1.6
+    this.scene.add(this.effects)
   }
   togglePause() {
     if (this.running) {
@@ -607,13 +691,15 @@ export class Race {
   private status(): RaceStatus {
     return {
       distance: Math.floor(this.distance),
-      score: Math.floor(this.distance) + this.coins * 50,
+      score: Math.floor(this.distance) + (this.coins + this.bonusCoins) * 50,
       coins: this.coins,
       health: this.health,
       speed: this.running && !this.paused ? Math.round(this.maxSpeed * 3.6) : 0,
       stage: Math.floor(this.distance / 500) + 1,
       paused: this.paused,
-      boost: Math.ceil(this.boost),
+      boost: Math.ceil(Math.max(this.boost, this.skills.boost)),
+      event: this.elapsed < this.eventUntil ? this.event : '',
+      skills: this.skills.slots.map((s, i) => ({ name: s.name, id: s.id, used: this.skills.used.has(i), active: this.skills.remaining(i), automatic: s.id === 'revive' })),
     }
   }
   private addRow() {
@@ -621,13 +707,14 @@ export class Race {
     for (let lane = -1; lane <= 1; lane++) {
       const obstacle = index > 4 && index % 4 === 0 && lane === (Math.floor(index / 4) % 3) - 1
       if (!obstacle && lane !== (Math.floor(index / 3) % 3) - 1) continue
+      const dynamic = obstacle && index % 8 === 0
       const m: T.Object3D = obstacle
-        ? new T.Mesh(new T.BoxGeometry(1.2, 0.85, 0.75), this.mat('#a88261'))
+        ? new T.Mesh(new RoundedBoxGeometry(1.2, 0.85, 0.75, 2, 0.06), this.mat(dynamic ? '#738b9a' : '#a88261').clone())
         : this.makeCoin()
       m.position.set(lane * 2, obstacle ? 0.45 : 1.05, 0)
       m.castShadow = true
       this.scene.add(m)
-      this.tokens.push({ mesh: m, z: this.nextRow, lane, taken: false, obstacle })
+      this.tokens.push({ mesh: m, z: this.nextRow, lane, taken: false, obstacle, dynamic })
     }
     this.nextRow += 7
   }
@@ -636,7 +723,7 @@ export class Race {
     for (const leg of this.legs) {
       const phase = this.distance * 1.8 + (leg.side < 0 ? Math.PI : 0),
         x = leg.side * 0.19,
-        hip = new T.Vector3(x, 1.43, 0.3),
+        hip = new T.Vector3(leg.side * 0.21, 1.53, 0.3),
         ankle = new T.Vector3(x, 0.72 + Math.sin(phase) * 0.16, 0.05 + Math.cos(phase) * 0.16),
         v = ankle.clone().sub(hip),
         length = v.length(),
@@ -704,9 +791,33 @@ export class Race {
     const dt = Math.min((now - this.previous) / 1000, 0.06)
     this.previous = now
     if (!this.host.clientWidth || document.hidden) return
+    if (this.miniature?.group.visible) {
+      this.scene.fog = null
+      const progress = this.entered ? Math.min(1, (now - this.enteringAt) / 1900) : 0
+      const eased = progress * progress * (3 - 2 * progress)
+      const target = this.miniature.spawn.clone()
+      const close = target.clone().add(new T.Vector3(1.15, 2.6, 5.7))
+      this.camera.position.lerpVectors(new T.Vector3(96, 96, 108), close, eased)
+      this.camera.lookAt(new T.Vector3().lerp(target.clone().add(new T.Vector3(0, 1.4, -7)), eased))
+      this.camera.fov = 39 + eased * 7
+      this.camera.updateProjectionMatrix()
+      this.miniature.update(now / 1000)
+      // Dissolve the miniature's local road into the endless track at street height.
+      this.renderer.domElement.style.opacity = String(progress > 0.82 ? Math.max(0, (1 - progress) / 0.18) : 1)
+      this.renderer.render(this.scene, this.camera)
+      if (progress >= 1 && this.entered) {
+        const done = this.entered; this.entered = undefined
+        this.camera.position.set(1.15, 2.6, 5.7); this.cameraLook.set(0, 1.4, -7)
+        this.renderer.domElement.style.transition = 'opacity 240ms ease'
+        this.start(); this.renderer.domElement.style.opacity = '1'; done(true)
+      }
+      return
+    }
     if (this.running && !this.paused) {
+      this.elapsed += dt
+      this.skills.tick(dt)
       this.maxSpeed =
-        this.boost > 0
+        this.boost > 0 || this.skills.boost > 0
           ? this.baseSpeed + 6
           : this.keys.has('s')
             ? 7
@@ -730,6 +841,10 @@ export class Race {
       for (const w of this.wheels) w.rotation.x -= (dt * this.maxSpeed) / 0.5
 
       this.updatePedals()
+      if (!this.snapshots.length || this.elapsed - this.snapshots.at(-1)!.time >= 0.1) {
+        this.snapshots.push({ time: this.elapsed, distance: this.distance, coins: this.coins, bonus: this.bonusCoins, health: this.health, lane: this.lane, x: this.x, jump: this.jump, taken: this.tokens.filter(t => t.taken).map(t => `${t.z}:${t.lane}`) })
+        this.snapshots = this.snapshots.filter(s => s.time >= this.elapsed - 5)
+      }
 
       for (const c of this.chunks) {
         c.position.z += dt * this.maxSpeed
@@ -738,30 +853,54 @@ export class Race {
       while (this.nextRow < this.distance + 160) this.addRow()
       for (const t of this.tokens) {
         t.mesh.position.z = this.distance - t.z
+        if (t.dynamic) {
+          if (this.skills.freeze <= 0) t.mesh.position.x = t.lane * 2 + Math.sin(this.elapsed * 1.6 + t.z) * 1.2
+          const material = (t.mesh as T.Mesh).material as T.MeshStandardMaterial
+          material.color.set(this.skills.freeze > 0 ? '#bce5eb' : '#738b9a')
+          material.emissive.set(this.skills.freeze > 0 ? '#28525b' : '#000000')
+        }
         if (!t.obstacle) {
           t.mesh.rotation.y += dt * 1.6
           t.mesh.position.y = 1.05 + Math.sin(now * 0.003 + t.z) * 0.075
         }
-        if (!t.taken && Math.abs(t.mesh.position.z) < 0.9 && Math.abs(this.x - t.lane * 2) < 0.8) {
+        const magnet = !t.obstacle && this.skills.magnet > 0 && t.mesh.position.z >= -12 && t.mesh.position.z < 0.9 && Math.abs(this.x - t.mesh.position.x) < 4.5
+        if (!t.taken && (magnet || (Math.abs(t.mesh.position.z) < 0.9 && Math.abs(this.x - t.mesh.position.x) < 0.8))) {
           t.taken = true
-          t.mesh.visible = false
+          if (!magnet) t.mesh.visible = false
           if (t.obstacle) {
             if (this.jump <= 0 && this.invincible <= 0) {
-              this.health--
+              const hadShield = this.skills.shield
+              const hit = this.skills.collide(this.health)
+              this.health = hit.health
               this.invincible = 1.6
+              if (hit.blocked && hadShield && !this.skills.shield) this.feedback('shield', '护盾抵挡了碰撞', true)
+              if (hit.revived) this.feedback('revive', '守护信物 · 星光重聚，再走一程')
               if (this.health <= 0) this.finish()
             }
-          } else this.coins++
+          } else { this.coins++; if (this.skills.double > 0) this.bonusCoins++ }
+        }
+        if (t.taken && !t.obstacle && t.mesh.visible) {
+          t.mesh.position.x = T.MathUtils.damp(t.mesh.position.x, this.x, 9, dt)
+          t.mesh.position.y = T.MathUtils.damp(t.mesh.position.y, 1.5, 8, dt)
+          t.mesh.position.z = T.MathUtils.damp(t.mesh.position.z, 0, 12, dt)
+          if (Math.abs(t.mesh.position.z) < 0.5) t.mesh.visible = false
         }
         if (t.mesh.position.z > 12) {
           this.scene.remove(t.mesh)
-          if (t.obstacle) {
-            ;(t.mesh as T.Mesh).geometry.dispose()
-          } else disposeObject(t.mesh)
+          disposeObject(t.mesh)
         }
       }
       this.tokens = this.tokens.filter((t) => t.mesh.position.z <= 12)
       this.bike.visible = this.invincible > 0 ? Math.floor(now / 100) % 2 === 0 : true
+      for (const p of this.scenic) {
+        p.group.position.z = this.distance - p.distance
+        p.group.visible = p.group.position.z > -160 && p.group.position.z < 20
+        if (p.group.userData.model === 'fireworks') p.group.children.filter(c => c.userData.spark !== undefined).forEach(c => c.visible = Math.sin(this.elapsed * 1.5 + c.userData.spark * 0.3) > -0.2)
+      }
+      this.effects.position.set(this.x, this.bike.position.y, 0)
+      const persistent = this.effectId === 'shield' ? this.skills.shield : this.effectId === 'magnet' ? this.skills.magnet > 0 : this.effectId === 'freeze' ? this.skills.freeze > 0 : ['courage', 'friend'].includes(this.effectId) ? this.skills.boost > 0 : false
+      this.effects.visible = persistent || this.elapsed < this.effectUntil
+      this.effects.rotation.y += dt * 0.5
     }
 
     const riderY = this.bike.position.y
@@ -808,6 +947,7 @@ export class Race {
     this.renderer.render(this.scene, this.camera)
   }
   dispose() {
+    this.entered?.(false); this.entered = undefined
     cancelAnimationFrame(this.frame)
     this.resize.disconnect()
     this.events.abort()

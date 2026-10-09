@@ -1,0 +1,113 @@
+// Verified contiguous excerpts from public QQ Music hot comments. Metadata snapshot: 2026-10-08.
+export interface CommentQuote { excerpt: string; author: string; likes: number; commentId: string; commentTime: number; url: string; apiUrl: string; retrievedAt: string; platform: string; section: string }
+export const COMMENT_QUOTES: Record<string, CommentQuote> = {
+  "茶汤": {
+    "excerpt": "还是原唱好听，这首歌不能唱的太用力。",
+    "author": "沐小悠＾3＾",
+    "likes": 1225,
+    "commentId": "1!gLcPRktLFpQVaG1vTaJ6G.JHU49PzeJq8CAzAFaxyxFrk9K7lwkFX5IUS0C0iw3r",
+    "commentTime": 1789227274,
+    "url": "https://y.qq.com/n/ryqq/songDetail/0027rBks3lqPA3",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=4936030&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  },
+  "心墙": {
+    "excerpt": "每个人心里都有那么一面墙，也许只有真正走进心里的那个人找到靠近那面前的一扇窗吧",
+    "author": "困=_=",
+    "likes": 18490,
+    "commentId": "1!SfOlw5JIB7cs2VNYwW9y-JEwOsOeFMMJCvIrTJKNwEyySw4OjJozlnDAQVjE-oLN",
+    "commentTime": 1461160652,
+    "url": "https://y.qq.com/n/ryqq/songDetail/001r8VMR24xJHa",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=474797&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  },
+  "倒数": {
+    "excerpt": "我们每一个人的一生其实都是倒计时，倒数着还剩有多少年，还有多少天",
+    "author": "Ari8527.",
+    "likes": 23353,
+    "commentId": "1!iCKo3O62J35ktc39VZohCqOnYPc80c8OMhvCHZcwMo5JJ9HVa4k7FaJ9K54K.Y04",
+    "commentTime": 1533866851,
+    "url": "https://y.qq.com/n/ryqq/songDetail/003jjoM94WLiTf",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=215540451&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  },
+  "至少还有你": {
+    "excerpt": "现在回头看看 那些经历过的事 经历过的人 再大的事现在看来好像也不过如此",
+    "author": "Helium",
+    "likes": 28277,
+    "commentId": "1!QMTIVyz57k1sL7Bp48PrSiPuurGTtKQLCvRchcOLX9WVtpxGjqVFI1xW0C99WRy4",
+    "commentTime": 1465887026,
+    "url": "https://y.qq.com/n/ryqq/songDetail/002QOSPX0bEK4f",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=102204563&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  },
+  "反方向的钟": {
+    "excerpt": "听一千遍反方向的钟，可不可以回到你爱我的那个时候",
+    "author": "眉上痣ᰔ",
+    "likes": 87462,
+    "commentId": "1!HK76QqlHeyPz2a6eo-VoVMJjxWi7XfpOAeyLMt8MvO68bvlzTAM8tTgOo4UU29Wq",
+    "commentTime": 1642602928,
+    "url": "https://y.qq.com/n/ryqq/songDetail/0017K7gL4WYnw2",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=97759&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  },
+  "勇气": {
+    "excerpt": "或许我真的需要一些勇气，一些爱的勇气，一些不爱的勇气。",
+    "author": "知不可乎骤得",
+    "likes": 15276,
+    "commentId": "1!PnnoA8kAZ051P0aDKTEFPY4sn5zVKYqB.w2jsFhlF6tR4lRS7j7GgTvHJTNPFW.8",
+    "commentTime": 1684671008,
+    "url": "https://y.qq.com/n/ryqq/songDetail/000LDr7E13dXy1",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=4830164&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  },
+  "你要的全拿走": {
+    "excerpt": "小说里三五年一笔带过现实里三五年反复折磨我",
+    "author": "1_冰岛.",
+    "likes": 24836,
+    "commentId": "1!62.prmVP-ZUhXfuFYnvd96quY5jiAqmwfxpFmWST1AHpR61IJRq0LU4OIYBcTcdQ",
+    "commentTime": 1684161397,
+    "url": "https://y.qq.com/n/ryqq/songDetail/000nNzj03CNUIT",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=212808217&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  },
+  "冻结": {
+    "excerpt": "可惜后知后觉，希望时间冻结，冻结在那个你爱我我却懵懂的时刻。",
+    "author": "xry",
+    "likes": 6939,
+    "commentId": "1!p.9j2BQGPT2RGdO4RpD0ohF99dWgCK9wQNDHIqfGaQaeHLqALGE0V4Zra5UquOxZ",
+    "commentTime": 1517906377,
+    "url": "https://y.qq.com/n/ryqq/songDetail/000qXLmI47rb6L",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=101659148&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  },
+  "朋友": {
+    "excerpt": "一个真正的朋友不一定要每天见面也不需要挂在嘴边",
+    "author": "星梦语【拒聊】",
+    "likes": 904,
+    "commentId": "1!CRpKhPNi3kEAKsnbemIpTTXukDPqlen1t3f5xb3AUZGdr9rpmR4jo4Zq0O3FPCoz",
+    "commentTime": 1594905381,
+    "url": "https://y.qq.com/n/ryqq/songDetail/000c3ohn2KPrcl",
+    "apiUrl": "https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg?biztype=1&topid=4602&cmd=8&pagenum=0&pagesize=20&format=json",
+    "retrievedAt": "2026-10-08",
+    "platform": "QQ 音乐",
+    "section": "热门评论"
+  }
+}
+

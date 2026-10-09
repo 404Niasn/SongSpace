@@ -1,0 +1,46 @@
+<!doctype html><html lang="zh-CN"><meta charset="UTF-8"><title>SongSpace · 闯关引擎回归</title><body><h1>闯关引擎回归</h1><button id="run">执行独立回归测试</button><pre id="results">尚未执行</pre><div id="scene" style="width:640px;height:400px"></div><script type="module">
+import { Race } from '/src/game/race.ts'
+import { loadCatalog } from '/src/game/save.ts'
+await loadCatalog()
+document.querySelector('#run').onclick=async()=>{
+  const results=[];const assert=(condition,name)=>{if(!condition)throw Error(name);results.push('PASS: '+name)}
+  const scene=document.querySelector('#scene')
+  let race
+  const create=(slots)=>{race?.dispose();race=new Race(scene,'sea',()=>{},()=>{},'#50c5b4',13,false,slots.map(id=>({id,level:1,name:id})));cancelAnimationFrame(race.frame);race.start();cancelAnimationFrame(race.frame)}
+  const step=()=>{race.previous=performance.now()-60;race.animate();cancelAnimationFrame(race.frame)}
+  try{
+    race=new Race(scene,'sea',()=>{},()=>{})
+    assert(!race.running&&race.distance===0&&race.miniature.group.visible,'微缩地图预览不启动探索或结算')
+    const entering=race.enter()
+    assert((!race.running||matchMedia('(prefers-reduced-motion: reduce)').matches)&&race.distance===0,'进入转场期间不推进距离或碰撞')
+    if(race.entered) assert(await race.enter()===false,'重复点击不重复启动转场')
+    race.dispose()
+    assert(await entering===false||race.running,'卸载取消转场；减少动态效果模式可直接进入')
+    create(['rewind','double'])
+    race.elapsed=7;race.distance=95;race.health=1;race.coins=12;race.bonusCoins=4
+    const coin=race.tokens.find(t=>!t.obstacle&&t.z>45&&t.z<75)
+    race.snapshots=[{time:3.9,distance:55,health:2,coins:4,bonus:1,lane:1,x:2,jump:0,taken:[`${coin.z}:${coin.lane}`]}]
+    assert(race.useSkill(0),'怀表可在有历史状态时发动')
+    assert(race.distance===55&&race.health===2&&race.coins===4&&race.bonusCoins===1,'回溯恢复距离、生命、金币与双倍收益')
+    assert(race.tokens.some(t=>t.z===coin.z&&t.lane===coin.lane&&t.taken),'回溯后已领取金币仍有领取标记')
+    assert(race.status().score===305,'回溯积分与恢复后的资产一致')
+    assert(!race.useSkill(0),'回溯不恢复已经用掉的道具次数')
+    race.paused=true;assert(!race.useSkill(1),'暂停时不得发动道具');race.paused=false
+    race.finish();assert(!race.useSkill(1),'结算后不得发动道具')
+    create(['revive','shield'])
+    race.distance=100;race.health=1;race.x=0;race.lane=0
+    const hit=race.tokens.find(t=>t.obstacle);hit.z=100;hit.lane=0;hit.mesh.position.x=0;hit.dynamic=false
+    step();assert(race.health===1&&!race.completed&&race.skills.used.has(0),'实际碰撞触发一次复活且不结束本局')
+    create(['magnet','freeze'])
+    assert(race.useSkill(0),'吸币技能发动')
+    const target=race.tokens.find(t=>!t.obstacle);target.z=7;target.mesh.position.x=2
+    const before=race.coins;step();assert(race.coins>before&&target.taken,'跨车道吸取金币并仅记账一次')
+    const after=race.coins;step();assert(race.coins===after,'吸币动画不重复记账')
+    assert(race.useSkill(1),'冻结技能发动')
+    const dynamic=race.tokens.find(t=>t.dynamic);dynamic.mesh.position.x=0.7;step()
+    assert(dynamic.mesh.position.x===0.7,'冻结期间动态障碍停止横向移动')
+    race.skills.freeze=0;step();assert(dynamic.mesh.position.x!==0.7,'冻结结束恢复动态障碍运动')
+    race.dispose();document.querySelector('#results').textContent=results.join('\n')
+  }catch(e){race?.dispose();document.querySelector('#results').textContent=results.join('\n')+'\nFAIL: '+e.stack}
+}
+</script></body></html>

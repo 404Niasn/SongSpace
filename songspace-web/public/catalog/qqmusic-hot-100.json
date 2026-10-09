@@ -1946,6 +1946,32 @@
       "song_url": "https://y.qq.com/n/ryqq/songDetail/003mRf8u26lMMY",
       "cover_url": "https://y.gtimg.cn/music/photo_new/T002R300x300M0000031ftBk2foLzq.jpg",
       "cover_path": "/covers/qqmusic/0031ftBk2foLzq.jpg"
+    },
+    {
+      "id": "qq_000c3ohn2KPrcl",
+      "rank": 0,
+      "source_type": "supplemental",
+      "title": "朋友",
+      "artists": [{ "name": "周华健", "qqmusic_mid": "003NThQh3ujqIo" }],
+      "album": "朋友",
+      "album_mid": "002mpuXH1P7UuJ",
+      "qqmusic_song_id": 4602,
+      "qqmusic_song_mid": "000c3ohn2KPrcl",
+      "duration_seconds": 312,
+      "song_url": "https://y.qq.com/n/ryqq/songDetail/000c3ohn2KPrcl",
+      "cover_url": "https://y.gtimg.cn/music/photo_new/T002R300x300M000002mpuXH1P7UuJ.jpg",
+      "cover_path": "/covers/qqmusic/002mpuXH1P7UuJ.jpg"
+    },
+    {
+      "id": "prototype_eason_backpack",
+      "rank": 0,
+      "source_type": "prototype",
+      "title": "你的背包",
+      "artists": [{ "name": "陈奕迅" }],
+      "album": "",
+      "duration_seconds": 0,
+      "song_url": "https://y.qq.com/n/ryqq/search?w=%E9%99%88%E5%A5%95%E8%BF%85%20%E4%BD%A0%E7%9A%84%E8%83%8C%E5%8C%85",
+      "cover_path": "/art/outfits/travel-backpack.svg"
     }
   ]
 }

@@ -51,6 +51,7 @@ def test_migration_roundtrip_and_world_object_chain(connection):
         "music_explorations",
         "assets",
         "placed_objects",
+        "game_profiles",
     }
     connection.commit()
     with Session(connection) as session:

@@ -2,6 +2,10 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { buildDecoration, buildWorld, disposeObject } from './models'
 import type { Decoration, DecorationKind, ViewMode, WorldId, WorldModel } from './types'
+import { catalog, kindFor } from '../game/save'
+import { imageryFor } from '../game/content'
+import { availableImagery, placeImagery, undoImagery, validPlacements } from '../game/imagery'
+import { buildImagery } from './imageryModels'
 
 export interface WorldStatus {
   speed: number
@@ -21,7 +25,7 @@ export class WorldEngine {
   private placed = new THREE.Group()
   private decorations: Decoration[] = []
   private ghost: THREE.Group | null = null
-  private placement: DecorationKind | null = null
+  private placement: string | null = null
   private validPlacement = false
   private placementRotation = 0
   private raycaster = new THREE.Raycaster()
@@ -148,7 +152,7 @@ export class WorldEngine {
     this.pitch = 0
     this.speed = 0
     this.distance = 0
-    this.decorations = this.loadDecorations(id)
+    this.decorations = [...this.loadDecorations(id), ...validPlacements(id).map(p => ({ ...p, kind: 'bench' as DecorationKind }))]
     for (const decoration of this.decorations) this.addDecorationMesh(decoration)
     this.applyLighting()
     this.resetOverview()
@@ -331,16 +335,22 @@ export class WorldEngine {
     this.camera.lookAt(target)
   }
 
-  setPlacement(kind: DecorationKind | null) {
+  setPlacement(songId: string | null) {
     this.clearPlacement()
-    if (!kind || this.mode !== 'overview') return
+    if (!songId || this.mode !== 'overview') return
+    const song = catalog.songs.find(s => s.id === songId)
+    if (!song || kindFor(song) !== 'decoration' || availableImagery(songId) < 1) {
+      this.onMessage('这件意象没有可用库存，撤回一件后可以重新摆放。')
+      this.onCancelPlacement()
+      return
+    }
     if (this.decorations.length >= 50) {
       this.onMessage('这个世界已摆放 50 件装饰，请先撤回一些。')
       this.onCancelPlacement()
       return
     }
-    this.placement = kind
-    this.ghost = buildDecoration(kind)
+    this.placement = songId
+    this.ghost = buildImagery(imageryFor(song.title).model)
     this.ghost.visible = false
     this.ghost.traverse((object) => {
       if (object instanceof THREE.Mesh) {
@@ -380,7 +390,7 @@ export class WorldEngine {
         (c) => Math.hypot(c.x - intersection.point.x, c.z - intersection.point.z) < c.radius + 1,
       ) &&
       !this.decorations.some(
-        (item) => Math.hypot(item.x - intersection.point.x, item.z - intersection.point.z) < 1.5,
+        (item) => Math.hypot(item.x - intersection.point.x, item.z - intersection.point.z) < 4,
       )
     this.ghost.visible = this.validPlacement
     if (intersection)
@@ -407,10 +417,15 @@ export class WorldEngine {
     if (this.placement) this.movePointer(event)
     if (!this.ghost || !this.placement || !this.validPlacement) return
     const decoration: Decoration = {
-      kind: this.placement,
+      kind: 'bench',
+      songId: this.placement,
       x: this.ghost.position.x,
       z: this.ghost.position.z,
       rotation: this.placementRotation,
+    }
+    if (!placeImagery(this.world, { songId: this.placement, x: decoration.x, z: decoration.z, rotation: decoration.rotation })) {
+      this.onMessage('库存不足或保存失败，没有扣除装饰数量。')
+      this.clearPlacement(); this.onCancelPlacement(); return
     }
     this.decorations.push(decoration)
     this.addDecorationMesh(decoration)
@@ -419,10 +434,14 @@ export class WorldEngine {
     this.validPlacement = false
     this.ghost.visible = false
     this.onMessage('已摆放，保存在当前浏览器。')
+    if (availableImagery(this.placement) < 1) { this.clearPlacement(); this.onCancelPlacement() }
   }
 
   undoDecoration() {
     if (!this.decorations.length) return
+    if (this.decorations.at(-1)?.songId && !undoImagery(this.world)) {
+      this.onMessage('撤回未能保存，请重试。'); return
+    }
     this.decorations.pop()
     const object = this.placed.children.at(-1)
     if (object) {
@@ -435,7 +454,8 @@ export class WorldEngine {
   }
 
   private addDecorationMesh(decoration: Decoration) {
-    const object = buildDecoration(decoration.kind)
+    const song = catalog.songs.find(s => s.id === decoration.songId)
+    const object = song ? buildImagery(imageryFor(song.title).model) : buildDecoration(decoration.kind)
     object.position.set(decoration.x, this.model.heightAt(decoration.x, decoration.z), decoration.z)
     object.rotation.y = decoration.rotation
     this.placed.add(object)
@@ -461,7 +481,7 @@ export class WorldEngine {
   }
   private saveDecorations() {
     try {
-      localStorage.setItem(`songspace.decorations.${this.world}`, JSON.stringify(this.decorations))
+      localStorage.setItem(`songspace.decorations.${this.world}`, JSON.stringify(this.decorations.filter(p => !p.songId)))
     } catch {
       this.onMessage('浏览器未能保存装饰，刷新后可能丢失。')
     }
