@@ -109,7 +109,7 @@ Remove-Item Env:TEST_DATABASE_URL
 
 也可以将 `.env` 的连接值填入 `TEST_DATABASE_URL`。集成测试创建随机命名的 `songspace_test_<uuid>` schema，验证迁移升级/降级/再升级、模型一致性、数据写入、唯一约束、来源外键、级联删除和缩放约束；结束后清理该 schema，不清理 public。测试账户需要 CREATE SCHEMA 权限。
 
-当前没有 AI、音乐平台、登录、JWT、WebSocket、任务队列或部署功能；后续按具体业务需求逐步增加。
+当前已有 ID 登录和存档接口；尚无 AI、音乐平台实时接口、JWT、WebSocket 或任务队列。业务连接范围及单机宝塔部署步骤见 [部署文档](docs/deploy/baota-demo.md)。
 
 ## 游戏存档接口
 
@@ -120,5 +120,7 @@ Remove-Item Env:TEST_DATABASE_URL
 - `PATCH /api/v1/game/save`：提交修订号和完整状态，冲突返回 409，不覆盖较新的存档。
 
 前端 Vite 的 `/api` 代理到本机 8000。浏览器保留离线缓存并显示同步状态。独立登录页 `/login` 上方填写昵称，通过 `POST /api/v1/game/accounts` 注册，系统分配 `SS-XXXX-XXXX-XXXX` 格式 ID；昵称可重名；下方通过 `POST /api/v1/game/sessions/restore` 验证已有 ID 并恢复存档，兼容旧游戏 ID。ID 相当于密码，数据库只保存凭据哈希。服务端抽卡结算、反作弊和共享排行榜尚未实现。
+
+生产部署需配置 Nginx 的 `/api/` 转发和 SPA 路由回退，Vite 开发代理不会进入 dist。宝塔配置示例见 [deploy/baota-nginx.conf](deploy/baota-nginx.conf)。
 
 本次使用根目录 `.venv` 安装依赖。启动后端：`.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000`；前端在 `songspace-web` 执行 `npm run dev -- --host 127.0.0.1 --port 5173`。

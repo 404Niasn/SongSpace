@@ -52,7 +52,9 @@ class RestoreSession(BaseModel):
         if not isinstance(value, str):
             return value
         value = value.strip()
-        return value.upper() if (len(value) == 17 or len(value) > 20) and value.upper().startswith("SS-") else value
+        if (len(value) == 17 or len(value) > 20) and value.upper().startswith("SS-"):
+            return value.upper()
+        return value
 
 
 class RegisterSession(BaseModel):

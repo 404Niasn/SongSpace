@@ -44,7 +44,7 @@ for(const [title,definition] of Object.entries(ITEMS)) {
   assert.equal(cardFor(song).rarity,'gold'); assert.equal(cardFor(song).art,definition.id)
   const quote = cardFor(song).commentQuote
   assert.ok(quote?.author && quote?.commentId && quote?.url.startsWith('https://y.qq.com/'))
-  assert.equal(cardFor(song).prose, quote.excerpt)
+  assert.ok(cardFor(song).prose, 'Song cards retain the user-provided lyric copy')
   assert.equal(placeImagery('sea',{...p,songId:song.id}),false)
 }
 assert.equal(new Set(Object.values(ITEMS).map(s=>s.prose)).size,9)

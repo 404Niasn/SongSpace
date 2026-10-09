@@ -149,7 +149,9 @@ def test_nickname_registration_allocates_id_and_restores(game_client):
         })
         assert created.status_code == 201
         account = created.json()
-        assert re.fullmatch(r"SS-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}", account["game_id"])
+        assert re.fullmatch(
+            r"SS-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}", account["game_id"]
+        )
         assert len(account["game_id"]) == 17
         assert account["state"]["game"]["name"] == "乌龟听歌"
         assert account["state"]["game"]["notes"] == 500
@@ -179,6 +181,7 @@ def test_nickname_registration_allocates_id_and_restores(game_client):
 
 def test_previously_named_account_remains_restorable(game_client):
     import hashlib
+
     from app.api.routes.game import named_token
 
     app = game_client()
