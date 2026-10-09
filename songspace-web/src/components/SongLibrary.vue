@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { coverPath } from '@/game/coverAssets'
 
 interface Song {
   id: string
@@ -21,7 +22,7 @@ const selected = ref<Song | null>(null)
 const detail = ref<HTMLDialogElement>()
 const abort = new AbortController()
 const artists = (song: Song) => song.artists.map((artist) => artist.name).join(' / ')
-const cover = (song: Song) => import.meta.env.BASE_URL + song.cover_path.slice(1)
+const cover = (song: Song) => coverPath(song.cover_path)
 const filtered = computed(() => {
   const search = query.value.trim().toLocaleLowerCase()
   const result = songs.value.filter((song) =>
@@ -78,10 +79,10 @@ onBeforeUnmount(() => abort.abort())
         <h1>
           歌曲图鉴 <span>{{ songs.length || '—' }}</span>
         </h1>
-        <p class="library-description">从一张封面，发现一首值得重听的歌。</p>
+        <p class="library-description">精选了 QQ 音乐热歌榜 Top 100 和经典歌曲。</p>
       </div>
       <div class="chart-source">
-        QQ 音乐 · 热歌榜<small>{{ chartDate ? `榜单日期 ${chartDate}` : '正在载入' }}</small>
+        QQ 音乐 · 热歌榜 Top 100 与经典歌曲<small>{{ chartDate ? `榜单采集日期 ${chartDate}` : '正在载入' }}</small>
       </div>
     </div>
     <div class="library-toolbar">
@@ -131,7 +132,7 @@ onBeforeUnmount(() => abort.abort())
         ><button class="dialog-close" aria-label="关闭歌曲详情" @click="close">×</button
         ><img class="detail-cover" :src="cover(selected)" :alt="`${selected.album} 专辑封面`" />
         <div class="song-detail-body">
-          <p class="section-label">{{ selected.rank ? `热歌榜第 ${selected.rank} 名` : '特选歌曲 · 榜单外补充' }}</p>
+          <p class="section-label">{{ selected.rank ? `QQ 音乐热歌榜第 ${selected.rank} 名 · 采集于 ${chartDate}` : '经典歌曲 · 榜单外精选' }}</p>
           <h2>{{ selected.title }}</h2>
           <p class="detail-artist">{{ artists(selected) }}</p>
           <dl>

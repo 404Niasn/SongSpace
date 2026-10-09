@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌境 · 首页 banner 预览</title></head><body><div id="app"></div><script type="module">
+import { createApp } from 'vue'
+import GameHall from '/src/components/GameHall.vue'
+import '/src/assets/main.css'
+import '/src/assets/product.css'
+// Read-only visual preview: no registration, draws or changes to player saves.
+createApp(GameHall, { onEnter: () => {}, onMessage: () => {} }).mount('#app')
+</script></body></html>

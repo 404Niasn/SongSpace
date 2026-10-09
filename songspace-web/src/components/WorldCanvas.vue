@@ -2,11 +2,13 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { WorldEngine, type WorldStatus } from '@/worlds/engine'
 import type { ViewMode, WorldId } from '@/worlds/types'
+import type { WeatherId } from '@/game/content'
 
 const props = defineProps<{
   world: WorldId
   mode: ViewMode
   evening: boolean
+  weather?: WeatherId
   firstPerson: boolean
   transport: 'bike' | 'walk'
   placement: string | null
@@ -35,6 +37,7 @@ onMounted(() => {
       () => emit('cancelPlacement'),
     )
     engine.setEvening(props.evening)
+    engine.setWeather(props.weather || 'clear')
     engine.setPlacement(props.placement)
     emit('ready')
   } catch (cause) {
@@ -53,6 +56,10 @@ watch(
 watch(
   () => props.evening,
   (evening) => engine?.setEvening(evening),
+)
+watch(
+  () => props.weather,
+  (weather) => engine?.setWeather(weather || 'clear'),
 )
 watch(
   () => props.firstPerson,

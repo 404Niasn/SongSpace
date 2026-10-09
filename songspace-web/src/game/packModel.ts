@@ -217,6 +217,10 @@ export class PackModel {
     if (!w || !h) return
     this.renderer.setSize(w, h)
     this.camera.aspect = w / h
+    if (!this.preview) {
+      // A pouch is just wider than the card it contains; fit its visible mesh, not its canvas.
+      this.camera.position.z = (POUCH_HALF_WIDTH * 2 * h) / (2 * Math.tan(T.MathUtils.degToRad(33 / 2)) * (w - 24))
+    }
     this.camera.updateProjectionMatrix()
   }
   private animate = () => {
@@ -277,6 +281,18 @@ export class PackModel {
     this.tabAnchor.project(this.camera)
     this.host.style.setProperty('--pull-x', `${(this.tabAnchor.x + 1) * this.host.clientWidth / 2}px`)
     this.host.style.setProperty('--pull-y', `${(1 - this.tabAnchor.y) * this.host.clientHeight / 2}px`)
+    const left = new T.Vector3(0, 0, .05)
+    const right = new T.Vector3(POUCH_HALF_WIDTH * 2, 0, .05)
+    this.seal.localToWorld(left).project(this.camera)
+    this.seal.localToWorld(right).project(this.camera)
+    const x1 = (left.x + 1) * this.host.clientWidth / 2
+    const y1 = (1 - left.y) * this.host.clientHeight / 2
+    const x2 = (right.x + 1) * this.host.clientWidth / 2
+    const y2 = (1 - right.y) * this.host.clientHeight / 2
+    this.host.style.setProperty('--seal-x', `${(x1 + x2) / 2}px`)
+    this.host.style.setProperty('--seal-y', `${(y1 + y2) / 2}px`)
+    this.host.style.setProperty('--seal-width', `${Math.hypot(x2 - x1, y2 - y1) + 16}px`)
+    this.host.style.setProperty('--seal-angle', `${Math.atan2(y2 - y1, x2 - x1)}rad`)
     this.dirty = false
   }
   dispose() {

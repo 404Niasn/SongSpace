@@ -35,6 +35,8 @@ const distribution = computed(() => ({
   map: catalog.songs.filter((s) => kindFor(s) === 'map').length,
   item: catalog.songs.filter((s) => kindFor(s) === 'item').length,
   vehicle: catalog.songs.filter((s) => kindFor(s) === 'vehicle').length,
+  outfit: catalog.songs.filter((s) => kindFor(s) === 'outfit').length,
+  decoration: catalog.songs.filter((s) => kindFor(s) === 'decoration').length,
 }))
 let previousOverflow = ''
 function play(timeline: gsap.core.Timeline, finish?: () => void) {
@@ -102,9 +104,11 @@ function pointerMove(e: PointerEvent) {
   if (drag.value === null) return
   tear.value = Math.min(1, Math.max(0, (e.clientX - drag.value) / 130))
 }
-function pointerUp() {
+function pointerUp(e: PointerEvent) {
+  if (drag.value === null) return
+  const distance = e.clientX - drag.value
   drag.value = null
-  if (tear.value > 0.7) rip()
+  if (distance >= 60 || tear.value > 0.7) void rip()
   else tear.value = 0
 }
 async function rip(skip = false) {
@@ -288,11 +292,12 @@ onBeforeUnmount(() => {
     </div>
     <details class="odds">
       <summary>查看开包规则与概率</summary>
+      <p>歌曲库精选了 QQ 音乐热歌榜 Top 100 和经典歌曲。<template v-if="catalog.chartDate">榜单采集日期：{{ catalog.chartDate }}。</template>榜单歌曲保留采集时的排名，经典歌曲作为额外精选加入，不代表当前实时榜单。当前彩色闪卡为《江南》《光年之外》，地图卡包含在普通歌曲卡池中；《光年之外》对应的太空地图后续开放。</p>
       <p>
         歌曲包在 {{ catalog.songs.length }} 首歌曲中等概率抽取。卡片类型由歌曲固定分配：彩卡
         {{ distribution.map }} 首、金卡 {{ distribution.item }} 首、载具卡
         {{ distribution.vehicle }}
-        首，其余为装饰卡。五连至少一张金卡或彩卡；歌曲包连续 20 抽未出金卡或彩卡，第 20
+        首、装扮卡 {{ distribution.outfit }} 首、装饰卡 {{ distribution.decoration }} 首。单抽基础概率：彩卡 {{ (distribution.map / Math.max(1, catalog.songs.length) * 100).toFixed(2) }}%、金卡 {{ (distribution.item / Math.max(1, catalog.songs.length) * 100).toFixed(2) }}%，保底触发时按保底规则结算。五连至少一张金卡或彩卡；歌曲包连续 20 抽未出金卡或彩卡，第 20
         抽替换为金卡。地图卡包含在普通歌曲卡池中。五连包只能通过奖励获得，无法购买；商店不出售地图包。载具包仅从载具卡池抽取，不计歌曲包保底。重复卡累计数量，每
         3 张提升一级。初始三张地图无需抽卡即可游玩。
       </p>
@@ -338,7 +343,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
     <template v-if="phase === 'sealed'"
-      ><p class="opening-hint">捏住右侧封口，向右撕开</p>
+      ><p class="opening-hint">按住顶部封口，向右撕开</p>
       <button class="lime-btn" @click="rip()">撕开包装</button></template
     >
     <div v-if="phase === 'cards'" class="single-reveal-stage">
@@ -353,8 +358,6 @@ onBeforeUnmount(() => {
           </span>
         </span>
       </button>
-      <p class="single-progress">{{ revealed + 1 }} / {{ cards.length }} · {{ flipped ? '点击空白处继续' : '点击卡片或空白处翻开' }}</p>
-      <button v-if="flipped" class="spectrum-btn" :disabled="busy" @click="nextCard">{{ revealed + 1 === cards.length ? '查看全部卡片' : '下一张 →' }}</button>
     </div>
     <template v-if="phase === 'summary'">
       <p class="pack-result-count">这一包 {{ cards.length }} 张 · 新卡 {{ cards.filter(c => c.isNew).length }} 张 · 重复 {{ cards.filter(c => !c.isNew).length }} 张</p>

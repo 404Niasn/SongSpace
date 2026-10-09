@@ -1,0 +1,305 @@
+{
+  "code": 0,
+  "ts": 1791517997954,
+  "start_ts": 1791517997840,
+  "traceid": "6fc06397d9a6c8c0",
+  "track": {
+    "code": 0,
+    "data": {
+      "info": {
+        "company": {
+          "title": "唱片公司",
+          "type": "JUMP_TO_COMPANY",
+          "content": [
+            {
+              "id": 156,
+              "value": "独立发行",
+              "mid": "",
+              "type": 0,
+              "show_type": 0,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 51,
+          "more": 0,
+          "selected": "company",
+          "use_platform": 1
+        },
+        "genre": {
+          "title": "歌曲流派",
+          "type": "JUMP_TO_CATEGORY",
+          "content": [
+            {
+              "id": 40,
+              "value": "Pop",
+              "mid": "",
+              "type": 0,
+              "show_type": 2,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "http://y.qq.com/m/client/categoryzone/detail.html?categoryId=40&showType=2&isParent=0&_hidehd=1&groupId=100",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 12,
+          "more": 0,
+          "selected": "genre",
+          "use_platform": 3
+        },
+        "lan": {
+          "title": "歌曲语种",
+          "type": "JUMP_TO_CATEGORY",
+          "content": [
+            {
+              "id": 1,
+              "value": "国语",
+              "mid": "",
+              "type": 0,
+              "show_type": 2,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "http://y.qq.com/m/client/categoryzone/detail.html?categoryId=1&showType=2&isParent=0&_hidehd=1&groupId=100",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 11,
+          "more": 0,
+          "selected": "lan",
+          "use_platform": 3
+        },
+        "pub_time": {
+          "title": "发行时间",
+          "type": "desc",
+          "content": [
+            {
+              "id": 0,
+              "value": "2023-09-30",
+              "mid": "",
+              "type": 0,
+              "show_type": 0,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 50,
+          "more": 0,
+          "selected": "pub_time",
+          "use_platform": 0
+        }
+      },
+      "extras": {
+        "name": "鲜花",
+        "transname": "",
+        "subtitle": "",
+        "from": "",
+        "wikiurl": ""
+      },
+      "track_info": {
+        "id": 440094680,
+        "type": 0,
+        "mid": "000sdDGD2Av18n",
+        "name": "鲜花",
+        "title": "鲜花",
+        "subtitle": "",
+        "singer": [
+          {
+            "id": 4047253,
+            "mid": "000JskIX0tRBTb",
+            "name": "回春丹乐队",
+            "title": "回春丹乐队",
+            "type": 2,
+            "uin": 0
+          }
+        ],
+        "album": {
+          "id": 42349178,
+          "mid": "0008dKk41MKfaW",
+          "name": "鲜花",
+          "title": "鲜花",
+          "subtitle": "",
+          "time_public": "2023-09-30",
+          "pmid": "0008dKk41MKfaW_1"
+        },
+        "mv": {
+          "id": 0,
+          "vid": "",
+          "name": "",
+          "title": "",
+          "vt": 0
+        },
+        "interval": 341,
+        "isonly": 0,
+        "language": 0,
+        "genre": 1,
+        "index_cd": 0,
+        "index_album": 3,
+        "time_public": "2023-09-30",
+        "status": 0,
+        "fnote": 4009,
+        "file": {
+          "media_mid": "000sdDGD2Av18n",
+          "size_24aac": 0,
+          "size_48aac": 2084138,
+          "size_96aac": 4164412,
+          "size_192ogg": 8544308,
+          "size_192aac": 8262854,
+          "size_128mp3": 5463338,
+          "size_320mp3": 13658055,
+          "size_ape": 0,
+          "size_flac": 80335542,
+          "size_dts": 0,
+          "size_try": 960887,
+          "try_begin": 139993,
+          "try_end": 217699,
+          "url": "",
+          "size_hires": 0,
+          "hires_sample": 0,
+          "hires_bitdepth": 0,
+          "b_30s": 0,
+          "e_30s": 60000,
+          "size_96ogg": 4054838,
+          "size_360ra": [],
+          "size_dolby": 19131037,
+          "size_new": [
+            253433948,
+            42790015,
+            107227278,
+            14669598,
+            0,
+            27058208,
+            44610867,
+            3244104,
+            42878487,
+            9619292,
+            19171022,
+            64078798,
+            35501370,
+            0,
+            0,
+            0
+          ]
+        },
+        "pay": {
+          "pay_month": 1,
+          "price_track": 200,
+          "price_album": 0,
+          "pay_play": 0,
+          "pay_down": 1,
+          "pay_status": 0,
+          "time_free": 0
+        },
+        "action": {
+          "switch": 16889603,
+          "msgid": 14,
+          "alert": 21,
+          "icons": 8535932,
+          "msgshare": 0,
+          "msgfav": 0,
+          "msgdown": 0,
+          "msgpay": 6,
+          "switch2": 524288,
+          "icon2": 962206892032
+        },
+        "ksong": {
+          "id": 97436348,
+          "mid": "003s1Noq0Vz92w"
+        },
+        "volume": {
+          "gain": -9.494,
+          "peak": 0.994,
+          "lra": 7.299
+        },
+        "label": "0",
+        "url": "",
+        "bpm": 100,
+        "version": 0,
+        "trace": "",
+        "data_type": 0,
+        "modify_stamp": 0,
+        "pingpong": "",
+        "ppurl": "",
+        "tid": 0,
+        "ov": 0,
+        "sa": 84992,
+        "es": "",
+        "vs": [
+          "062XJI0f1oCtXy",
+          "",
+          "",
+          "002asbMu0g2h5Y",
+          "000jrZoZ26iRDw",
+          "",
+          "",
+          "",
+          "",
+          "001b2JRV2MUu5a",
+          "011Xmdsm21d5Ze",
+          "",
+          "001TCbsR4gCYd6",
+          "002MIOam2Mfw9k",
+          "0023BRlZ2hoLJS",
+          "000x6AC8434mWc",
+          "0029So7n4Fdeab",
+          "002PAtdI0V9OiP",
+          "000EiHj040Q1gP",
+          "002avbxE35yA7M",
+          "00324jVw377KYW",
+          "000JHFE60l7Fky",
+          "002QsP0F3FRVxu",
+          "0019uOr53YtV1j",
+          "000uEoJR1ryGO0",
+          "010g3xWT3fZX7e",
+          "001h97HX40us5M",
+          "",
+          "0004pIoi0jiJ0C",
+          "000gEsJ43MH5Gx",
+          "000a9dj00Ts5OP",
+          "",
+          "",
+          "",
+          "",
+          "001G8lI81zw8PO",
+          "003EcIkZ0zYdms",
+          "",
+          ""
+        ],
+        "vi": [
+          156,
+          297,
+          296,
+          3932637,
+          139993,
+          169993,
+          1,
+          0,
+          0
+        ],
+        "ktag": "0",
+        "vf": [
+          -9.25833,
+          0.999969,
+          7.2959,
+          0,
+          0,
+          0,
+          -7.91944,
+          0.99884,
+          7.48627
+        ]
+      }
+    }
+  }
+}

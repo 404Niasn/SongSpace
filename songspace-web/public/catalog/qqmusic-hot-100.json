@@ -5,7 +5,7 @@
     "chart_id": 26,
     "chart_name": "巅峰榜·热歌",
     "chart_date": "2026-10-08",
-    "fetched_at": "2026-10-08T04:48:14.9316058+00:00",
+    "fetched_at": "2026-10-08T12:48:14.9316058+08:00",
     "page_url": "https://y.qq.com/n/ryqq/toplist/26",
     "data_url": "https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?topid=26&format=json&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq.json&needNewCode=0",
     "limit": 100
@@ -1952,7 +1952,12 @@
       "rank": 0,
       "source_type": "supplemental",
       "title": "朋友",
-      "artists": [{ "name": "周华健", "qqmusic_mid": "003NThQh3ujqIo" }],
+      "artists": [
+        {
+          "name": "周华健",
+          "qqmusic_mid": "003NThQh3ujqIo"
+        }
+      ],
       "album": "朋友",
       "album_mid": "002mpuXH1P7UuJ",
       "qqmusic_song_id": 4602,
@@ -1967,11 +1972,103 @@
       "rank": 0,
       "source_type": "prototype",
       "title": "你的背包",
-      "artists": [{ "name": "陈奕迅" }],
+      "artists": [
+        {
+          "name": "陈奕迅"
+        }
+      ],
       "album": "",
       "duration_seconds": 0,
       "song_url": "https://y.qq.com/n/ryqq/search?w=%E9%99%88%E5%A5%95%E8%BF%85%20%E4%BD%A0%E7%9A%84%E8%83%8C%E5%8C%85",
       "cover_path": "/art/outfits/travel-backpack.svg"
+    },
+    {
+      "id": "qq_004CU50m2JjBjr",
+      "rank": 0,
+      "title": "单车",
+      "artists": [
+        {
+          "name": "陈奕迅",
+          "qqmusic_mid": "003Nz2So3XXYek"
+        }
+      ],
+      "album": "Shall We Dance? Shall We Talk!",
+      "album_mid": "004S8YQr3UmEbG",
+      "qqmusic_song_id": 4907894,
+      "qqmusic_song_mid": "004CU50m2JjBjr",
+      "duration_seconds": 211,
+      "song_url": "https://y.qq.com/n/ryqq/songDetail/004CU50m2JjBjr",
+      "cover_url": "https://y.gtimg.cn/music/photo_new/T002R300x300M000004S8YQr3UmEbG.jpg",
+      "cover_path": "/covers/qqmusic/004S8YQr3UmEbG.jpg",
+      "card_kind": "vehicle",
+      "vehicle_name": "后货架旧式单车",
+      "added_from": {
+        "reason": "歌词具有明确的单车与后座同行意象",
+        "chart_rank": 195,
+        "chart_id": 26,
+        "chart_date": "2026-10-09"
+      },
+      "vehicle_model": "bicycle-rack",
+      "vehicle_lyric": "骑着单车的我俩",
+      "lyric_source": "https://www.joox.com/my-zh_cn/single/RGrZRDUXPD_gZ5dtf_LtPw%3D%3D"
+    },
+    {
+      "id": "qq_001xd0HI0X9GNq",
+      "rank": 0,
+      "title": "一路向北",
+      "artists": [
+        {
+          "name": "周杰伦",
+          "qqmusic_mid": "0025NhlN2yWrP4"
+        }
+      ],
+      "album": "J III MP3 Player",
+      "album_mid": "002MAeob3zLXwZ",
+      "qqmusic_song_id": 5105986,
+      "qqmusic_song_mid": "001xd0HI0X9GNq",
+      "duration_seconds": 294,
+      "song_url": "https://y.qq.com/n/ryqq/songDetail/001xd0HI0X9GNq",
+      "cover_url": "https://y.gtimg.cn/music/photo_new/T002R300x300M000002MAeob3zLXwZ.jpg",
+      "cover_path": "/covers/qqmusic/002MAeob3zLXwZ.jpg",
+      "card_kind": "vehicle",
+      "vehicle_name": "AE86",
+      "vehicle_model": "ae86",
+      "vehicle_lyric": "后视镜里的世界",
+      "lyric_source": "https://www.joox.com/my-en/single/K1vwAsXycQFaxMswo%2BQ4gg%3D%3D",
+      "added_from": {
+        "date": "2026-10-09",
+        "reason": "用户指定的内置载具歌曲",
+        "type": "curated"
+      }
+    },
+    {
+      "id": "qq_000sdDGD2Av18n",
+      "rank": 0,
+      "title": "鲜花",
+      "artists": [
+        {
+          "name": "回春丹乐队",
+          "qqmusic_mid": "000JskIX0tRBTb"
+        }
+      ],
+      "album": "鲜花",
+      "album_mid": "0008dKk41MKfaW",
+      "qqmusic_song_id": 440094680,
+      "qqmusic_song_mid": "000sdDGD2Av18n",
+      "duration_seconds": 341,
+      "song_url": "https://y.qq.com/n/ryqq/songDetail/000sdDGD2Av18n",
+      "cover_url": "https://y.gtimg.cn/music/photo_new/T002R300x300M0000008dKk41MKfaW.jpg",
+      "cover_path": "/covers/qqmusic/0008dKk41MKfaW.jpg",
+      "card_kind": "vehicle",
+      "vehicle_name": "烂摩托",
+      "vehicle_model": "motorcycle",
+      "vehicle_lyric": "开着我的烂摩托",
+      "lyric_source": "https://www.kugou.com/song-36/4ok0ff44.html",
+      "added_from": {
+        "date": "2026-10-09",
+        "reason": "用户指定的内置载具歌曲",
+        "type": "curated"
+      }
     }
   ]
 }

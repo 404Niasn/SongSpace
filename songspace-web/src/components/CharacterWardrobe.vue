@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { wardrobe, equippedOutfits, equipOutfit, unequipOutfit } from '@/game/save'
+import { computed, ref } from 'vue'
+import CharacterPreview from './CharacterPreview.vue'
+import { wardrobe, equippedOutfits, outfitScoreBonus, equipOutfit, unequipOutfit } from '@/game/save'
 import { OUTFIT_SLOTS, type OutfitSlot } from '@/game/outfits'
 const emit = defineEmits<{ message: [text: string] }>()
-const base = import.meta.env.BASE_URL
-const backpack = computed(() => equippedOutfits.value.find((outfit) => outfit.slot === 'back'))
+import { coverPath } from '@/game/coverAssets'
+const filter = ref<'all' | OutfitSlot>('all')
+const selectedId = ref('travel-backpack')
+const items = computed(() => wardrobe.value.filter(item => filter.value === 'all' || item.slot === filter.value))
+const selected = computed(() => items.value.find(item => item.id === selectedId.value) || items.value[0])
+const emptySlots = computed(() => Math.max(0, 18 - items.value.length))
 const ownedCount = computed(() => wardrobe.value.filter((outfit) => outfit.owned).length)
 function wear(id: string) {
   if (equipOutfit(id)) emit('message', '装扮已穿戴，进入探索即可看到。')
@@ -19,41 +24,9 @@ function remove(slot: OutfitSlot) {
     <aside class="outfit-profile">
       <div class="outfit-profile-heading">
         <h2>我的人物</h2>
-        <span>{{ ownedCount }} 件装扮</span>
+        <span>穿戴积分 +{{ Math.round(outfitScoreBonus * 100) }}%</span>
       </div>
-      <figure class="outfit-character">
-        <svg
-          viewBox="0 0 220 260"
-          role="img"
-          :aria-label="backpack ? '人物已穿戴旅途背包，背面示意' : '未穿戴装扮的人物，背面示意'"
-        >
-          <ellipse cx="110" cy="238" rx="57" ry="8" fill="#dbe3eb" />
-          <path
-            d="m94 168-7 57m40-57 7 57"
-            stroke="#cad3d9"
-            stroke-width="20"
-            stroke-linecap="round"
-          />
-          <path
-            d="m86 98-21 66m70-66 21 66"
-            stroke="#efe5d6"
-            stroke-width="16"
-            stroke-linecap="round"
-          />
-          <rect x="80" y="86" width="60" height="94" rx="25" fill="#f6f0e5" stroke="#d6d4cc" />
-          <circle cx="110" cy="56" r="28" fill="#efe5d6" />
-          <path d="M80 56a30 30 0 0 1 60 0Z" fill="#8cc8be" />
-          <g v-if="backpack">
-            <path d="M89 103v57m42-57v57" stroke="#637a70" stroke-width="6" />
-            <rect x="86" y="101" width="48" height="64" rx="12" fill="#bd8966" stroke="#956a50" />
-            <rect x="94" y="136" width="32" height="22" rx="5" fill="#ae7957" stroke="#956a50" />
-            <path d="M98 140h24" stroke="#dfc2a2" stroke-width="2" />
-            <rect x="106" y="113" width="8" height="5" rx="1" fill="#efdfba" />
-          </g>
-          <path d="M76 229h21m28 0h21" stroke="#516568" stroke-width="10" stroke-linecap="round" />
-        </svg>
-        <figcaption>背面示意 · 探索人物同步穿戴</figcaption>
-      </figure>
+      <CharacterPreview :outfits="equippedOutfits" />
       <div class="outfit-slots">
         <div v-for="(label, slot) in OUTFIT_SLOTS" :key="slot">
           <span>{{ label }}</span
@@ -68,57 +41,48 @@ function remove(slot: OutfitSlot) {
         </div>
       </div>
     </aside>
-    <div class="outfit-collection">
-      <div class="outfit-intro">
-        <h2>歌曲衣橱</h2>
-        <p>抽到对应歌曲卡，即可解锁装扮。穿戴不消耗卡片，每个部位可穿戴一件。</p>
+    <section class="outfit-inventory" aria-label="装扮物品栏">
+      <header class="inventory-heading"><div><h2>装扮物品栏</h2><p>抽到对应歌曲卡即可解锁，穿戴不消耗卡片。</p></div><span>{{ ownedCount }} 件已拥有</span></header>
+      <div class="inventory-tabs" aria-label="装扮部位">
+        <button :aria-pressed="filter === 'all'" :class="{ active: filter === 'all' }" @click="filter = 'all'">全部</button>
+        <button v-for="(label, slot) in OUTFIT_SLOTS" :key="slot" :aria-pressed="filter === slot" :class="{ active: filter === slot }" @click="filter = slot">{{ label }}</button>
       </div>
-      <article
-        v-for="outfit in wardrobe"
-        :key="outfit.id"
-        class="outfit-entry"
-        :class="{ locked: !outfit.owned }"
-      >
-        <img :src="base + outfit.preview" :alt="outfit.name + '示意'" />
-        <div>
-          <span class="outfit-slot-label">{{ OUTFIT_SLOTS[outfit.slot] }}装扮</span>
-          <h3>{{ outfit.name }}</h3>
-          <p>{{ outfit.description }}</p>
-          <p class="outfit-source">来源：《{{ outfit.songTitle }}》 · {{ outfit.artist }}</p>
-          <div class="outfit-entry-action">
-            <span>{{
-              outfit.owned ? (outfit.equipped ? '正在穿戴' : '已解锁') : '抽到歌曲卡后解锁'
-            }}</span
-            ><button
-              class="lime-btn"
-              :disabled="!outfit.owned || outfit.equipped"
-              @click="wear(outfit.id)"
-            >
-              {{ outfit.equipped ? '已穿戴' : outfit.owned ? '穿戴' : '未解锁' }}
-            </button>
-          </div>
-        </div>
+      <div class="inventory-grid" aria-label="装扽物品">
+        <button v-for="item in items" :key="item.id" class="inventory-item" :class="{ selected: selected?.id === item.id, locked: !item.owned, equipped: item.equipped }" :aria-pressed="selected?.id === item.id" :aria-label="`${item.name}，${item.equipped ? '已穿戴' : item.owned ? '已拥有' : '未解锁'}`" @click="selectedId = item.id">
+          <span class="item-state">{{ item.equipped ? '已穿戴' : item.owned ? '已拥有' : '未解锁' }}</span>
+          <img :src="coverPath(item.preview)" :alt="item.name" />
+          <span class="item-name">{{ item.name }}</span>
+        </button>
+        <div v-for="n in emptySlots" :key="'empty-' + n" class="inventory-empty-slot" aria-hidden="true"><span>＋</span></div>
+      </div>
+      <p v-if="!items.length" class="inventory-empty">这个部位暂时没有装扮。</p>
+      <article v-if="selected" class="inventory-detail">
+        <img :src="coverPath(selected.preview)" :alt="selected.name" />
+        <div><span class="detail-slot">{{ OUTFIT_SLOTS[selected.slot] }}装扮 · 穿戴积分 +{{ Math.round(selected.scoreBonus * 100) }}%</span><h3>{{ selected.name }}</h3><p v-if="selected.lyric" class="detail-lyric">{{ selected.lyric }}</p><p class="detail-source">——《{{ selected.songTitle }}》 · {{ selected.artist }}</p></div>
+        <button v-if="selected.equipped" class="lime-btn" @click="remove(selected.slot)">卸下</button>
+        <button v-else class="lime-btn" :disabled="!selected.owned" @click="wear(selected.id)">{{ selected.owned ? '穿戴' : '未解锁' }}</button>
       </article>
-      <p class="outfit-footnote">
-        装扮仅改变人物外观，不影响速度、技能或积分。头部与配饰槽位已预留。
-      </p>
-    </div>
+      <p class="outfit-footnote">穿戴后增加探索积分，与地图装饰加成相加；不影响速度和技能。</p>
+    </section>
   </div>
 </template>
 
 <style scoped>
+.inventory-detail .detail-lyric{white-space:normal}
 .character-wardrobe {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  gap: 24px;
-  margin-top: 24px;
+  grid-template-columns: 280px minmax(0, 620px);
+  justify-content: center;
+  gap: 20px;
+  margin: 14px auto 0;
   color: #29364d;
 }
 .outfit-profile {
   background: linear-gradient(145deg, #f9fcff, #edf2f7);
   border: 1px solid #d5dfeb;
   border-radius: 12px;
-  padding: 22px;
+  padding: 16px;
+  --character-stage-height: 250px;
 }
 .outfit-profile-heading {
   display: flex;
@@ -127,33 +91,23 @@ function remove(slot: OutfitSlot) {
   gap: 10px;
 }
 .outfit-profile h2,
-.outfit-intro h2 {
+.inventory-heading h2 {
   font-size: 18px;
 }
 .outfit-profile-heading span {
   font-size: 11px;
   color: #61728b;
 }
-.outfit-character {
-  margin: 12px 0 22px;
-  text-align: center;
-}
-.outfit-character svg {
-  width: 100%;
-  max-width: 220px;
-  height: 260px;
-}
-.outfit-character figcaption {
-  font-size: 10px;
-  color: #61728b;
-}
+.outfit-slots { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px; }
 .outfit-slots > div {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
   align-items: center;
-  min-height: 45px;
+  min-height: 60px;
   border-top: 1px solid #dbe3ed;
-  font-size: 12px;
+  font-size: 11px;
 }
 .outfit-slots span {
   color: #61728b;
@@ -162,125 +116,16 @@ function remove(slot: OutfitSlot) {
   font-weight: 550;
 }
 .outfit-slots button {
-  margin-left: auto;
+  margin-left: 0;
   font-size: 11px;
 }
-.outfit-intro {
-  margin: 4px 0 20px;
-}
-.outfit-intro p {
-  font-size: 12px;
-  line-height: 1.8;
-  color: #61728b;
-  margin-top: 10px;
-}
-.outfit-entry {
-  display: flex;
-  gap: 24px;
-  padding: 22px;
-  background: #fff;
-  border: 1px solid #d5dfeb;
-  border-radius: 12px;
-}
-.outfit-entry > img {
-  width: 155px;
-  height: 155px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-.outfit-entry.locked > img {
-  filter: grayscale(0.85);
-  opacity: 0.65;
-}
-.outfit-entry > div {
-  flex: 1;
-  min-width: 0;
-}
-.outfit-slot-label {
-  font-size: 10px;
-  color: #637a70;
-}
-.outfit-entry h3 {
-  font-size: 19px;
-  margin: 8px 0;
-}
-.outfit-entry p {
-  font-size: 12px;
-  line-height: 1.7;
-  color: #61728b;
-}
-.outfit-source {
-  margin-top: 10px;
-}
-.outfit-entry-action {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 15px;
-}
-.outfit-entry-action > span {
-  font-size: 11px;
-  color: #4e6871;
-}
-.outfit-entry-action button {
-  font-size: 12px;
-  padding: 10px 20px;
-}
-.outfit-entry-action button:disabled {
-  background: #edf1f6;
-  color: #67758b;
-  border-color: #dce3ed;
-  opacity: 1;
-  box-shadow: none;
-}
-.outfit-footnote {
-  font-size: 11px;
-  color: #61728b;
-  line-height: 1.8;
-  margin-top: 20px;
-}
-@media (max-width: 850px) {
-  .character-wardrobe {
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 16px;
-  }
-  .outfit-entry {
-    flex-direction: column;
-    gap: 12px;
-  }
-  .outfit-entry > img {
-    width: 100%;
-    height: 150px;
-  }
-}
-@media (max-width: 600px) {
-  .character-wardrobe {
-    grid-template-columns: 1fr;
-  }
-  .outfit-profile {
-    padding: 20px;
-  }
-  .outfit-character svg {
-    height: 210px;
-  }
-  .outfit-entry {
-    flex-direction: row;
-    padding: 16px;
-    gap: 14px;
-  }
-  .outfit-entry > img {
-    width: 100px;
-    height: 120px;
-  }
-  .outfit-entry h3 {
-    font-size: 17px;
-  }
-  .outfit-entry-action {
-    flex-wrap: wrap;
-  }
-  .outfit-entry-action button {
-    padding: 9px 17px;
-  }
-}
+.outfit-inventory{min-width:0;background:#f8fafb;border:1px solid #d5dfeb;border-radius:12px;padding:16px;align-self:start}
+.inventory-heading{display:flex;justify-content:space-between;align-items:start;gap:12px}.inventory-heading h2{font-size:18px;margin:0}.inventory-heading p{font-size:12px;line-height:1.8;color:#61728b;margin:8px 0 0}.inventory-heading>span{font-size:11px;color:#61728b;white-space:nowrap;padding-top:4px}
+.inventory-tabs{display:flex;gap:6px;margin:8px 0}.inventory-tabs button{font-size:12px;padding:6px 14px;border:1px solid transparent;border-radius:7px;background:transparent;color:#61728b;cursor:pointer}.inventory-tabs button.active{background:#e4eeea;color:#365d51;border-color:#c5d8ce}
+.inventory-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.inventory-item,.inventory-empty-slot{height:52px;border:1px solid #dce4eb;border-radius:9px;background:#fff;min-width:0}.inventory-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 4px;cursor:pointer}.inventory-item img{width:28px;height:28px;object-fit:contain}.inventory-item.locked img{filter:grayscale(.8);opacity:.65}.inventory-item.selected{border-color:#7b9f90;box-shadow:0 0 0 2px #c7dcd2;background:#f0f7f3}.inventory-item:hover{border-color:#8fa99e}.inventory-item:focus-visible,.inventory-tabs button:focus-visible{outline:2px solid #668c80;outline-offset:3px}.item-name{font-size:10px;color:#405367;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.item-state{position:absolute;right:5px;top:3px;font-size:8px;color:#82909c}.equipped .item-state{color:#3c7860}.inventory-empty-slot{display:grid;place-items:center;background:#f0f3f6;border-style:dashed;border-color:#dfe5eb}.inventory-empty-slot span{font-size:17px;color:#d4dce3;font-weight:300}.inventory-empty{font-size:12px;color:#61728b;text-align:center;margin:16px 0}
+.inventory-detail{display:flex;align-items:center;gap:16px;padding-top:20px;margin-top:22px;border-top:1px solid #dce4eb}.inventory-detail>img{width:68px;height:68px;object-fit:contain;flex-shrink:0}.inventory-detail>div{flex:1;min-width:0}.detail-slot{font-size:10px;color:#637a70}.inventory-detail h3{font-size:16px;margin:4px 0 6px}.inventory-detail p{font-size:11px;color:#61728b;line-height:1.7;margin:0}.inventory-detail .detail-source{margin-top:5px}.inventory-detail>button{font-size:12px;padding:9px 16px;flex-shrink:0}.inventory-detail>button:disabled{background:#edf1f6;color:#67758b;border-color:#dce3ed;box-shadow:none;opacity:1}.outfit-footnote{font-size:11px;color:#61728b;line-height:1.8;margin:18px 0 0}
+@media(min-width:701px){.inventory-detail{gap:12px;padding-top:8px;margin-top:8px}.inventory-detail>img{width:48px;height:48px}.outfit-footnote{margin-top:12px}}
+@media(max-width:850px){.character-wardrobe{grid-template-columns:300px minmax(0,1fr);gap:16px}.outfit-inventory{padding:18px}.inventory-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.inventory-tabs{gap:0}.inventory-tabs button{padding:8px 12px}.inventory-heading{display:block}.inventory-heading>span{display:block;margin-top:8px}.inventory-detail{flex-wrap:wrap}.inventory-detail>button{margin-left:auto}}
+@media(max-width:700px){.character-wardrobe{grid-template-columns:1fr}.outfit-profile{padding:20px}.inventory-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.inventory-heading{display:flex}.inventory-heading>span{margin-top:0}.inventory-detail>img{width:54px;height:54px}}
 </style>

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌境 · 探索模型预览</title>
+<style>body{margin:0;background:#edf1ec;font-family:'Microsoft YaHei',sans-serif;color:#34443b}header{position:absolute;top:24px;left:32px;pointer-events:none}h1{font-size:22px;margin:0 0 8px}p{font-size:12px;margin:0;color:#65776b}canvas{display:block;width:100vw;height:100vh}footer{position:absolute;bottom:24px;left:32px;font-size:12px;color:#65776b}</style></head>
+<body><header><h1>探索物件</h1><p>原木与木车 / 海岸货箱 / 竹编瓷器货筐 / 浮雕音符金币</p></header><footer>拖动旋转视角，滚轮缩放。此预览不读取或修改玩家存档。</footer>
+<script type="module">
+import * as T from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { buildRaceCoin, buildRaceObstacle } from '/src/game/raceProps.ts'
+const scene=new T.Scene();scene.background=new T.Color('#edf1ec')
+const camera=new T.PerspectiveCamera(38,innerWidth/innerHeight,.1,100);camera.position.set(5,6,9)
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;document.body.append(renderer.domElement)
+scene.add(new T.HemisphereLight('#eff8ff','#859976',1.5))
+const sun=new T.DirectionalLight('#ffefd5',2.4);sun.position.set(-5,10,6);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun)
+const ground=new T.Mesh(new T.PlaneGeometry(30,30),new T.MeshStandardMaterial({color:'#edf1ec',roughness:.9}));ground.rotation.x=-Math.PI/2;ground.position.y=-.015;ground.receiveShadow=true;scene.add(ground)
+for(const [index,world] of ['forest','sea','jiangnan'].entries())for(const moving of [false,true]){const prop=buildRaceObstacle(world,moving,index);prop.position.set((index-1)*2.3,0,moving?1.2:-.7);scene.add(prop)}
+const coin=buildRaceCoin();coin.scale.setScalar(2.1);coin.position.set(0,1.25,-2.1);coin.rotation.y=.12;scene.add(coin)
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.35,-.3);controls.enableDamping=true;controls.update()
+function render(){requestAnimationFrame(render);controls.update();renderer.render(scene,camera)}render()
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()})
+</script></body></html>

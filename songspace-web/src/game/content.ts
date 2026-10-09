@@ -1,6 +1,7 @@
 import { COMMENT_QUOTES } from './commentQuotes.ts'
 export type SkillId = 'shield' | 'magnet' | 'revive' | 'courage' | 'tea' | 'freeze' | 'double' | 'rewind' | 'friend'
 export type ImageryModel = 'garden' | 'pavilion' | 'fireworks' | 'lantern' | 'snow' | 'record'
+export type WeatherId = 'clear' | 'sunset' | 'rain'
 export const ITEMS: Record<string, { id: SkillId; name: string; description: string; prose: string }> = {
   心墙: { id: 'shield', name: '心墙护盾', description: '抵挡一次碰撞；护盾持续到触发', prose: COMMENT_QUOTES["心墙"]!.excerpt },
   你要的全拿走: { id: 'magnet', name: '拾光磁铁', description: '吸取前方 12 米、相邻车道金币，持续 8 秒', prose: COMMENT_QUOTES["你要的全拿走"]!.excerpt },
@@ -12,7 +13,7 @@ export const ITEMS: Record<string, { id: SkillId; name: string; description: str
   反方向的钟: { id: 'rewind', name: '倒转怀表', description: '回到 3 秒前，恢复当时生命、位置与金币', prose: COMMENT_QUOTES["反方向的钟"]!.excerpt },
   朋友: { id: 'friend', name: '友情助力', description: '伙伴助力加速 8 秒，速度增加 6 m/s', prose: COMMENT_QUOTES["朋友"]!.excerpt },
 }
-export interface ImageryContent { name: string; model: ImageryModel; value: number; prose: string }
+export interface ImageryContent { name: string; model: ImageryModel; value: number; prose: string; weather?: Exclude<WeatherId, 'clear'> }
 const DECORATIONS: Record<string, ImageryContent> = {
   樱花草: { name: '春信花园', model: 'garden', value: 20, prose: '把没说完的话，交给下一次花开。' },
   夏夜最后的烟火: { name: '并肩观景台', model: 'fireworks', value: 50, prose: '烟火会散场，但有人陪你看过的夜，会在心里亮很久。' },
@@ -21,11 +22,18 @@ const DECORATIONS: Record<string, ImageryContent> = {
   晴天: { name: '等风花园', model: 'garden', value: 25, prose: '青春里有些雨，下了很久；想起你时，仍像晴天。' },
   下一个天亮: { name: '天亮候亭', model: 'pavilion', value: 40, prose: '慢一点没关系，愿你等到的天亮，真的有光。' },
   我记得: { name: '记忆唱片亭', model: 'record', value: 40, prose: '有些相遇不需要记清日期，只要心里还留着回声。' },
-  黄昏: { name: '暮色候亭', model: 'pavilion', value: 35, prose: '日落替一天合上书，也替明天留下一页。' },
+  黄昏: { name: '黄昏天气', model: 'pavilion', weather: 'sunset', value: 35, prose: '暖色夕阳与暮色天空。' },
+  雨爱: { name: '雨天天气', model: 'pavilion', weather: 'rain', value: 35, prose: '雨幕、阴云与雨中街道。' },
   一样的月光: { name: '月下回声灯', model: 'lantern', value: 30, prose: '路走得不同，抬头时，仍能看见一样的月光。' },
 }
 export function imageryFor(title: string): ImageryContent {
-  return DECORATIONS[title] || { name: '回声唱片亭', model: 'record', value: 20, prose: '让这首歌有一个停留的地方，也让赶路的人歇一歇。' }
+  if (DECORATIONS[title]) return DECORATIONS[title]
+  if (/雪|冬|冰/.test(title)) return { name: '落雪庭院', model: 'snow', value: 20, prose: '' }
+  if (/花|春|树|草|森林/.test(title)) return { name: '花树庭院', model: 'garden', value: 20, prose: '' }
+  if (/烟火|烟花|星|光/.test(title)) return { name: '星光烟火', model: 'fireworks', value: 20, prose: '' }
+  if (/月|夜|灯/.test(title)) return { name: '月下灯笼', model: 'lantern', value: 20, prose: '' }
+  if (/雨|风|路|远|等|时|年/.test(title)) return { name: '听风候亭', model: 'pavilion', value: 20, prose: '' }
+  return { name: '回声唱片亭', model: 'record', value: 20, prose: '' }
 }
 export function skillLevel(copies: number) { return Math.min(5, 1 + Math.floor(Math.max(0, copies - 1) / 3)) }
 export function itemDescription(title: string, level: number) {
@@ -40,5 +48,9 @@ export function itemDescription(title: string, level: number) {
   return ITEMS[title]!.description + safety
 }
 export function decorationMultiplier(value: number) { return 1 + Math.min(0.5, Math.max(0, value) / 1000) }
-export function artPath(id: string) { return `${import.meta.env.BASE_URL}art/imagery/${id}.svg` }
+let imageryAssets: Record<string, string> | undefined
+export function artPath(id: string) {
+  imageryAssets ??= import.meta.glob<string>('../assets/imagery/*.svg', { eager: true, query: '?url', import: 'default' })
+  return imageryAssets[`../assets/imagery/${id}.svg`] || `${import.meta.env.BASE_URL}art/imagery/${id}.svg`
+}
 

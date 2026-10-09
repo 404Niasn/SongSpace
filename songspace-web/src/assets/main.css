@@ -82,6 +82,13 @@ progress::-moz-progress-bar {
   gap: 11px;
   flex-shrink: 0;
 }
+.brand-logo {
+  display: block;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
 .brand-disc {
   font-size: 28px;
   background: #d8ee9a;

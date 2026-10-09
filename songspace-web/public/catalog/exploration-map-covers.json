@@ -1,0 +1,24 @@
+{
+  "source": "QQ音乐官方搜索建议及专辑图片 CDN",
+  "retrieved_at": "2026-10-09",
+  "albums": [
+    {
+      "world": "forest",
+      "album": "爱情的尽头",
+      "artist": "伍佰 & China Blue",
+      "album_mid": "003S4zP93vJRib",
+      "album_url": "https://y.qq.com/n/ryqq/albumDetail/003S4zP93vJRib",
+      "cover_url": "https://y.gtimg.cn/music/photo_new/T002R300x300M000003S4zP93vJRib_4.jpg",
+      "cover_path": "/covers/qqmusic/003S4zP93vJRib.jpg"
+    },
+    {
+      "world": "sea",
+      "album": "大海",
+      "artist": "张雨生",
+      "album_mid": "001dW8Ey2VtnuP",
+      "album_url": "https://y.qq.com/n/ryqq/albumDetail/001dW8Ey2VtnuP",
+      "cover_url": "https://y.gtimg.cn/music/photo_new/T002R300x300M000001dW8Ey2VtnuP_1.jpg",
+      "cover_path": "/covers/qqmusic/001dW8Ey2VtnuP.jpg"
+    }
+  ]
+}

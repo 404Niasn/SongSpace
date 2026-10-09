@@ -140,28 +140,65 @@ def test_legacy_session_id_remains_restorable(game_client):
         assert restored.json()["token"] == legacy_id
 
 
-def test_named_account_registration_duplicate_and_restore(game_client):
+def test_nickname_registration_allocates_id_and_restores(game_client):
+    import re
+
     with TestClient(game_client()) as client:
         created = client.post("/api/v1/game/accounts", json={
-            "game_id": "  乌龟听歌  ", "state": snapshot(180),
+            "nickname": "  乌龟听歌  ", "state": snapshot(180),
         })
         assert created.status_code == 201
         account = created.json()
-        assert account["game_id"] == "乌龟听歌"
+        assert re.fullmatch(r"SS-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}", account["game_id"])
+        assert len(account["game_id"]) == 17
+        assert account["state"]["game"]["name"] == "乌龟听歌"
+        assert account["state"]["game"]["notes"] == 500
+        assert account["state"]["game"]["packs"] == {
+            "single": 3, "triple": 1, "five": 0, "vehicle": 1, "theme": 0,
+        }
         assert account["token"].isascii()
-        assert client.post("/api/v1/game/accounts", json={
-            "game_id": "乌龟听歌", "state": snapshot(5),
-        }).status_code == 409
+        same_name = client.post("/api/v1/game/accounts", json={
+            "nickname": "乌龟听歌", "state": snapshot(5),
+        })
+        assert same_name.status_code == 201
+        assert same_name.json()["game_id"] != account["game_id"]
         assert client.get("/api/v1/game/save", headers={
             "Authorization": "Bearer " + account["token"],
-        }).json()["state"]["game"]["notes"] == 180
+        }).json()["state"]["game"]["notes"] == 500
         for invalid in [" ", "a", "字" * 17, 123]:
             assert client.post("/api/v1/game/accounts", json={
-                "game_id": invalid, "state": snapshot(),
+                "nickname": invalid, "state": snapshot(),
             }).status_code == 422
     with TestClient(game_client()) as other_device:
         restored = other_device.post("/api/v1/game/sessions/restore", json={
-            "game_id": "  乌龟听歌  ",
+            "game_id": "  " + account["game_id"].lower() + "  ",
         })
         assert restored.status_code == 200
         assert restored.json() == account
+
+
+def test_previously_named_account_remains_restorable(game_client):
+    import hashlib
+    from app.api.routes.game import named_token
+
+    app = game_client()
+    dependency = app.dependency_overrides[get_session]
+    with next(dependency()) as session:
+        token = named_token("乌龟听歌")
+        session.add(GameProfile(token_hash=hashlib.sha256(token.encode()).hexdigest(),
+                               display_name="乌龟听歌", state=snapshot(210)))
+        session.commit()
+    with TestClient(app) as client:
+        restored = client.post("/api/v1/game/sessions/restore", json={"game_id": "乌龟听歌"})
+        assert restored.status_code == 200
+        assert restored.json()["state"]["game"]["notes"] == 210
+
+
+def test_three_character_nickname_registers(game_client):
+    with TestClient(game_client()) as client:
+        created = client.post("/api/v1/game/accounts", json={
+            "nickname": "我想宁", "state": snapshot(),
+        })
+        assert created.status_code == 201
+        assert created.json()["state"]["game"]["name"] == "我想宁"
+        assert len(created.json()["game_id"]) == 17

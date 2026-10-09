@@ -1,6 +1,9 @@
 import { computed, reactive } from 'vue'
 import { ITEMS, imageryFor, itemDescription, skillLevel } from './content.ts'
 import { COMMENT_QUOTES, type CommentQuote } from './commentQuotes.ts'
+import { VEHICLES, type VehicleModel } from './vehicles.ts'
+import { LYRIC_EXCERPTS } from './lyricExcerpts.ts'
+import type { Decoration, WorldId } from '../worlds/types.ts'
 import {
   OUTFITS,
   OUTFIT_SLOTS,
@@ -10,6 +13,10 @@ import {
   type OutfitSlot,
 } from './outfits.ts'
 export interface Song {
+  card_kind?: CardKind
+  vehicle_name?: string
+  vehicle_model?: VehicleModel
+  vehicle_lyric?: string
   id: string
   rank: number
   title: string
@@ -39,11 +46,14 @@ interface Save {
   owned: Record<string, number>
   packs: Record<string, number>
   daily: string
+  dailyStreak: number
   best: number
   runs: number
   pity: number
   history: { score: number; distance: number; coins: number; notes: number; map: string }[]
   equippedTheme: string
+  worldWeather: Partial<Record<'forest' | 'sea' | 'jiangnan', string>>
+  worldScenery: Partial<Record<WorldId, Decoration[]>>
   equippedVehicle: string
   equippedItem: string
   equippedItems: string[]
@@ -60,15 +70,18 @@ interface Save {
 }
 const fresh: Save = {
   name: '',
-  notes: 120,
+  notes: 500,
   owned: {},
-  packs: { single: 0, triple: 0, five: 1, vehicle: 0, theme: 0 },
+  packs: { single: 3, triple: 1, five: 0, vehicle: 1, theme: 0 },
   daily: '',
+  dailyStreak: 0,
   best: 0,
   runs: 0,
   pity: 0,
   history: [],
   equippedTheme: '',
+  worldWeather: {},
+  worldScenery: {},
   equippedVehicle: '',
   equippedItem: '',
   equippedItems: [],
@@ -84,6 +97,7 @@ const fresh: Save = {
   claimedAchievements: [],
 }
 const defaults: Save = JSON.parse(JSON.stringify(fresh))
+const emptyPacks = { single: 0, triple: 0, five: 0, vehicle: 0, theme: 0 }
 let saved: Partial<Save> = {}
 try {
   saved = JSON.parse(localStorage.getItem('songspace.game.v1') || '{}')
@@ -94,7 +108,9 @@ export const game = reactive<Save>({
   ...fresh,
   ...saved,
   owned: saved.owned || {},
-  packs: { ...fresh.packs, ...saved.packs },
+  worldWeather: saved.worldWeather || {},
+  worldScenery: saved.worldScenery || {},
+  packs: { ...(Object.keys(saved).length ? emptyPacks : fresh.packs), ...saved.packs },
   history: saved.history || [],
   equippedOutfits:
     saved.equippedOutfits && typeof saved.equippedOutfits === 'object'
@@ -108,14 +124,16 @@ export const game = reactive<Save>({
   totalDistance:
     saved.totalDistance ?? (saved.history || []).reduce((sum, run) => sum + run.distance, 0),
   dailyClaims: saved.dailyClaims ?? (saved.daily ? 1 : 0),
+  dailyStreak: saved.dailyStreak ?? (saved.daily ? 1 : 0),
   challengeWins: saved.challengeWins ?? (saved.challengeWon ? 1 : 0),
   unlockedAchievements: Array.isArray(saved.unlockedAchievements) ? saved.unlockedAchievements : [],
   claimedAchievements: Array.isArray(saved.claimedAchievements) ? saved.claimedAchievements : [],
 })
-export const catalog = reactive<{ songs: Song[]; error: string }>({ songs: [], error: '' })
+export const catalog = reactive<{ songs: Song[]; error: string; chartDate: string }>({ songs: [], error: '', chartDate: '' })
 export function replaceGame(state: Partial<Save>) {
   Object.assign(game, JSON.parse(JSON.stringify(defaults)), state)
-  game.packs = { ...defaults.packs, ...state.packs }
+  game.packs = { ...emptyPacks, ...state.packs }
+  game.dailyStreak = state.dailyStreak ?? (state.daily ? 1 : 0)
 }
 export function freshGame(): Save { return JSON.parse(JSON.stringify(defaults)) }
 export function persist() {
@@ -138,14 +156,16 @@ export async function loadCatalog() {
     const data = await r.json()
     if (!Array.isArray(data.songs) || !data.songs.length) throw Error()
     catalog.songs = data.songs
+    catalog.chartDate = data.source?.chart_date || ''
   } catch {
     catalog.error = '卡库载入失败，请刷新后重试。'
   }
 }
 export function kindFor(song: Song): CardKind {
+  if (song.card_kind === 'vehicle') return 'vehicle'
+  if (['江南', '光年之外'].includes(song.title)) return 'map'
   if (outfitForSong(song)) return 'outfit'
   if (ITEMS[song.title]) return 'item'
-  if ([25, 48, 54].includes(song.rank)) return 'map'
   if (song.rank % 8 === 0) return 'vehicle'
   return 'decoration'
 }
@@ -162,11 +182,11 @@ export function cardFor(song: Song, rarity?: GameCard['rarity']): GameCard {
     kind,
     rarity: rarity || (kind === 'map' ? 'rainbow' : kind === 'item' ? 'gold' : 'normal'),
     effect: outfit
-      ? outfit.name + ' · 人物装扮 · ' + OUTFIT_SLOTS[outfit.slot]
+      ? outfit.name + ' · 穿戴积分 +' + Math.round(outfit.scoreBonus * 100) + '% · ' + OUTFIT_SLOTS[outfit.slot]
       : kind === 'map'
-        ? '夜间探索主题 · 星空与暮色'
+        ? song.title === '光年之外' ? '《光年之外》太空地图 · 后续开放' : '《江南》地图 · 烟雨与青石板街'
         : kind === 'vehicle'
-          ? '巡航自行车 · ' + (14 + (song.rank % 3) + Math.min(2, upgrade)) + ' m/s'
+          ? (song.vehicle_name || '巡航自行车') + ' · ' + ((song.vehicle_model ? VEHICLES[song.vehicle_model].speed : 14 + (song.rank % 3)) + Math.min(2, upgrade)) + ' m/s'
           : kind === 'item'
             ? content!.name +
               ' · ' +
@@ -175,14 +195,8 @@ export function cardFor(song: Song, rarity?: GameCard['rarity']): GameCard {
               skillLevel(copies)
             : decoration.name + ' · 装饰值 +' + decoration.value,
     count: game.owned[song.id] || 0,
-    prose: outfit
-      ? outfit.description
-      : kind === 'item'
-        ? content!.prose
-        : kind === 'decoration'
-          ? decoration.prose
-          : '把一首歌收藏起来，让下一段路有了新的颜色。',
-    art: kind === 'item' ? content!.id : kind === 'decoration' ? decoration.model : '',
+    prose: LYRIC_EXCERPTS[song.id] || song.vehicle_lyric || '',
+    art: kind === 'item' ? content!.id : kind === 'decoration' ? decoration.weather || decoration.model : '',
     commentQuote: kind === 'item' ? COMMENT_QUOTES[song.title] : undefined,
     outfit,
   }
@@ -197,15 +211,15 @@ export const KIND_NAMES = {
 // Owning any matching song card unlocks the outfit without consuming the card.
 export const wardrobe = computed(() =>
   OUTFITS.map((outfit) => {
-    const owned = catalog.songs.some(
-      (song) => outfitForSong(song)?.id === outfit.id && (game.owned[song.id] || 0) > 0,
-    )
-    return { ...outfit, owned, equipped: owned && game.equippedOutfits[outfit.slot] === outfit.id }
+    const song = catalog.songs.find(song => outfitForSong(song)?.id === outfit.id)
+    const owned = !!song && (game.owned[song.id] || 0) > 0
+    return { ...outfit, lyric: song ? cardFor(song).prose : '', owned, equipped: owned && game.equippedOutfits[outfit.slot] === outfit.id }
   }),
 )
 export const equippedOutfits = computed(() =>
   wardrobe.value.filter((outfit) => outfit.owned && outfit.equipped),
 )
+export const outfitScoreBonus = computed(() => equippedOutfits.value.reduce((sum, outfit) => sum + outfit.scoreBonus, 0))
 export function equipOutfit(id: string) {
   const outfit = wardrobe.value.find((outfit) => outfit.id === id && outfit.owned)
   if (!outfit) return false
@@ -234,7 +248,7 @@ export const PACKS = [
     id: 'vehicle',
     title: '载具歌单包',
     count: 1,
-    price: 120,
+    price: 300,
     tag: '新配色 · 更快的巡航速度',
     tone: 'blue',
   },
@@ -288,11 +302,24 @@ export function openPack(id: string): GameCard[] {
   persist()
   return result
 }
+export function dailySignDay() {
+  const day = today()
+  const previous = new Date(day + 'T00:00:00Z')
+  previous.setUTCDate(previous.getUTCDate() - 1)
+  const streak = game.daily === day ? game.dailyStreak
+    : game.daily === previous.toISOString().slice(0, 10) ? game.dailyStreak + 1 : 1
+  return ((Math.max(1, streak) - 1) % 7) + 1
+}
 export function claimDaily() {
-  if (game.daily === today()) return false
-  game.daily = today()
+  const day = today()
+  if (game.daily === day) return false
+  const signDay = dailySignDay()
+  game.dailyStreak = signDay === 1 ? 1 : game.dailyStreak + 1
+  game.daily = day
   game.dailyClaims++
-  game.notes += 50
+  game.packs.single = (game.packs.single || 0) + 1
+  if (signDay === 5) game.packs.triple = (game.packs.triple || 0) + 1
+  if (signDay === 7) game.packs.five = (game.packs.five || 0) + 1
   persist()
   return true
 }

@@ -119,6 +119,6 @@ Remove-Item Env:TEST_DATABASE_URL
 - `GET /api/v1/game/save`：Bearer 令牌读取当前存档。
 - `PATCH /api/v1/game/save`：提交修订号和完整状态，冲突返回 409，不覆盖较新的存档。
 
-前端 Vite 的 `/api` 代理到本机 8000。浏览器保留离线缓存并显示同步状态。独立登录页 `/login` 上方输入名字作为账号 ID，通过 `POST /api/v1/game/accounts` 注册（重复 ID 返回 409）；下方通过 `POST /api/v1/game/sessions/restore` 验证已有 ID 并恢复存档，兼容旧游戏 ID。ID 相当于密码，数据库只保存凭据哈希。服务端抽卡结算、反作弊和共享排行榜尚未实现。
+前端 Vite 的 `/api` 代理到本机 8000。浏览器保留离线缓存并显示同步状态。独立登录页 `/login` 上方填写昵称，通过 `POST /api/v1/game/accounts` 注册，系统分配 `SS-XXXX-XXXX-XXXX` 格式 ID；昵称可重名；下方通过 `POST /api/v1/game/sessions/restore` 验证已有 ID 并恢复存档，兼容旧游戏 ID。ID 相当于密码，数据库只保存凭据哈希。服务端抽卡结算、反作弊和共享排行榜尚未实现。
 
 本次使用根目录 `.venv` 安装依赖。启动后端：`.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000`；前端在 `songspace-web` 执行 `npm run dev -- --host 127.0.0.1 --port 5173`。

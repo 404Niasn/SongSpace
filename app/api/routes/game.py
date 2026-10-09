@@ -52,14 +52,14 @@ class RestoreSession(BaseModel):
         if not isinstance(value, str):
             return value
         value = value.strip()
-        return value.upper() if len(value) > 20 and value.upper().startswith("SS-") else value
+        return value.upper() if (len(value) == 17 or len(value) > 20) and value.upper().startswith("SS-") else value
 
 
 class RegisterSession(BaseModel):
-    game_id: str = Field(min_length=2, max_length=16)
+    nickname: str = Field(min_length=2, max_length=16)
     state: Snapshot
 
-    @field_validator("game_id", mode="before")
+    @field_validator("nickname", mode="before")
     @classmethod
     def clean_id(cls, value: str) -> str:
         return value.strip() if isinstance(value, str) else value
@@ -93,16 +93,28 @@ def response(profile: GameProfile) -> dict:
 
 @router.post("/sessions", status_code=201)
 def create_session(state: Snapshot, session: Annotated[Session, Depends(get_session)]):
-    code = base64.b32encode(secrets.token_bytes(16)).decode().rstrip("=")
-    token = "SS-" + "-".join(code[i : i + 5] for i in range(0, len(code), 5))
-    profile = GameProfile(
-        token_hash=hashlib.sha256(token.encode()).hexdigest(),
-        display_name=state.game.name,
-        state=serialized(state),
-    )
-    session.add(profile)
-    session.commit()
-    return {**response(profile), "token": token}
+    return allocate_account(state, session)
+
+
+def allocate_account(state: Snapshot, session: Session):
+    saved = serialized(state)
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    for _ in range(5):
+        code = "".join(secrets.choice(alphabet) for _ in range(12))
+        token = "SS-" + "-".join(code[i:i + 4] for i in range(0, 12, 4))
+        profile = GameProfile(
+            token_hash=hashlib.sha256(token.encode()).hexdigest(),
+            display_name=state.game.name,
+            state=saved,
+        )
+        session.add(profile)
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            continue
+        return {**response(profile), "token": token, "game_id": token}
+    raise HTTPException(503, "Account allocation unavailable")
 
 
 @router.post("/sessions/restore")
@@ -118,19 +130,10 @@ def restore_session(body: RestoreSession, session: Annotated[Session, Depends(ge
 
 @router.post("/accounts", status_code=201)
 def register_account(body: RegisterSession, session: Annotated[Session, Depends(get_session)]):
-    token = named_token(body.game_id)
-    profile = GameProfile(
-        token_hash=hashlib.sha256(token.encode()).hexdigest(),
-        display_name=body.state.game.name,
-        state=serialized(body.state),
-    )
-    session.add(profile)
-    try:
-        session.commit()
-    except IntegrityError:
-        session.rollback()
-        raise HTTPException(409, "Account ID already exists") from None
-    return {**response(profile), "token": token, "game_id": body.game_id}
+    body.state.game.name = body.nickname
+    body.state.game.notes = 500
+    body.state.game.packs = {"single": 3, "triple": 1, "five": 0, "vehicle": 1, "theme": 0}
+    return allocate_account(body.state, session)
 
 
 @router.get("/save")

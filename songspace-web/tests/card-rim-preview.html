@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌境 · 卡边材质校验</title>
-<style>body{margin:0}.rim-preview{display:flex;justify-content:center;align-items:center;gap:64px;min-height:100vh;padding:60px 30px;box-sizing:border-box;background:radial-gradient(ellipse,#e8edf0,#f8fafb 70%)}.rim-sample{display:grid;justify-items:center;gap:28px}.rim-sample>small{font:12px sans-serif;color:#6d7e86;letter-spacing:2px}.rim-sample .single-card{width:280px}.rim-sample .card-reverse{inset:0}@media(max-width:800px){.rim-preview{gap:38px;flex-wrap:wrap}}</style></head>
+<style>body{margin:0}.rim-preview{display:flex;justify-content:center;align-items:center;gap:32px;flex-wrap:wrap;min-height:100vh;padding:60px 30px;box-sizing:border-box;background:radial-gradient(ellipse,#e8edf0,#f8fafb 70%)}.rim-sample{display:grid;justify-items:center;gap:28px}.rim-sample>small{font:12px sans-serif;color:#6d7e86;letter-spacing:2px}.rim-sample .single-card{width:260px}.rim-sample .card-reverse{inset:0}@media(max-width:800px){.rim-preview{gap:38px;flex-wrap:wrap}}</style></head>
 <body><div id="preview"></div><script type="module">
 import '/src/assets/main.css'
 import '/src/assets/spectrum.css'
@@ -14,8 +14,9 @@ import {catalog,loadCatalog,cardFor} from '/src/game/save.ts'
 await loadCatalog()
 const silver={...cardFor(catalog.songs.find(s=>s.title==='遇见')),count:1,isNew:true,rarity:'normal'}
 const gold={...cardFor(catalog.songs.find(s=>s.title==='冻结')),count:1,isNew:true,rarity:'gold'}
+const map={...cardFor(catalog.songs.find(s=>s.title==='江南')),count:1,isNew:true}
 createApp({render:()=>new URLSearchParams(location.search).has('summary') ? h('main',{class:'pack-overlay'},[h('div',{class:'revealed-grid'},[silver,silver,gold,silver,gold].map(card=>h('div',{class:'reveal-card face'},[h(CardAura,{rarity:card.rarity}),h(SongCard,{card})])))]) : h('main',{class:'rim-preview'},[
   h('section',{class:'rim-sample'},[h('div',{class:'single-card'},[h(CardAura),h('span',{class:'card-side card-reverse card-back-design'},[h('small','SONGSPACE'),h('strong','♪'),h('span','音乐收藏卡')])])]),
-  ...[[silver,'普通卡 · 银色金属'],[gold,'金卡 · 香槟金属']].map(([card,label])=>h('section',{class:'rim-sample'},[h('div',{class:'single-card'},[h(CardAura,{rarity:card.rarity}),h(SongCard,{card})])]))
+  ...[[silver,'普通卡 · 银色金属'],[gold,'金卡 · 香槟金属'],[map,'江南 · 地图闪卡']].map(([card,label])=>h('section',{class:'rim-sample'},[h('div',{class:'single-card'},[h(CardAura,{rarity:card.rarity}),h(SongCard,{card})])]))
 ])}).mount('#preview')
 </script></body></html>

@@ -1,0 +1,53 @@
+{
+  "albumdesc": "",
+  "albumid": 89552,
+  "albummid": "004S8YQr3UmEbG",
+  "albumname": "Shall We Dance? Shall We Talk!",
+  "alertid": 0,
+  "belongCD": 6,
+  "cdIdx": 0,
+  "icons": 10141694,
+  "interval": 211,
+  "isonly": 0,
+  "label": "0",
+  "msgid": 23,
+  "pay": {
+    "payalbum": 0,
+    "payalbumprice": 0,
+    "paydownload": 0,
+    "payinfo": 0,
+    "payplay": 0,
+    "paytrackmouth": 0,
+    "paytrackprice": 0,
+    "timefree": 0
+  },
+  "preview": {
+    "trybegin": 43648,
+    "tryend": 77357,
+    "trysize": 960887
+  },
+  "rate": 23,
+  "singer": [
+    {
+      "id": 143,
+      "mid": "003Nz2So3XXYek",
+      "name": "陈奕迅"
+    }
+  ],
+  "size128": 3381117,
+  "size320": 8452425,
+  "size5_1": 0,
+  "sizeape": 0,
+  "sizeflac": 21556285,
+  "sizeogg": 4661676,
+  "songid": 4907894,
+  "songmid": "004CU50m2JjBjr",
+  "songname": "单车",
+  "songorig": "单车",
+  "songtype": 0,
+  "strMediaMid": "000wa9ED359rBP",
+  "stream": 1,
+  "switch": 1,
+  "type": 0,
+  "vid": ""
+}

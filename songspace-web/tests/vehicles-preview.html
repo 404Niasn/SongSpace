@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><title>歌境载具模型</title><style>body{margin:0;background:#edf1eb;color:#35493d;font:15px 'Microsoft YaHei',sans-serif}main{display:flex;height:100vh}section{width:33.333%;position:relative;border-right:1px solid #d4ded3}canvas{display:block;width:100%;height:100%}p{position:absolute;bottom:35px;left:32px;line-height:1.8;margin:0;pointer-events:none}label{position:absolute;top:24px;left:24px;z-index:2;font-size:13px}</style></head><body><label><input type="checkbox" id="riders">显示探索中的乘坐姿态</label><main></main><script type="module">
+import * as T from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { buildVehicle } from '/src/game/vehicles.ts'
+import { Race } from '/src/game/race.ts'
+const riders=[]
+document.querySelector('#riders').addEventListener('change',e=>riders.forEach(r=>r(e.target.checked)))
+for (const [id, song, name] of [['bicycle-rack','单车 · 陈奕迅','后货架旧式单车'],['ae86','一路向北 · 周杰伦','AE86'],['motorcycle','鲜花 · 回春丹','烂摩托']]) {
+  const host=document.createElement('section');host.innerHTML=`<p>${song}<br>${name}</p>`;document.querySelector('main').append(host)
+  const scene=new T.Scene();scene.background=new T.Color('#edf1eb')
+  const camera=new T.PerspectiveCamera(35,1,.1,30);camera.position.set(5.4,3.4,-6.3)
+  const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.toneMapping=T.ACESFilmicToneMapping;renderer.shadowMap.enabled=true;host.append(renderer.domElement)
+  scene.add(new T.HemisphereLight('#fff7eb','#899d94',2.5));const light=new T.DirectionalLight('#fff2dc',3);light.position.set(-3,6,-4);light.castShadow=true;scene.add(light)
+  const ground=new T.Mesh(new T.PlaneGeometry(20,20),new T.ShadowMaterial({opacity:.15}));ground.rotation.x=-Math.PI/2;ground.position.y=-.005;ground.receiveShadow=true;scene.add(ground)
+  const bare=buildVehicle(id).group;scene.add(bare)
+  let mounted
+  riders.push(visible=>{
+    bare.visible=!visible
+    if(visible&&!mounted){
+      mounted=Object.create(Race.prototype)
+      Object.assign(mounted,{bike:new T.Group(),vehicleModel:id,wheels:[],legs:[],outfits:[],distance:0})
+      mounted.makeBike();mounted.updatePedals();scene.add(mounted.bike)
+    }
+    if(mounted)mounted.bike.visible=visible
+  })
+  const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.8,0);controls.enableDamping=true;controls.enablePan=false;controls.update()
+  const resize=()=>{renderer.setSize(host.clientWidth,host.clientHeight);camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix()};resize();addEventListener('resize',resize)
+  renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera)})
+}
+</script></body></html>

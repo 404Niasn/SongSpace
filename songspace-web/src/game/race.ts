@@ -6,11 +6,18 @@ import { buildWorld, disposeObject } from '@/worlds/models'
 import type { WorldId } from '@/worlds/types'
 import { Skills, type SkillSlot } from './skills'
 import { catalog } from './save'
-import { imageryFor } from './content'
+import { imageryFor, type WeatherId } from './content'
+import { WeatherLayer } from '@/worlds/weather'
 import { validPlacements } from './imagery'
 import { buildImagery, buildSkillEffect } from '@/worlds/imageryModels'
 import { addCharacterOutfits } from '@/worlds/outfitModels'
 import type { OutfitDefinition } from './outfits'
+import { buildRaceCoin, buildRaceObstacle, freezeRaceObstacle, raceRow } from './raceProps.ts'
+import { buildRider, poseRider, type RiderLeg } from './rider.ts'
+import { VEHICLES, type VehicleModel } from './vehicles'
+import { buildMountedVehicle } from './vehicleRider'
+import { raceDifficulty } from './raceDifficulty'
+import { ENTRY_DURATION, raceEntryMotion } from './raceEntry'
 export interface RaceStatus {
   distance: number
   score: number
@@ -38,7 +45,7 @@ export class Race {
     dynamic: boolean
   }[] = []
   private wheels: T.Group[] = []
-  private legs: { upper: T.Mesh; lower: T.Mesh; shoe: T.Mesh; pedal: T.Mesh; side: number }[] = []
+  private legs: RiderLeg[] = []
   private lane = 0
   private x = 0
   private distance = 0
@@ -58,6 +65,7 @@ export class Race {
   private events = new AbortController()
   private completed = false
   private sky: T.Color
+  private skyDome: ReturnType<typeof atmosphere>
   private mats = new Map<string, T.MeshStandardMaterial>()
   private maxSpeed = 13
   private stoneMaterial: T.MeshStandardMaterial | undefined
@@ -76,7 +84,12 @@ export class Race {
   private snapshots: { time: number; distance: number; coins: number; bonus: number; health: number; lane: number; x: number; jump: number; taken: string[] }[] = []
   private miniature: ReturnType<typeof buildWorld> | undefined
   private enteringAt = 0
+  private entryPosition = new T.Vector3()
+  private entryLook = new T.Vector3()
+  private overviewPosition = new T.Vector3(72, 72, 81)
+  private overviewLook = new T.Vector3(0, -12, 0)
   private entered: ((ok: boolean) => void) | undefined
+  private weatherLayer = new WeatherLayer(45, 145, -45)
   constructor(
     private host: HTMLElement,
     private world: WorldId,
@@ -87,12 +100,18 @@ export class Race {
     private evening = false,
     slots: SkillSlot[] = [],
     private outfits: OutfitDefinition[] = [],
+    private vehicleModel?: VehicleModel,
+    private weather: WeatherId = 'clear',
   ) {
     this.skills = new Skills(slots.slice(0, 2))
     this.sky = new T.Color(world === 'sea' ? '#f7d7b2' : world === 'forest' ? '#cce0cf' : '#d6e7e8')
     if (this.evening) this.sky.set('#283c54')
+    if (this.weather === 'sunset') this.sky.set('#dfaa89')
+    if (this.weather === 'rain') this.sky.set('#9daeb8')
     this.scene.background = this.sky
-    this.scene.add(atmosphere(world, this.evening))
+    this.skyDome = atmosphere(world, this.evening, this.weather)
+    this.scene.add(this.skyDome, this.weatherLayer.group)
+    this.weatherLayer.set(this.weather)
     this.scene.fog = new T.Fog(this.sky, 70, 180)
     this.renderer = new T.WebGLRenderer({ antialias: true })
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5))
@@ -104,10 +123,10 @@ export class Race {
     this.renderer.domElement.setAttribute('aria-label', '第三人称探索闯关场景')
     host.append(this.renderer.domElement)
     const sun = new T.DirectionalLight(
-      this.evening ? '#aecbe6' : '#ffefd5',
-      this.evening ? 1.4 : 2.4,
+      this.weather === 'rain' ? '#c8dce9' : this.weather === 'sunset' ? '#ffb978' : this.evening ? '#aecbe6' : '#ffefd5',
+      this.weather === 'rain' ? 0.7 : this.evening ? 1.4 : 2.4,
     )
-    sun.position.set(-25, 40, 25)
+    sun.position.set(-25, this.weather === 'sunset' ? 12 : 40, 25)
     sun.castShadow = true
     sun.shadow.mapSize.set(1024, 1024)
     Object.assign(sun.shadow.camera, {
@@ -133,7 +152,7 @@ export class Race {
       this.chunks.push(chunk)
       this.scene.add(chunk)
     }
-    if (this.evening) {
+    if (this.evening && this.weather === 'clear') {
       const vertices: number[] = []
       for (let i = 0; i < 120; i++)
         vertices.push(
@@ -162,7 +181,18 @@ export class Race {
     while (this.nextRow < 160) this.addRow()
     for (const token of this.tokens) token.mesh.position.z = -token.z
     this.miniature = buildWorld(world)
+    if (world === 'sea' && !this.evening && this.weather === 'clear') {
+      this.scene.background = new T.Color('#b7ddeb')
+      this.skyDome.visible = false
+    }
     this.scene.add(this.miniature.group)
+    this.entryPosition.copy(this.miniature.spawn).add(new T.Vector3(1.15, 2.6, 5.7))
+    this.entryLook.copy(this.miniature.spawn).add(new T.Vector3(0, 1.45, -5))
+    // Warm both scenes while their meshes are visible, before the entry flight.
+    const skyVisible = this.skyDome.visible
+    this.skyDome.visible = true
+    this.renderer.compile(this.scene, this.camera)
+    this.skyDome.visible = skyVisible
     this.showRoad(false)
     this.camera.position.set(1.15, 2.6, 5.7)
     this.camera.lookAt(0, 1.4, -7)
@@ -536,6 +566,13 @@ export class Race {
     return g
   }
   private makeBike() {
+    if (this.vehicleModel) {
+      const model = buildMountedVehicle(this.vehicleModel, this.outfits)
+      this.bike.add(model.group)
+      this.wheels = model.wheels
+      this.legs = model.legs
+      return
+    }
     const b = this.bike
     for (const z of [-0.85, 0.85]) {
       const wheel = new T.Group()
@@ -585,42 +622,20 @@ export class Race {
     this.box(b, '#344348', 0.39, 1.46, -0.72, 0.15, 0.07, 0.1)
     const chain = this.mesh(new T.TorusGeometry(0.16, 0.016, 8, 24), '#bac8bd', b, 0.07, 0.7, 0.05)
     chain.rotation.y = Math.PI / 2
-    // Keep the torso above the saddle; hips sit outside its edges rather than inside it.
-    const body = this.mesh(new T.CapsuleGeometry(0.26, 0.42, 8, 20), '#f6f1e6', b, 0, 1.91, 0.25)
-    body.rotation.x = -0.3
-    const head = this.mesh(new T.SphereGeometry(0.32, 24, 16), '#fff9ec', b, 0, 2.35, 0.06)
-    head.scale.set(1, 1.06, 1)
-    const helmet = this.mesh(
-      new T.SphereGeometry(0.34, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.48),
-      this.vehicleColor,
-      b,
-      0,
-      2.45,
-      0.06,
-    )
-    void helmet
-    for (const side of [-1, 1]) {
-      this.mesh(new T.SphereGeometry(0.032, 12, 8), '#4a555a', b, side * 0.1, 2.35, -0.245)
-      this.link(
-        b,
-        new T.Vector3(side * 0.24, 1.98, 0.18),
-        new T.Vector3(side * 0.39, 1.52, -0.68),
-        0.105,
-        '#f7f0e6',
-      )
-
-      const upper = this.mesh(new T.CylinderGeometry(0.105, 0.11, 1, 12), '#eee7dc', b),
-        lower = this.mesh(new T.CylinderGeometry(0.085, 0.1, 1, 12), '#eee7dc', b)
-      const shoe = this.mesh(new RoundedBoxGeometry(0.19, 0.13, 0.33, 2, 0.035), '#44575c', b)
-      const pedal = this.mesh(new T.BoxGeometry(0.2, 0.045, 0.15), '#a3aa9e', b)
-      this.legs.push({ upper, lower, shoe, pedal, side })
-    }
+    const rider = buildRider()
+    b.add(rider.group)
+    this.legs = rider.legs
     addCharacterOutfits(b, this.outfits)
-    this.mesh(new T.TorusGeometry(0.2, 0.055, 10, 24), '#c96753', b, 0, 2.07, 0.16).rotation.x =
-      Math.PI / 2
   }
   start() {
     if (this.miniature) this.miniature.group.visible = false
+    this.camera.position.set(1.15, 2.6, 5.7)
+    this.cameraLook.set(0, 1.45, -5)
+    this.camera.lookAt(this.cameraLook)
+    this.camera.fov = 46
+    this.camera.updateProjectionMatrix()
+    this.scene.background = this.sky
+    this.skyDome.visible = true
     this.scene.fog = new T.Fog(this.sky, 70, 180)
     this.showRoad(true)
     this.running = true
@@ -631,7 +646,7 @@ export class Race {
     for (const object of [...this.chunks, ...this.tokens.map(t => t.mesh), ...this.scenic.map(p => p.group), this.bike, this.effects]) object.visible = visible
   }
   enter(): Promise<boolean> {
-    if (this.entered) return Promise.resolve(false)
+    if (this.entered || this.running || this.completed) return Promise.resolve(false)
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.start(); return Promise.resolve(true) }
     this.enteringAt = performance.now()
     return new Promise(resolve => { this.entered = resolve })
@@ -703,15 +718,16 @@ export class Race {
     }
   }
   private addRow() {
-    const index = Math.floor(this.nextRow / 10)
+    const index = Math.round((this.nextRow - 15) / 7)
+    const row = raceRow(index)
     for (let lane = -1; lane <= 1; lane++) {
-      const obstacle = index > 4 && index % 4 === 0 && lane === (Math.floor(index / 4) % 3) - 1
-      if (!obstacle && lane !== (Math.floor(index / 3) % 3) - 1) continue
-      const dynamic = obstacle && index % 8 === 0
+      const obstacle = row.obstacle && lane === row.obstacleLane
+      if (!obstacle && lane !== row.coinLane) continue
+      const dynamic = obstacle && row.moving
       const m: T.Object3D = obstacle
-        ? new T.Mesh(new RoundedBoxGeometry(1.2, 0.85, 0.75, 2, 0.06), this.mat(dynamic ? '#738b9a' : '#a88261').clone())
-        : this.makeCoin()
-      m.position.set(lane * 2, obstacle ? 0.45 : 1.05, 0)
+        ? buildRaceObstacle(this.world, dynamic, index)
+        : buildRaceCoin()
+      m.position.set(lane * 2, obstacle ? 0 : 1.05, 0)
       m.castShadow = true
       this.scene.add(m)
       this.tokens.push({ mesh: m, z: this.nextRow, lane, taken: false, obstacle, dynamic })
@@ -720,62 +736,11 @@ export class Race {
   }
 
   private updatePedals() {
-    for (const leg of this.legs) {
-      const phase = this.distance * 1.8 + (leg.side < 0 ? Math.PI : 0),
-        x = leg.side * 0.19,
-        hip = new T.Vector3(leg.side * 0.21, 1.53, 0.3),
-        ankle = new T.Vector3(x, 0.72 + Math.sin(phase) * 0.16, 0.05 + Math.cos(phase) * 0.16),
-        v = ankle.clone().sub(hip),
-        length = v.length(),
-        mid = hip.clone().add(ankle).multiplyScalar(0.5),
-        offset = Math.sqrt(Math.max(0.001, 0.5 * 0.5 - (length * length) / 4))
-      const knee = mid.add(new T.Vector3(0, -v.z, v.y).normalize().multiplyScalar(offset))
-      for (const [mesh, a, b] of [
-        [leg.upper, hip, knee],
-        [leg.lower, knee, ankle],
-      ] as const) {
-        const direction = b.clone().sub(a)
-        mesh.position.copy(a).add(b).multiplyScalar(0.5)
-        mesh.scale.y = direction.length()
-        mesh.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), direction.normalize())
-      }
-      leg.shoe.position.copy(ankle).add(new T.Vector3(0, -0.04, -0.08))
-      leg.pedal.position.copy(ankle).add(new T.Vector3(0, -0.13, 0))
-    }
+    const seated = this.vehicleModel === 'ae86' || this.vehicleModel === 'motorcycle'
+    poseRider(this.legs, this.distance * 1.8, seated)
   }
   setCamera(mode: number) {
     this.cameraMode = Math.max(0, Math.min(2, mode))
-  }
-  private makeCoin() {
-    const g = new T.Group(),
-      material = new T.MeshStandardMaterial({ color: '#efc665', metalness: 0.72, roughness: 0.27 }),
-      geo = new T.CylinderGeometry(0.3, 0.3, 0.085, 40)
-    geo.rotateX(Math.PI / 2)
-    const body = new T.Mesh(geo, material)
-    body.castShadow = true
-    g.add(body)
-    for (const side of [-1, 1]) {
-      const rim = new T.Mesh(new T.TorusGeometry(0.266, 0.018, 8, 40), material)
-      rim.position.z = side * 0.051
-      g.add(rim)
-      const note = new T.Shape()
-      note.moveTo(-0.025, -0.11)
-      note.lineTo(0.025, -0.11)
-      note.lineTo(0.025, 0.15)
-      note.lineTo(0.145, 0.1)
-      note.lineTo(0.145, 0.045)
-      note.lineTo(0.025, 0.085)
-      note.lineTo(0.025, -0.11)
-      note.absellipse(-0.045, -0.11, 0.07, 0.042, 0, Math.PI * 2, false, 0)
-      const emblem = new T.Mesh(
-        new T.ExtrudeGeometry(note, { depth: 0.009, bevelEnabled: false }),
-        new T.MeshStandardMaterial({ color: '#aa752b', metalness: 0.6, roughness: 0.36 }),
-      )
-      emblem.position.z = side * 0.048
-      if (side < 0) emblem.rotation.y = Math.PI
-      g.add(emblem)
-    }
-    return g
   }
   private size() {
     const w = this.host.clientWidth,
@@ -791,24 +756,35 @@ export class Race {
     const dt = Math.min((now - this.previous) / 1000, 0.06)
     this.previous = now
     if (!this.host.clientWidth || document.hidden) return
-    if (this.miniature?.group.visible) {
-      this.scene.fog = null
-      const progress = this.entered ? Math.min(1, (now - this.enteringAt) / 1900) : 0
-      const eased = progress * progress * (3 - 2 * progress)
-      const target = this.miniature.spawn.clone()
-      const close = target.clone().add(new T.Vector3(1.15, 2.6, 5.7))
-      this.camera.position.lerpVectors(new T.Vector3(96, 96, 108), close, eased)
-      this.camera.lookAt(new T.Vector3().lerp(target.clone().add(new T.Vector3(0, 1.4, -7)), eased))
-      this.camera.fov = 39 + eased * 7
+    if (!this.paused) this.weatherLayer.update(dt)
+    if (this.miniature && (this.miniature.group.visible || this.entered)) {
+      const progress = this.entered ? Math.min(1, (now - this.enteringAt) / ENTRY_DURATION) : 0
+      const motion = raceEntryMotion(progress)
+      if (motion.road) {
+        if (this.miniature.group.visible) {
+          this.miniature.group.visible = false
+          this.scene.background = this.sky
+          this.skyDome.visible = true
+          this.scene.fog = new T.Fog(this.sky, 70, 180)
+          this.showRoad(true)
+        }
+        this.camera.position.set(1.15, 2.6, 5.7)
+        this.cameraLook.set(0, 1.45, -5)
+        this.camera.fov = 46
+      } else {
+        this.scene.fog = null
+        this.camera.position.lerpVectors(this.overviewPosition, this.entryPosition, motion.flight)
+        this.cameraLook.lerpVectors(this.overviewLook, this.entryLook, motion.flight)
+        this.camera.fov = 39 + motion.flight * 7
+        this.miniature.update(now / 1000)
+      }
+      this.camera.lookAt(this.cameraLook)
       this.camera.updateProjectionMatrix()
-      this.miniature.update(now / 1000)
-      // Dissolve the miniature's local road into the endless track at street height.
-      this.renderer.domElement.style.opacity = String(progress > 0.82 ? Math.max(0, (1 - progress) / 0.18) : 1)
+      // Switch scenes only while fully transparent; reveal the warmed road before play starts.
+      this.renderer.domElement.style.opacity = String(motion.opacity)
       this.renderer.render(this.scene, this.camera)
       if (progress >= 1 && this.entered) {
         const done = this.entered; this.entered = undefined
-        this.camera.position.set(1.15, 2.6, 5.7); this.cameraLook.set(0, 1.4, -7)
-        this.renderer.domElement.style.transition = 'opacity 240ms ease'
         this.start(); this.renderer.domElement.style.opacity = '1'; done(true)
       }
       return
@@ -821,8 +797,14 @@ export class Race {
           ? this.baseSpeed + 6
           : this.keys.has('s')
             ? 7
-            : this.baseSpeed + Math.min(3, Math.floor(this.distance / 500))
+            : this.baseSpeed + raceDifficulty(this.distance).speedBonus
+      const previousStage = raceDifficulty(this.distance).stage
       this.distance += dt * this.maxSpeed
+      const difficulty = raceDifficulty(this.distance)
+      if (difficulty.stage > previousStage) {
+        this.event = `第 ${difficulty.stage} 关 · 速度 +${difficulty.speedBonus} m/s · 障碍密度 ${Math.round(difficulty.obstacleSteps.length / 12 * 100)}%`
+        this.eventUntil = this.elapsed + 4
+      }
       this.boost = Math.max(0, this.boost - dt)
       this.invincible = Math.max(0, this.invincible - dt)
       this.jump = Math.max(0, this.jump - dt)
@@ -834,11 +816,11 @@ export class Race {
       )
       this.bike.rotation.z = T.MathUtils.damp(
         this.bike.rotation.z,
-        (this.x - this.lane * 2) * 0.13,
+        (this.x - this.lane * 2) * (this.vehicleModel === 'ae86' ? .025 : .13),
         8,
         dt,
       )
-      for (const w of this.wheels) w.rotation.x -= (dt * this.maxSpeed) / 0.5
+      for (const w of this.wheels) w.rotation.x -= (dt * this.maxSpeed) / (this.vehicleModel ? VEHICLES[this.vehicleModel].radius : .5)
 
       this.updatePedals()
       if (!this.snapshots.length || this.elapsed - this.snapshots.at(-1)!.time >= 0.1) {
@@ -854,17 +836,19 @@ export class Race {
       for (const t of this.tokens) {
         t.mesh.position.z = this.distance - t.z
         if (t.dynamic) {
-          if (this.skills.freeze <= 0) t.mesh.position.x = t.lane * 2 + Math.sin(this.elapsed * 1.6 + t.z) * 1.2
-          const material = (t.mesh as T.Mesh).material as T.MeshStandardMaterial
-          material.color.set(this.skills.freeze > 0 ? '#bce5eb' : '#738b9a')
-          material.emissive.set(this.skills.freeze > 0 ? '#28525b' : '#000000')
+          if (this.skills.freeze <= 0) {
+            t.mesh.position.x = t.lane * 2 + Math.sin(this.elapsed * difficulty.movingSpeed + t.z) * .55
+            for (const wheel of t.mesh.userData.wheels as T.Mesh[]) wheel.rotation.x += dt * 2
+          }
+          freezeRaceObstacle(t.mesh, this.skills.freeze > 0)
         }
         if (!t.obstacle) {
           t.mesh.rotation.y += dt * 1.6
           t.mesh.position.y = 1.05 + Math.sin(now * 0.003 + t.z) * 0.075
         }
         const magnet = !t.obstacle && this.skills.magnet > 0 && t.mesh.position.z >= -12 && t.mesh.position.z < 0.9 && Math.abs(this.x - t.mesh.position.x) < 4.5
-        if (!t.taken && (magnet || (Math.abs(t.mesh.position.z) < 0.9 && Math.abs(this.x - t.mesh.position.x) < 0.8))) {
+        const carObstacle = t.obstacle && this.vehicleModel === 'ae86'
+        if (!t.taken && (magnet || (Math.abs(t.mesh.position.z) < (carObstacle ? 2.1 : .9) && Math.abs(this.x - t.mesh.position.x) < (carObstacle ? 1.3 : .8)))) {
           t.taken = true
           if (!magnet) t.mesh.visible = false
           if (t.obstacle) {
@@ -875,7 +859,11 @@ export class Race {
               this.invincible = 1.6
               if (hit.blocked && hadShield && !this.skills.shield) this.feedback('shield', '护盾抵挡了碰撞', true)
               if (hit.revived) this.feedback('revive', '守护信物 · 星光重聚，再走一程')
-              if (this.health <= 0) this.finish()
+              if (!hit.blocked && !hit.revived) {
+                this.event = `碰撞扣除 1 点生命 · 剩余 ${this.health}/3`
+                this.eventUntil = this.elapsed + 3
+              }
+              if (this.health <= 0) { this.finish(); return }
             }
           } else { this.coins++; if (this.skills.double > 0) this.bonusCoins++ }
         }
@@ -921,7 +909,7 @@ export class Race {
       },
       {
         x: this.x,
-        y: 2.26 + riderY,
+        y: (this.vehicleModel === 'ae86' ? 1.16 : 2.26) + riderY,
         z: -0.5,
         f: 68,
         look: new T.Vector3(this.x, 1.7 + riderY, -18),

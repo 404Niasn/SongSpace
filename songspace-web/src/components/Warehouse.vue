@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import VehiclePreview from './VehiclePreview.vue'
 import { computed, ref } from 'vue'
 import SongCard from './SongCard.vue'
 import CharacterWardrobe from './CharacterWardrobe.vue'
@@ -7,7 +8,7 @@ import { artPath, imageryFor, skillLevel } from '@/game/content'
 import { availableImagery, placedCount } from '@/game/imagery'
 const emit = defineEmits<{ equip: [GameCard]; decorate: [GameCard]; message: [text: string] }>()
 const section = ref<'songs' | 'outfits'>('songs')
-const base = import.meta.env.BASE_URL
+import { coverPath } from '@/game/coverAssets'
 const query = ref(''),
   filter = ref('all'),
   ownedOnly = ref(false),
@@ -35,7 +36,7 @@ function use(c: GameCard) {
 }
 </script>
 <template>
-  <section class="warehouse-page">
+  <section class="warehouse-page" :class="{ 'wardrobe-page': section === 'outfits' }">
     <div class="page-heading">
       <div>
         <p class="eyebrow">SONGSPACE / COLLECTION</p>
@@ -86,7 +87,7 @@ function use(c: GameCard) {
         @click="selected = card"
         :aria-label="`${card.song.title}，${card.count ? '已拥有 ' + card.count + ' 张' : '未获得'}`"
       >
-        <SongCard :card="card" />
+        <SongCard :card="card" collection />
       </button>
     </div>
     </template>
@@ -113,28 +114,29 @@ function use(c: GameCard) {
         <h2>{{ selected.song.title }}</h2>
         <p>{{ selected.song.artists.map((a) => a.name).join(' / ') }}</p>
         <p>{{ selected.effect }}</p>
-        <div v-if="selected.outfit" class="outfit-card-detail"><img :src="base + selected.outfit.preview" :alt="selected.outfit.name" /><p>{{ selected.outfit.description }}</p></div>
+        <VehiclePreview v-if="selected.song.vehicle_model" :key="selected.id" :model="selected.song.vehicle_model" />
+        <div v-if="selected.outfit" class="outfit-card-detail"><img :src="coverPath(selected.outfit.preview)" :alt="selected.outfit.name" /><p>{{ selected.outfit.description }}</p></div>
         <div v-if="selected.art" class="imagery-detail"><img :src="artPath(selected.art)" :alt="selected.effect"/><blockquote>{{ selected.prose }}</blockquote></div>
         <p>
           {{
             selected.count
-              ? selected.outfit ? `拥有 ${selected.count} 张 · 装扮已解锁，穿戴不消耗卡片` : selected.kind === 'decoration' ? `总拥有 ${selected.count} 件 · 已摆放 ${placedCount(selected.id)} 件 · 可用 ${availableImagery(selected.id)} 件 · 每件装饰值 +${imageryFor(selected.song.title).value}` : `拥有 ${selected.count} 张 · 等级 ${skillLevel(selected.count)}`
+              ? selected.outfit ? `拥有 ${selected.count} 张 · 装扮已解锁，穿戴不消耗卡片` : selected.kind === 'decoration' ? imageryFor(selected.song.title).weather ? `天气已解锁 · 可在各地图启用 · 装饰值 +${imageryFor(selected.song.title).value}` : `总拥有 ${selected.count} 件 · 已摆放 ${placedCount(selected.id)} 件 · 可用 ${availableImagery(selected.id)} 件 · 每件装饰值 +${imageryFor(selected.song.title).value}` : `拥有 ${selected.count} 张 · 等级 ${skillLevel(selected.count)}`
               : '未获得 · 可以通过卡包收集'
           }}
         </p>
-        <button v-if="selected.count" class="lime-btn" :disabled="selected.kind === 'decoration' && availableImagery(selected.id) < 1" @click="use(selected)">
+        <button v-if="selected.count" class="lime-btn" :disabled="selected.kind === 'decoration' && !imageryFor(selected.song.title).weather && availableImagery(selected.id) < 1" @click="use(selected)">
           {{
             selected.outfit ? '穿戴这件装扮' : selected.kind === 'map'
-              ? '启用夜间探索主题'
+              ? selected.song.title === '光年之外' ? '太空地图 · 后续开放' : '选择《江南》地图'
               : selected.kind === 'vehicle'
-                ? '装备自行车'
+                ? '装备' + (selected.song.vehicle_name || '载具')
                 : selected.kind === 'item'
                   ? '携带这件道具'
-                  : '去布置意象装饰'
+                  : imageryFor(selected.song.title).weather ? '启用' + imageryFor(selected.song.title).name : '去布置意象装饰'
           }}
         </button>
         <p v-if="selected.kind === 'map'">
-          解锁主题灯光，可用于三张初始地图。太空地图仍为后续内容。
+          {{ selected.song.title === '光年之外' ? '彩色闪卡对应《光年之外》太空地图，后续开放。' : '彩色闪卡对应《江南》地图，在烟雨中的青石板街骑行。' }}
         </p>
         <a
           class="music-link"
@@ -148,5 +150,6 @@ function use(c: GameCard) {
   </div>
 </template>
 <style scoped>
+.wardrobe-page{--page-padding:20px 32px 24px}.wardrobe-page .wardrobe-sections{margin-bottom:0}.wardrobe-page .wardrobe-sections button{padding:8px 20px}.wardrobe-page .page-heading{margin-bottom:12px;padding-bottom:8px}.wardrobe-page .page-heading h1{font-size:26px}
 .wardrobe-sections{display:flex;width:fit-content;margin-bottom:20px}.wardrobe-sections button{padding:11px 20px;font-size:12px}.outfit-card-detail{display:flex;gap:12px;align-items:center;margin:16px 0}.outfit-card-detail img{width:95px;height:95px;border-radius:8px}.outfit-card-detail p{font-size:12px;line-height:1.7}
 </style>

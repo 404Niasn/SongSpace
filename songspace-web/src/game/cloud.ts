@@ -13,6 +13,7 @@ export const identity = reactive({ gameId: session?.gameId || session?.token || 
 export function hasSession() { return !!session && identity.valid }
 let applying = false, running = false, queued = false, initialized = false
 let timer: ReturnType<typeof setTimeout> | undefined
+let reconnectTimer: ReturnType<typeof setTimeout> | undefined
 
 function snapshot(): Snapshot { return JSON.parse(JSON.stringify({ game, imagery })) }
 function cacheSession() { if (session) localStorage.setItem(key, JSON.stringify(session)) }
@@ -24,14 +25,28 @@ async function request(path: string, method = 'GET', body?: unknown) {
     signal: AbortSignal.timeout(5000),
     keepalive: method === 'PATCH',
   })
-  if (!response.ok) throw new Error(response.status === 409 ? path === 'accounts' ? 'duplicate' : 'conflict' : response.status === 401 ? 'session' : response.status === 422 ? 'invalid-id' : 'offline')
+  if (response.status === 422) {
+    const payload = await response.json().catch(() => null)
+    const details: { loc?: string[]; type?: string }[] = Array.isArray(payload?.detail) ? payload.detail : []
+    if (path === 'accounts') {
+      if (details.some(item => item.loc?.join('.') === 'body.game_id' && item.type === 'missing')) throw new Error('api-outdated')
+      if (details.some(item => item.loc?.join('.') === 'body.nickname' && ['string_too_short', 'string_too_long'].includes(item.type || ''))) throw new Error('invalid-name')
+      throw new Error('invalid-registration')
+    }
+    throw new Error('invalid-id')
+  }
+  if (!response.ok) throw new Error(response.status === 409 ? path === 'accounts' ? 'duplicate' : 'conflict' : response.status === 401 ? 'session' : 'offline')
   return response.json()
 }
 function failed(error: unknown) {
   const reason = error instanceof Error ? error.message : 'offline'
   cloud.status = reason === 'conflict' ? 'conflict' : 'offline'
-  cloud.error = reason === 'conflict' ? '存档有新版本，本机进度已保留。' : reason === 'session' ? '登录凭据失效，本机进度已保留。' : '暂未连接，进度保存在本机。'
+  cloud.error = reason === 'conflict' ? '存档有新版本，本机进度已保留。' : reason === 'session' ? '登录凭据失效，本机进度已保留。' : '连接暂时中断，正在自动重连。'
   if (reason === 'session') identity.valid = false
+  clearTimeout(reconnectTimer)
+  if (session && identity.valid && cloud.status === 'offline') {
+    reconnectTimer = setTimeout(() => { void retrySave() }, 5000)
+  }
 }
 function applySnapshot(state: Snapshot) {
   applying = true
@@ -54,6 +69,7 @@ async function finishCurrentSave() {
 export async function logoutGame() {
   await finishCurrentSave()
   clearTimeout(timer)
+  clearTimeout(reconnectTimer)
   localStorage.removeItem(key)
   localStorage.removeItem('songspace.game.v1')
   localStorage.removeItem('songspace.imagery.v2')
@@ -68,9 +84,9 @@ export async function logoutGame() {
 }
 export async function startGame(name: string) {
   await finishCurrentSave()
-  const state = session ? { game: freshGame(), imagery: { forest: [], sea: [], jiangnan: [] } } : snapshot()
+  const state = { game: freshGame(), imagery: { forest: [], sea: [], jiangnan: [] } }
   state.game.name = name.trim()
-  const result = await request('accounts', 'POST', { game_id: name.trim(), state })
+  const result = await request('accounts', 'POST', { nickname: name.trim(), state })
   clearTimeout(timer)
   queued = false
   session = { token: result.token, revision: result.revision, dirty: false, gameId: result.game_id || result.token }
@@ -117,6 +133,7 @@ export async function flushSave() {
     }
     cloud.status = 'synced'
     cloud.error = ''
+    clearTimeout(reconnectTimer)
   } catch (error) { queued = true; failed(error) }
   finally { running = false }
 }
@@ -136,6 +153,7 @@ export async function connectSave() {
     identity.valid = true
     cloud.status = 'synced'
     cloud.error = ''
+    clearTimeout(reconnectTimer)
     await flushSave()
   } catch (error) { applying = false; failed(error) }
   if (!initialized) {

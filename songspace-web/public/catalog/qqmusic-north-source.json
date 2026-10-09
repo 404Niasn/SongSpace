@@ -1,0 +1,328 @@
+{
+  "code": 0,
+  "ts": 1791518066110,
+  "start_ts": 1791518065973,
+  "traceid": "70ba6a17c4af5f90",
+  "track": {
+    "code": 0,
+    "data": {
+      "info": {
+        "company": {
+          "title": "唱片公司",
+          "type": "JUMP_TO_COMPANY",
+          "content": [
+            {
+              "id": 2317,
+              "value": "杰威尔音乐有限公司",
+              "mid": "",
+              "type": 0,
+              "show_type": 0,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 51,
+          "more": 0,
+          "selected": "company",
+          "use_platform": 1
+        },
+        "genre": {
+          "title": "歌曲流派",
+          "type": "JUMP_TO_CATEGORY",
+          "content": [
+            {
+              "id": 40,
+              "value": "Pop",
+              "mid": "",
+              "type": 0,
+              "show_type": 2,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "http://y.qq.com/m/client/categoryzone/detail.html?categoryId=40&showType=2&isParent=0&_hidehd=1&groupId=100",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 12,
+          "more": 0,
+          "selected": "genre",
+          "use_platform": 3
+        },
+        "intro": {
+          "title": "简介",
+          "type": "SPECIAL_DISPLAY",
+          "content": [
+            {
+              "id": 0,
+              "value": "《一路向北》由周杰伦作曲，是周杰伦为电影《头文字D》专门创作的插曲。这首歌曲也是周杰伦继《断了的弦》之后，再度为电影创作插曲。",
+              "mid": "",
+              "type": 0,
+              "show_type": 0,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 52,
+          "more": 0,
+          "selected": "intro",
+          "use_platform": 3
+        },
+        "lan": {
+          "title": "歌曲语种",
+          "type": "JUMP_TO_CATEGORY",
+          "content": [
+            {
+              "id": 1,
+              "value": "国语",
+              "mid": "",
+              "type": 0,
+              "show_type": 2,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "http://y.qq.com/m/client/categoryzone/detail.html?categoryId=1&showType=2&isParent=0&_hidehd=1&groupId=100",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 11,
+          "more": 0,
+          "selected": "lan",
+          "use_platform": 3
+        },
+        "pub_time": {
+          "title": "发行时间",
+          "type": "desc",
+          "content": [
+            {
+              "id": 0,
+              "value": "2005-06-24",
+              "mid": "",
+              "type": 0,
+              "show_type": 0,
+              "is_parent": 0,
+              "picurl": "",
+              "read_cnt": 0,
+              "author": "",
+              "jumpurl": "",
+              "ori_picurl": ""
+            }
+          ],
+          "pos": 50,
+          "more": 0,
+          "selected": "pub_time",
+          "use_platform": 0
+        }
+      },
+      "extras": {
+        "name": "一路向北",
+        "transname": "",
+        "subtitle": "《头文字D》电影插曲",
+        "from": "0",
+        "wikiurl": ""
+      },
+      "track_info": {
+        "id": 5105986,
+        "type": 0,
+        "mid": "001xd0HI0X9GNq",
+        "name": "一路向北",
+        "title": "一路向北",
+        "subtitle": "《头文字D》电影插曲",
+        "singer": [
+          {
+            "id": 4558,
+            "mid": "0025NhlN2yWrP4",
+            "name": "周杰伦",
+            "title": "周杰伦",
+            "type": 0,
+            "uin": 0
+          }
+        ],
+        "album": {
+          "id": 14311,
+          "mid": "002MAeob3zLXwZ",
+          "name": "J III MP3 Player",
+          "title": "J III MP3 Player",
+          "subtitle": "《头文字D》电影插曲",
+          "time_public": "2005-06-24",
+          "pmid": "002MAeob3zLXwZ_4"
+        },
+        "mv": {
+          "id": 0,
+          "vid": "",
+          "name": "",
+          "title": "",
+          "vt": 0
+        },
+        "interval": 294,
+        "isonly": 0,
+        "language": 0,
+        "genre": 1,
+        "index_cd": 0,
+        "index_album": 2,
+        "time_public": "2005-06-24",
+        "status": 0,
+        "fnote": 4009,
+        "file": {
+          "media_mid": "003jT4SU22clE5",
+          "size_24aac": 0,
+          "size_48aac": 1788956,
+          "size_96aac": 3582199,
+          "size_192ogg": 6747357,
+          "size_192aac": 7123849,
+          "size_128mp3": 4708950,
+          "size_320mp3": 11772042,
+          "size_ape": 0,
+          "size_flac": 61646557,
+          "size_dts": 0,
+          "size_try": 960887,
+          "try_begin": 89974,
+          "try_end": 118669,
+          "url": "",
+          "size_hires": 0,
+          "hires_sample": 0,
+          "hires_bitdepth": 0,
+          "b_30s": 0,
+          "e_30s": 60000,
+          "size_96ogg": 3355015,
+          "size_360ra": [],
+          "size_dolby": 0,
+          "size_new": [
+            207393295,
+            34711700,
+            88805581,
+            11552397,
+            0,
+            23837722,
+            38929220,
+            2796048,
+            63668587,
+            8290707,
+            0,
+            0,
+            30600864,
+            0,
+            0,
+            0
+          ]
+        },
+        "pay": {
+          "pay_month": 0,
+          "price_track": 0,
+          "price_album": 0,
+          "pay_play": 0,
+          "pay_down": 0,
+          "pay_status": 0,
+          "time_free": 0
+        },
+        "action": {
+          "switch": 1,
+          "msgid": 23,
+          "alert": 0,
+          "icons": 9060350,
+          "msgshare": 0,
+          "msgfav": 0,
+          "msgdown": 0,
+          "msgpay": 0,
+          "switch2": 0,
+          "icon2": 412451078144
+        },
+        "ksong": {
+          "id": 8590,
+          "mid": "001uUdCh0iURd6"
+        },
+        "volume": {
+          "gain": -9.958,
+          "peak": 0.955,
+          "lra": 2.916
+        },
+        "label": "0",
+        "url": "",
+        "bpm": 0,
+        "version": 0,
+        "trace": "",
+        "data_type": 0,
+        "modify_stamp": 0,
+        "pingpong": "",
+        "ppurl": "",
+        "tid": 0,
+        "ov": 0,
+        "sa": 17408,
+        "es": "",
+        "vs": [
+          "064gOr742DT1PT",
+          "",
+          "",
+          "002oTv2E4aC6zU",
+          "002Ikg463stYTb",
+          "",
+          "",
+          "",
+          "",
+          "000kFIA53xn5qt",
+          "",
+          "",
+          "",
+          "0029mh8N4I0iF7",
+          "",
+          "",
+          "",
+          "000okeNo2EaEuc",
+          "002t6jR72m4du3",
+          "",
+          "",
+          "",
+          "",
+          "003p1Yn52Jdf78",
+          "0010Yymj3FCfNY",
+          "",
+          "",
+          "",
+          "003yYK7t3xhfib",
+          "001W8wYf00vS1H",
+          "000CdLTh1S0q1A",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "0021sIfg0KXatm",
+          "",
+          ""
+        ],
+        "vi": [
+          2317,
+          121,
+          121,
+          3358617,
+          89974,
+          119974,
+          1,
+          0,
+          0
+        ],
+        "ktag": "0",
+        "vf": [
+          -9.95336,
+          0.998535,
+          2.91682,
+          0,
+          0,
+          0,
+          -8.01807,
+          1,
+          2.94083
+        ]
+      }
+    }
+  }
+}

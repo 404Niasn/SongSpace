@@ -4,7 +4,9 @@ import { Race, type RaceStatus } from '@/game/race'
 import type { WorldId } from '@/worlds/types'
 import type { SkillSlot } from '@/game/skills'
 import type { OutfitDefinition } from '@/game/outfits'
-const props = defineProps<{ world: WorldId; color: string; baseSpeed: number; evening: boolean; skills: SkillSlot[]; outfits: OutfitDefinition[] }>()
+import type { VehicleModel } from '@/game/vehicles'
+import type { WeatherId } from '@/game/content'
+const props = defineProps<{ world: WorldId; color: string; baseSpeed: number; evening: boolean; skills: SkillSlot[]; outfits: OutfitDefinition[]; vehicleModel?: VehicleModel; weather?: WeatherId }>()
 const emit = defineEmits<{ status: [RaceStatus]; end: [RaceStatus]; ready: []; error: [string] }>()
 const host = ref<HTMLElement>()
 let race: Race | undefined
@@ -20,6 +22,8 @@ onMounted(() => {
       props.evening,
       props.skills,
       props.outfits,
+      props.vehicleModel,
+      props.weather,
     )
     emit('ready')
   } catch (e) {

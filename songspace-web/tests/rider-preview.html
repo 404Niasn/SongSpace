@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌境 · 骑行人物预览</title>
+<style>body{margin:0;background:#edf1ec;font-family:'Microsoft YaHei',sans-serif;color:#34443b}header{position:absolute;top:24px;left:32px;pointer-events:none}h1{font-size:22px;margin:0 0 8px}p{font-size:12px;margin:0;color:#65776b}canvas{display:block;width:100vw;height:100vh}footer{position:absolute;bottom:24px;left:32px;font-size:12px;color:#65776b}</style></head>
+<body><header><h1>骑行姿态</h1><p>平滑白色小人 / 同步背包装扮 / 自然踩踏</p></header><footer>拖动旋转视角，滚轮缩放。此预览不修改玩家存档。</footer>
+<script type="module">
+import * as T from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { Race } from '/src/game/race.ts'
+import { poseRider } from '/src/game/rider.ts'
+import { OUTFITS } from '/src/game/outfits.ts'
+const scene=new T.Scene();scene.background=new T.Color('#edf1ec')
+const camera=new T.PerspectiveCamera(38,innerWidth/innerHeight,.1,100);camera.position.set(6,3.6,5.5)
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;document.body.append(renderer.domElement)
+scene.add(new T.HemisphereLight('#eff8ff','#859976',1.5))
+const sun=new T.DirectionalLight('#ffefd5',2.4);sun.position.set(-5,10,6);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun)
+const ground=new T.Mesh(new T.PlaneGeometry(30,30),new T.MeshStandardMaterial({color:'#edf1ec',roughness:.9}));ground.rotation.x=-Math.PI/2;ground.position.y=-.015;ground.receiveShadow=true;scene.add(ground)
+const models=[]
+for (let i=0;i<3;i++) {
+  const model=Object.create(Race.prototype)
+  Object.assign(model,{bike:new T.Group(),wheels:[],legs:[],mats:new Map(),vehicleColor:'#50c5b4',outfits:OUTFITS})
+  model.makeBike()
+  model.bike.position.x=(i-1)*2.5
+  model.bike.rotation.y=[Math.PI/2,0,Math.PI][i]
+  scene.add(model.bike)
+  models.push(model)
+}
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,1.3,0);controls.enableDamping=true;controls.update()
+function render(){requestAnimationFrame(render);models.forEach((m,i)=>{poseRider(m.legs,performance.now()*.002+i*1.4);m.wheels.forEach(w=>w.rotation.x=performance.now()*.003)});controls.update();renderer.render(scene,camera)}render()
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()})
+</script></body></html>

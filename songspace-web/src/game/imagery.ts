@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
-import { catalog, game, kindFor } from './save.ts'
-import { decorationMultiplier, imageryFor } from './content.ts'
+import { catalog, game, kindFor, persist } from './save.ts'
+import { decorationMultiplier, imageryFor, type WeatherId } from './content.ts'
 import type { WorldId } from '../worlds/types.ts'
 export interface PlacedImagery { songId: string; x: number; z: number; rotation: number }
 const ids: WorldId[] = ['forest', 'sea', 'jiangnan']
@@ -15,7 +15,7 @@ export function validPlacements(world: WorldId) {
   const valid: Record<WorldId, PlacedImagery[]> = { forest: [], sea: [], jiangnan: [] }
   for (const id of ids) for (const p of imagery[id]) {
     const song = catalog.songs.find(s => s.id === p.songId)
-    if (!song || kindFor(song) !== 'decoration' || (seen[p.songId] || 0) >= (game.owned[p.songId] || 0)) continue
+    if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || (seen[p.songId] || 0) >= (game.owned[p.songId] || 0)) continue
     seen[p.songId] = (seen[p.songId] || 0) + 1
     valid[id].push(p)
   }
@@ -26,7 +26,7 @@ function save() {
 }
 export function placeImagery(world: WorldId, p: PlacedImagery) {
   const song = catalog.songs.find(s => s.id === p.songId)
-  if (!song || kindFor(song) !== 'decoration' || availableImagery(p.songId) < 1 || imagery[world].length >= 50 || ![p.x, p.z, p.rotation].every(Number.isFinite)) return false
+  if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || availableImagery(p.songId) < 1 || imagery[world].length >= 50 || ![p.x, p.z, p.rotation].every(Number.isFinite)) return false
   imagery[world].push({ ...p })
   if (!save()) { imagery[world].pop(); return false }
   return true
@@ -38,6 +38,21 @@ export function undoImagery(world: WorldId) {
   return true
 }
 export function worldValue(world: WorldId) {
-  return validPlacements(world).reduce((n, p) => n + imageryFor(catalog.songs.find(s => s.id === p.songId)!.title).value, 0)
+  const weatherSong = activeWeatherSong(world)
+  return validPlacements(world).reduce((n, p) => n + imageryFor(catalog.songs.find(s => s.id === p.songId)!.title).value, weatherSong ? imageryFor(weatherSong.title).value : 0)
 }
 export function worldMultiplier(world: WorldId) { return decorationMultiplier(worldValue(world)) }
+export function activeWeatherSong(world: WorldId) {
+  return catalog.songs.find(s => s.id === game.worldWeather[world] && game.owned[s.id] && kindFor(s) === 'decoration' && imageryFor(s.title).weather)
+}
+export function weatherForWorld(world: WorldId): WeatherId {
+  const song = activeWeatherSong(world)
+  return song ? imageryFor(song.title).weather! : 'clear'
+}
+export function setWorldWeather(world: WorldId, songId: string) {
+  const song = catalog.songs.find(s => s.id === songId)
+  if (songId && (!song || !game.owned[songId] || kindFor(song) !== 'decoration' || !imageryFor(song.title).weather)) return false
+  game.worldWeather[world] = songId
+  persist()
+  return true
+}

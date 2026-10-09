@@ -2,8 +2,9 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { buildDecoration, buildWorld, disposeObject } from './models'
 import type { Decoration, DecorationKind, ViewMode, WorldId, WorldModel } from './types'
-import { catalog, kindFor } from '../game/save'
-import { imageryFor } from '../game/content'
+import { catalog, game, kindFor, persist } from '../game/save'
+import { imageryFor, type WeatherId } from '../game/content'
+import { WeatherLayer } from './weather'
 import { availableImagery, placeImagery, undoImagery, validPlacements } from '../game/imagery'
 import { buildImagery } from './imageryModels'
 
@@ -44,6 +45,8 @@ export class WorldEngine {
   private transport: 'bike' | 'walk' = 'bike'
   private world: WorldId
   private evening = false
+  private weather: WeatherId = 'clear'
+  private weatherLayer = new WeatherLayer()
   private frame = 0
   private previousTime = performance.now()
   private statusAt = 0
@@ -89,7 +92,7 @@ export class WorldEngine {
       far: 180,
     })
     this.sunlight.shadow.normalBias = 0.12
-    this.scene.add(this.sunlight, this.sunlight.target, this.ambient)
+    this.scene.add(this.sunlight, this.sunlight.target, this.ambient, this.weatherLayer.group)
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(400, 400),
       new THREE.ShadowMaterial({ opacity: 0.1 }),
@@ -209,6 +212,11 @@ export class WorldEngine {
     this.evening = value
     this.applyLighting()
   }
+  setWeather(value: WeatherId) {
+    this.weather = value
+    this.weatherLayer.set(value)
+    this.applyLighting()
+  }
   input(key: string, pressed: boolean) {
     if (pressed) this.keys.add(key)
     else this.keys.delete(key)
@@ -216,17 +224,19 @@ export class WorldEngine {
 
   private applyLighting() {
     const backgrounds = { forest: '#e8eee1', sea: '#e7eff0', jiangnan: '#e9eee7' }
-    const sky = this.evening ? '#dbbc9b' : backgrounds[this.world]
+    const sunset = this.weather === 'sunset' || this.evening
+    const rain = this.weather === 'rain'
+    const sky = rain ? '#9daeb8' : sunset ? '#e9b497' : backgrounds[this.world]
     this.scene.background = new THREE.Color(sky)
     this.scene.fog = new THREE.Fog(
       sky,
       this.mode === 'overview' ? 150 : 55,
       this.mode === 'overview' ? 310 : 170,
     )
-    this.sunlight.position.set(this.evening ? -55 : -40, this.evening ? 20 : 75, 35)
-    this.sunlight.color.set(this.evening ? '#ffc68c' : '#fff2ce')
-    this.sunlight.intensity = this.evening ? 2.6 : 3.1
-    this.ambient.intensity = this.evening ? 1.6 : 2.1
+    this.sunlight.position.set(sunset ? -55 : -40, sunset ? 20 : 75, 35)
+    this.sunlight.color.set(rain ? '#c8dce9' : sunset ? '#ffb978' : '#fff2ce')
+    this.sunlight.intensity = rain ? 0.7 : sunset ? 2.6 : 3.1
+    this.ambient.intensity = rain ? 1.5 : sunset ? 1.6 : 2.1
   }
 
   private keyDown = (event: KeyboardEvent) => {
@@ -274,6 +284,7 @@ export class WorldEngine {
       return
     }
     const dt = Math.min((now - this.previousTime) / 1000, 0.05)
+    this.weatherLayer.update(dt)
     this.previousTime = now
     this.model.update(now / 1000)
     if (this.mode === 'overview') this.controls.update()
@@ -339,7 +350,7 @@ export class WorldEngine {
     this.clearPlacement()
     if (!songId || this.mode !== 'overview') return
     const song = catalog.songs.find(s => s.id === songId)
-    if (!song || kindFor(song) !== 'decoration' || availableImagery(songId) < 1) {
+    if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || availableImagery(songId) < 1) {
       this.onMessage('这件意象没有可用库存，撤回一件后可以重新摆放。')
       this.onCancelPlacement()
       return
@@ -433,7 +444,7 @@ export class WorldEngine {
     this.sendStatus()
     this.validPlacement = false
     this.ghost.visible = false
-    this.onMessage('已摆放，保存在当前浏览器。')
+    this.onMessage('已摆放，将同步到账号歌境。')
     if (availableImagery(this.placement) < 1) { this.clearPlacement(); this.onCancelPlacement() }
   }
 
@@ -462,7 +473,7 @@ export class WorldEngine {
   }
   private loadDecorations(id: WorldId): Decoration[] {
     try {
-      const data: unknown = JSON.parse(localStorage.getItem(`songspace.decorations.${id}`) ?? '[]')
+      const data: unknown = game.worldScenery[id] || []
       if (!Array.isArray(data)) return []
       return data
         .filter(
@@ -480,11 +491,8 @@ export class WorldEngine {
     }
   }
   private saveDecorations() {
-    try {
-      localStorage.setItem(`songspace.decorations.${this.world}`, JSON.stringify(this.decorations.filter(p => !p.songId)))
-    } catch {
-      this.onMessage('浏览器未能保存装饰，刷新后可能丢失。')
-    }
+    game.worldScenery[this.world] = this.decorations.filter(p => !p.songId).map(p => ({ ...p }))
+    persist()
   }
   private sendStatus() {
     this.onStatus({

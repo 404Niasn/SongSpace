@@ -1,0 +1,15 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌境 · 收藏卡文案校验</title><style>body{margin:0}#app{max-width:1370px;margin:0 auto;padding:20px 24px}.warehouse-page{padding:24px 0!important}</style></head><body><div id="app"></div><script type="module">
+import '/src/assets/main.css'
+import '/src/assets/spectrum.css'
+import '/src/assets/imagery.css'
+import '/src/assets/product.css'
+import {createApp,h} from 'vue'
+import Warehouse from '/src/components/Warehouse.vue'
+import {game,catalog,loadCatalog} from '/src/game/save.ts'
+await loadCatalog()
+const titles=['茶汤','心墙','倒数','至少还有你','我不难过','江南']
+catalog.songs=catalog.songs.filter(s=>titles.includes(s.title)).sort((a,b)=>titles.indexOf(a.title)-titles.indexOf(b.title))
+game.owned={}
+for(const song of catalog.songs) game.owned[song.id]=1
+createApp({render:()=>h(Warehouse)}).mount('#app')
+</script></body></html>

@@ -9,6 +9,7 @@ globalThis.document = new EventTarget()
 const { connectSave, startGame, restoreGame, hasSession, identity, flushSave, cloud, logoutGame } = await import('../src/game/cloud.ts')
 const profiles = new Map()
 let calls = 0, offline = false
+let registrationError
 globalThis.fetch = async (url, options) => {
   calls++
   if (offline) throw new Error('offline')
@@ -16,9 +17,12 @@ globalThis.fetch = async (url, options) => {
   const token = options.headers.Authorization?.slice(7)
   const reply = (status, value) => ({ ok: status < 400, status, json: async () => structuredClone(value) })
   if (url.endsWith('/accounts')) {
-    if (profiles.has(body.game_id)) return reply(409, {})
-    profiles.set(body.game_id, { token: 'ID-' + Buffer.from(body.game_id).toString('base64url'), game_id: body.game_id, revision: 0, state: body.state })
-    return reply(201, profiles.get(body.game_id))
+    if (registrationError) return reply(422, { detail: registrationError })
+    assert.equal(body.game_id, undefined, 'Registration does not choose an ID')
+    assert.equal(body.nickname, body.state.game.name)
+    const assignedId = 'SS-TEST-TEST-' + String(profiles.size + 1).padStart(4, '0')
+    profiles.set(assignedId, { token: assignedId, game_id: assignedId, revision: 0, state: body.state })
+    return reply(201, profiles.get(assignedId))
   }
   if (url.endsWith('/restore')) return profiles.has(body.game_id) ? reply(200, profiles.get(body.game_id)) : reply(401, {})
   const profile = [...profiles.values()].find(profile => profile.token === token)
@@ -33,16 +37,26 @@ globalThis.fetch = async (url, options) => {
 }
 assert.equal(await connectSave(), false)
 assert.equal(calls, 0, 'Opening the login page does not create a player')
+registrationError = [{ loc: ['body', 'game_id'], type: 'missing' }]
+await assert.rejects(startGame('我想宁'), /api-outdated/, 'Old servers are not reported as nickname errors')
+registrationError = [{ loc: ['body', 'nickname'], type: 'string_too_short' }]
+await assert.rejects(startGame('a'), /invalid-name/)
+registrationError = [{ loc: ['body', 'state', 'game', 'notes'], type: 'greater_than_equal' }]
+await assert.rejects(startGame('我想宁'), /invalid-registration/)
+registrationError = undefined
 await startGame('新玩家')
 assert.equal(hasSession(), true)
 assert.equal(game.name, '新玩家')
+const firstId = identity.gameId
+assert.match(firstId, /^SS-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/)
+assert.notEqual(firstId, game.name)
 game.notes = 200
 persist()
 await flushSave()
-assert.equal(profiles.get('新玩家').state.game.notes, 200)
+assert.equal(profiles.get(firstId).state.game.notes, 200)
 assert.equal(cloud.status, 'synced')
 await assert.rejects(restoreGame('wrong-id'), /session/)
-assert.equal(identity.gameId, '新玩家')
+assert.equal(identity.gameId, firstId)
 assert.equal(game.notes, 200, 'Bad IDs do not change the active save')
 game.runs = 99
 imagery.sea = [{ songId: 'old-song', x: 1, z: 1, rotation: 0 }]
@@ -56,21 +70,22 @@ assert.deepEqual(imagery.sea, [])
 game.notes = 75
 persist()
 offline = true
-await assert.rejects(restoreGame('新玩家'), /尚未同步/)
+await assert.rejects(restoreGame(firstId), /尚未同步/)
 assert.equal(identity.gameId, 'legacy-ID')
 assert.equal(game.notes, 75, 'Offline switching preserves unsynced progress')
 offline = false
 await flushSave()
 assert.equal(profiles.get('legacy-ID').state.game.notes, 75)
-await assert.rejects(startGame('新玩家'), /duplicate/)
-assert.equal(identity.gameId, 'legacy-ID')
-assert.equal(game.notes, 75)
+await startGame('新玩家')
+assert.notEqual(identity.gameId, firstId, 'Repeated nicknames receive separate IDs')
 await startGame('另一个玩家')
-assert.equal(identity.gameId, '另一个玩家')
-assert.equal(game.notes, 120, 'Registering another account starts a fresh save')
+assert.notEqual(identity.gameId, firstId)
+assert.equal(game.name, '另一个玩家')
+assert.equal(game.notes, 500, 'Registering another account starts a fresh save')
+assert.deepEqual(game.packs, { single: 3, triple: 1, five: 0, vehicle: 1, theme: 0 })
 assert.deepEqual(game.owned, {})
-await restoreGame('新玩家')
-assert.equal(game.notes, 200, 'Named IDs restore the original account')
+await restoreGame(firstId)
+assert.equal(game.notes, 200, 'Assigned IDs restore the original account')
 game.notes = 250
 persist()
 offline = true
@@ -79,16 +94,16 @@ assert.equal(hasSession(), true, 'Failed synchronization keeps the player signed
 assert.equal(game.notes, 250)
 offline = false
 await logoutGame()
-assert.equal(profiles.get('新玩家').state.game.notes, 250, 'Logout uploads pending progress first')
+assert.equal(profiles.get(firstId).state.game.notes, 250, 'Logout uploads pending progress first')
 assert.equal(hasSession(), false)
 assert.equal(identity.gameId, '')
 for (const key of ['songspace.session.v1', 'songspace.game.v1', 'songspace.imagery.v2']) assert.equal(memory.has(key), false)
-assert.equal(game.notes, 120)
+assert.equal(game.notes, 500)
 assert.deepEqual(imagery.sea, [])
 const beforeReconnect = calls
 assert.equal(await connectSave(), false)
 assert.equal(calls, beforeReconnect, 'Logout prevents automatic authentication')
-await restoreGame('新玩家')
+await restoreGame(firstId)
 assert.equal(game.notes, 250, 'Signing in after logout restores the saved progress')
 console.log('PASS: logout flushes progress, clears local identity, protects offline saves and permits re-login')
 console.log('PASS: explicit entry, new player, sync, invalid ID, legacy restore, account isolation and offline preservation')

@@ -1,0 +1,846 @@
+{
+  "source": "用户提供的105首歌曲歌词摘句表",
+  "excerpt_policy": "按用户提供的摘句原文录入，不自动截断或改写；来源链接按用户表格记录。",
+  "songs": {
+    "qq_001fsNdn1zuZnA": {
+      "title": "我不难过",
+      "excerpt": "我不难过这不算什么，只是为什么眼泪会流我也不懂",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001fsNdn1zuZnA",
+      "lyric_source": "https://www.1ting.com/geci33277.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002AZauQ1UKQxe": {
+      "title": "甲乙丙丁 (你我怎么两清)",
+      "excerpt": "你我 怎么两清 怎么忍心 怎么做回甲乙丙丁",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002AZauQ1UKQxe",
+      "lyric_source": "https://lrc.64h.cn/view/199075.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002qUdaX4ba2ez": {
+      "title": "自由的你",
+      "excerpt": "自由是逃离着全世界到你身边，自由得放掉整个世界一路荒野",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002qUdaX4ba2ez",
+      "lyric_source": "https://baike.baidu.com/item/自由的你/68999487",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000rh0dE2TyUic": {
+      "title": "雨爱",
+      "excerpt": "真希望雨能下不停，让想念继续让爱变透明",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000rh0dE2TyUic",
+      "lyric_source": "https://lupipi.com/geci/雨爱-杨丞琳.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0010BrWk2SucQr": {
+      "title": "情歌",
+      "excerpt": "一整个宇宙 换一颗红豆，回忆如困兽",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0010BrWk2SucQr",
+      "lyric_source": "https://geci.92kk.com/geci/情歌-梁静茹.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0027rBks3lqPA3": {
+      "title": "茶汤",
+      "excerpt": "山岚像茶杯上的云烟，颜色越来越浅你越走越远",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0027rBks3lqPA3",
+      "lyric_source": "https://baike.baidu.com/item/茶汤/19402775",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001auUcH4WQs2V": {
+      "title": "恋人",
+      "excerpt": "爱像是一场小雨淅沥沥淅沥沥，滴入我回忆",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001auUcH4WQs2V",
+      "lyric_source": "https://gegeci.com/lyrics/恋人-李荣浩.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000BO3xy4fd8BJ": {
+      "title": "我怀念的",
+      "excerpt": "我怀念的是无话不说，我怀念的是一起做梦",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000BO3xy4fd8BJ",
+      "lyric_source": "https://mp.weixin.qq.com/s/诗歌歌词670",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003Haf8k2E6fYX": {
+      "title": "泪海",
+      "excerpt": "你怎么舍得让我的泪流向海，伤心的往事一幕幕就像潮水将我淹埋",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003Haf8k2E6fYX",
+      "lyric_source": "https://baike.baidu.com/item/泪海/2085366",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003PSWcB4EDl6P": {
+      "title": "开始懂了",
+      "excerpt": "把我的梦摇醒了，宣布幸福不会来了",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003PSWcB4EDl6P",
+      "lyric_source": "https://wiki.y.qq.com/开始懂了",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002I9S2s4Tqxlv": {
+      "title": "茶花开了，该回家了",
+      "excerpt": "山里的茶花开了，我也是时候回家了",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002I9S2s4Tqxlv",
+      "lyric_source": "https://www.kuwo.cn/play_detail/茶花开了该回家了",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003cSLOO35W3yP": {
+      "title": "特别的人",
+      "excerpt": "我们是对方 特别的人，奋不顾身难舍难分",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003cSLOO35W3yP",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001N8e5Q4Gjxda": {
+      "title": "Always Online",
+      "excerpt": "准备好了three two one，I'm always online",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001N8e5Q4Gjxda",
+      "lyric_source": "https://lupipi.com/geci/always-online.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004fneUm24gD2c": {
+      "title": "爱错",
+      "excerpt": "我从来没想过我会这样做，从来没爱过所以爱错",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004fneUm24gD2c",
+      "lyric_source": "https://www.1ting.com/geci/爱错-王力宏.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001Y2S0F1OaM2s": {
+      "title": "失眠",
+      "excerpt": "尝试过爱恋 尝试过缠绵，最后还是失眠",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001Y2S0F1OaM2s",
+      "lyric_source": "https://zhuanlan.zhihu.com/p/歌词失眠",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000EPEhY2os1I0": {
+      "title": "大梦归",
+      "excerpt": "就让冷风吹 雨纷飞 留一地伤悲",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000EPEhY2os1I0",
+      "lyric_source": "https://www.kuwo.cn/play_detail/大梦归",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003IGhQO0JdnuC": {
+      "title": "红色高跟鞋",
+      "excerpt": "像手腕上散发的香水味，像爱不释手的红色高跟鞋",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003IGhQO0JdnuC",
+      "lyric_source": "https://wenwen.sogou.com/question/红色高跟鞋歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001NgljR0RUhy1": {
+      "title": "唯一",
+      "excerpt": "你真的懂唯一的定义，并不简单如呼吸",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001NgljR0RUhy1",
+      "lyric_source": "https://baike.baidu.com/item/唯一/20173606",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001Qu4I30eVFYb": {
+      "title": "演员",
+      "excerpt": "该配合你演出的我演视而不见，在逼一个最爱你的人即兴表演",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001Qu4I30eVFYb",
+      "lyric_source": "https://lupipi.com/geci/演员-薛之谦.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004Uln1G2Aunqw": {
+      "title": "春娇与志明",
+      "excerpt": "重新出发吗 huh 更渴望未来，以往这少年懂爱吗",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004Uln1G2Aunqw",
+      "lyric_source": "https://www.baike.com/wiki/春娇与志明",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004Gq0xE1YC8xp": {
+      "title": "素颜",
+      "excerpt": "如果再看你一眼，是否还会有感觉",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004Gq0xE1YC8xp",
+      "lyric_source": "https://wenwen.sogou.com/question/素颜歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003MUDkf30pS5B": {
+      "title": "幻听",
+      "excerpt": "幻听你在我的耳边轻轻诉说，夜色多温柔你有多爱我",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003MUDkf30pS5B",
+      "lyric_source": "https://baike.baidu.com/item/幻听/5751266",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003S1hgM2asCye": {
+      "title": "多远都要在一起",
+      "excerpt": "我能习惯远距离，爱总是身不由己",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003S1hgM2asCye",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003MASv802hpJ7": {
+      "title": "我们俩",
+      "excerpt": "永远爱你是我说过，没有没有 再没谁能拥有",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003MASv802hpJ7",
+      "lyric_source": "https://lupipi.com/geci/我们俩.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004TXEXY2G2c7C": {
+      "title": "江南",
+      "excerpt": "相信爱一天 抵过永远，在这一刹那冻结了时间",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004TXEXY2G2c7C",
+      "lyric_source": "https://geci.92kk.com/geci/江南-林俊杰.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004GEXe13HYtsE": {
+      "title": "雨过后的风景",
+      "excerpt": "你给的结局不留情，这悲伤的雨不肯停",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004GEXe13HYtsE",
+      "lyric_source": "https://lupipi.com/geci/雨过后的风景.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002ASCKm3ROw7t": {
+      "title": "美人鱼",
+      "excerpt": "传说中你为爱甘心被搁浅，我也可以为你潜入海里面",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002ASCKm3ROw7t",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001xJbdb2MBaaz": {
+      "title": "遇见",
+      "excerpt": "爱要拐几个弯才来，我遇见谁会有怎样的对白",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001xJbdb2MBaaz",
+      "lyric_source": "https://wenwen.sogou.com/question/遇见歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0031PqYN0sj8K3": {
+      "title": "阴天",
+      "excerpt": "阴天 在不开灯的房间，当所有思绪都一点一点沉淀",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0031PqYN0sj8K3",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003aAPj81VWrbL": {
+      "title": "富士山下",
+      "excerpt": "谁能凭爱意要富士山私有，何不把悲哀感觉假设是来自你虚构",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003aAPj81VWrbL",
+      "lyric_source": "https://bd.kuwo.cn/play_detail/富士山下",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003Ho2cO2RXwUc": {
+      "title": "偏爱",
+      "excerpt": "讲不听也偏要爱，更努力爱让你明白",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003Ho2cO2RXwUc",
+      "lyric_source": "https://lupipi.com/geci/偏爱.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001brxL63DYjSr": {
+      "title": "玻璃",
+      "excerpt": "我终于鼓起勇气说了我爱你，这个秘密我想妳已知道",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001brxL63DYjSr",
+      "lyric_source": "https://www.mulanci.org/lyric/玻璃",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004DiVWg09UKQx": {
+      "title": "出现又离开 (Live)",
+      "excerpt": "为何出现在彼此的生活又离开，只留下在心里深深浅浅的表白",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004DiVWg09UKQx",
+      "lyric_source": "https://hifi-ni.com/出现又离开",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003ouHMP12glVD": {
+      "title": "其实",
+      "excerpt": "分开时难过不能说，谁没谁不能好好过",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003ouHMP12glVD",
+      "lyric_source": "https://lupipi.com/geci/其实-薛之谦.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000edAg12jLBrN": {
+      "title": "不将就",
+      "excerpt": "互相折磨到白头，悲伤坚决不放手",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000edAg12jLBrN",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002dG09F2B9jlJ": {
+      "title": "You Are All I Need",
+      "excerpt": "You are all I need in this world",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002dG09F2B9jlJ",
+      "lyric_source": "https://musicupload.netease.com/you-are-all-i-need",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0039MnYb0qxYhV": {
+      "title": "晴天",
+      "excerpt": "为你翘课的那一天，花落的那一天",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0039MnYb0qxYhV",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003hFxQh276Cv5": {
+      "title": "最佳损友",
+      "excerpt": "为何旧知己 在最后 变不到老友",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003hFxQh276Cv5",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001r8VMR24xJHa": {
+      "title": "心墙",
+      "excerpt": "你的心有一道墙，但我发现一扇窗",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001r8VMR24xJHa",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0040SY053uSb7r": {
+      "title": "瞬",
+      "excerpt": "你要让时间怎么转，刚错过的怎么换",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0040SY053uSb7r",
+      "lyric_source": "https://lrc.64h.cn/view/瞬",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001OyHbk2MSIi4": {
+      "title": "十年",
+      "excerpt": "十年之前 我不认识你 你不属于我",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001OyHbk2MSIi4",
+      "lyric_source": "https://lupipi.com/geci/十年.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0005QhzT3McVui": {
+      "title": "琵琶曲",
+      "excerpt": "弹一首琵琶曲 世人争相思意，坐高楼赏小曲 抚琴声想起你",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0005QhzT3McVui",
+      "lyric_source": "https://m.douyin.com/share/music/琵琶曲",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003N2hzR4511Hh": {
+      "title": "失控",
+      "excerpt": "爱上你 算我失控，情不由衷 陷入牢笼",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003N2hzR4511Hh",
+      "lyric_source": "https://baike.quark.cn/失控",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0009BoCc0C2KFN": {
+      "title": "盛夏的果实",
+      "excerpt": "当结果是那么赤裸裸，以为你会说什么才会离开我",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0009BoCc0C2KFN",
+      "lyric_source": "https://geci.92kk.com/geci/盛夏的果实.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0001oIjs0YFIf7": {
+      "title": "坏女孩",
+      "excerpt": "慵懒的靠在陌生的肩，黑色的眼线你的指间",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0001oIjs0YFIf7",
+      "lyric_source": "https://www.wagequ.com/lyric/坏女孩",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001X0PDf0W4lBq": {
+      "title": "泡沫",
+      "excerpt": "爱本是泡沫 如果能够看破，有什么难过",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001X0PDf0W4lBq",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001bLkWD2EYA4P": {
+      "title": "天龙八部之宿敌",
+      "excerpt": "除了你万敌不侵，当恩怨各一半 我怎么圈揽",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001bLkWD2EYA4P",
+      "lyric_source": "https://baike.baidu.com/item/天龙八部之宿敌",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001yS0N33yPm1B": {
+      "title": "海阔天空",
+      "excerpt": "原谅我这一生不羁放纵爱自由，也会怕有一天会跌倒",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001yS0N33yPm1B",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004PjZLu3CjaYS": {
+      "title": "ANGEL (天使)",
+      "excerpt": "넌 나의 A N G E L，슬픈 나를 항상 미소 짓게 해",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004PjZLu3CjaYS",
+      "lyric_source": "https://www.baike.com/wiki/Angel",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001YneOf1NGnlH": {
+      "title": "刻在我心底的名字",
+      "excerpt": "刻在我心底的名字，忘记了时间这回事",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001YneOf1NGnlH",
+      "lyric_source": "https://baike.baidu.com/item/刻在我心底的名字",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0013WPvt4fQH2b": {
+      "title": "天外来物",
+      "excerpt": "我在 不近又不远处，用明天换你 靠近我",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0013WPvt4fQH2b",
+      "lyric_source": "https://lrc.64h.cn/view/天外来物",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001ufyHx10iWpg": {
+      "title": "如愿",
+      "excerpt": "你的手我蹒跚在牵，请带我去明天",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001ufyHx10iWpg",
+      "lyric_source": "https://bd.kuwo.cn/play_detail/如愿",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001lmD2a2YZYN3": {
+      "title": "麦恩莉",
+      "excerpt": "感谢你的出现，过去的往事就如烟",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001lmD2a2YZYN3",
+      "lyric_source": "https://baike.baidu.com/item/麦恩莉",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002E3MtF0IAMMY": {
+      "title": "光年之外",
+      "excerpt": "缘分让我们相遇乱世以外，命运却要我们危难中相爱",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002E3MtF0IAMMY",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001zw5Ld0QFDhw": {
+      "title": "阿楚姑娘",
+      "excerpt": "今夜你会不会在远方，燃篝火为我守望",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001zw5Ld0QFDhw",
+      "lyric_source": "https://baike.baidu.com/item/阿楚姑娘",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004VBMk71TdUuR": {
+      "title": "我好像在哪见过你",
+      "excerpt": "我听见了你的声音，也藏着颗不敢见的心",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004VBMk71TdUuR",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001hUNRP0P8g7x": {
+      "title": "认真的雪",
+      "excerpt": "雪下得那么深 下得那么认真，倒映出我躺在雪中的伤痕",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001hUNRP0P8g7x",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003N7EbT2mUdPG": {
+      "title": "愿与愁",
+      "excerpt": "等待花季烟雨稠，再化降水驻守 属于你的愿与愁",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003N7EbT2mUdPG",
+      "lyric_source": "https://lrc.64h.cn/view/愿与愁",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002E8ebM3TFWmA": {
+      "title": "背对背拥抱",
+      "excerpt": "我们背对背拥抱，滥用沉默在咆哮",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002E8ebM3TFWmA",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0031lecC265Cw1": {
+      "title": "斗战胜佛",
+      "excerpt": "从前的悟空 你别闹，别再掀云海 闹天宫桀骜",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0031lecC265Cw1",
+      "lyric_source": "https://www.shiyinren.net/斗战胜佛",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003jjoM94WLiTf": {
+      "title": "倒数",
+      "excerpt": "时针一直倒数着，我们剩下的快乐",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003jjoM94WLiTf",
+      "lyric_source": "https://lupipi.com/geci/倒数.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003TfjUa27r7aJ": {
+      "title": "风月吻眉梢",
+      "excerpt": "今夜的风悄悄月悄悄，吻你的眉梢",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003TfjUa27r7aJ",
+      "lyric_source": "https://m.douyin.com/share/music/风月吻眉梢",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0044lCLh0QK3am": {
+      "title": "爱我还是他",
+      "excerpt": "你爱我还是他，是不是真的他要比我好",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0044lCLh0QK3am",
+      "lyric_source": "https://wenwen.sogou.com/question/爱我还是他歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004aJoYT3ia7al": {
+      "title": "Letting Go",
+      "excerpt": "I'm letting go，我终于舍得为你放开手",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004aJoYT3ia7al",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000DOpDe2GfLaq": {
+      "title": "爱情讯息",
+      "excerpt": "想念变成空气在叹息，多么想要躺在你怀里",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000DOpDe2GfLaq",
+      "lyric_source": "https://baike.baidu.com/item/爱情讯息",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002QOSPX0bEK4f": {
+      "title": "至少还有你",
+      "excerpt": "如果全世界我也可以放弃，至少还有你值得我去珍惜",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002QOSPX0bEK4f",
+      "lyric_source": "https://wenwen.sogou.com/question/至少还有你歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000Tx0ZM2xaBhM": {
+      "title": "樱花草",
+      "excerpt": "恋人手中樱花草，春彩漫步的微笑",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000Tx0ZM2xaBhM",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003JOgMV1LeXOC": {
+      "title": "如果可以",
+      "excerpt": "让时间停止那一场雨，只想拥抱你在身边的证据",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003JOgMV1LeXOC",
+      "lyric_source": "https://lupipi.com/geci/如果可以.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000Sw6cm1GHNRw": {
+      "title": "黄昏",
+      "excerpt": "黄昏的地平线，划出一句离别",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000Sw6cm1GHNRw",
+      "lyric_source": "https://music.migu.cn/黄昏",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004X4tBC4ez4FP": {
+      "title": "Whatever Happens",
+      "excerpt": "Whatever happens don't let go of my hand",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004X4tBC4ez4FP",
+      "lyric_source": "https://baike.baidu.com/item/Whatever-Happens",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002CxSLT41D5tD": {
+      "title": "修炼爱情",
+      "excerpt": "为一张脸去养一身伤，别讲想念我 我会受不了这样",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002CxSLT41D5tD",
+      "lyric_source": "https://lupipi.com/geci/修炼爱情.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002mZevo3wHvsc": {
+      "title": "有何不可",
+      "excerpt": "为你做一只扑火的飞蛾，没有什么事情是不值得",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002mZevo3wHvsc",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000NqZLy2lfXjT": {
+      "title": "我们的歌",
+      "excerpt": "我的爱一直不变，不必担心时间流逝带走一切",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000NqZLy2lfXjT",
+      "lyric_source": "https://wenwen.sogou.com/question/我们的歌歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002ev1QN1mwSYJ": {
+      "title": "同花顺",
+      "excerpt": "假如说钢铁磨成针，是不是就有这可能",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002ev1QN1mwSYJ",
+      "lyric_source": "https://baike.baidu.com/item/同花顺/64522576",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002FsceO4WxKyF": {
+      "title": "下完这场雨",
+      "excerpt": "我在等你 等下完这场雨，满城涓涤 净此生的别离",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002FsceO4WxKyF",
+      "lyric_source": "https://baike.baidu.com/item/下完这场雨",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0017K7gL4WYnw2": {
+      "title": "反方向的钟",
+      "excerpt": "穿梭时间的画面的钟，从反方向 开始移动，回到当初爱你的时空",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0017K7gL4WYnw2",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000LDr7E13dXy1": {
+      "title": "勇气",
+      "excerpt": "我们都需要勇气，去相信会在一起",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000LDr7E13dXy1",
+      "lyric_source": "https://wenwen.sogou.com/question/勇气歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002dw4gv1ZmiGt": {
+      "title": "我记得",
+      "excerpt": "我带着比身体重的行李，游入尼罗河底",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002dw4gv1ZmiGt",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004YVhTx4b1rFK": {
+      "title": "夏夜最后的烟火",
+      "excerpt": "你的存在 治愈我，月慢慢沉了 海风还吹着",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004YVhTx4b1rFK",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004K6Ne61a1VA8": {
+      "title": "会呼吸的痛",
+      "excerpt": "遗憾是会呼吸的痛，它流在血液中来回滚动",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004K6Ne61a1VA8",
+      "lyric_source": "https://wenwen.sogou.com/question/会呼吸的痛歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001GOlCd2HImcY": {
+      "title": "离开我的依赖",
+      "excerpt": "我来不及道声不安，有点混乱有点缓慢",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001GOlCd2HImcY",
+      "lyric_source": "https://baike.baidu.com/item/离开我的依赖",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0049M1133ILTOr": {
+      "title": "多余的解释",
+      "excerpt": "她只是我的妹妹，妹妹说紫色很有韵味",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0049M1133ILTOr",
+      "lyric_source": "https://baike.baidu.com/item/多余的解释",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001QJyJ32zybEe": {
+      "title": "句号",
+      "excerpt": "可惜我们终于来到 一个句号，你会不会少了一点烦恼",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001QJyJ32zybEe",
+      "lyric_source": "https://baike.baidu.com/item/句号/24208135",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001P6YOB0eXLlj": {
+      "title": "第57次取消发送",
+      "excerpt": "我好想你 在每个夜里，纷飞的回忆 猜不透你",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001P6YOB0eXLlj",
+      "lyric_source": "https://baike.baidu.com/item/第57次取消发送",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004INdnu0H2fok": {
+      "title": "最后一页",
+      "excerpt": "想把你抱进身体里面，不敢让你看见",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004INdnu0H2fok",
+      "lyric_source": "https://wenwen.sogou.com/question/最后一页歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_002MFDAV3rPFlo": {
+      "title": "青花",
+      "excerpt": "紧紧握着 青花信物，信守着承诺",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/002MFDAV3rPFlo",
+      "lyric_source": "https://music.migu.cn/青花",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003upMMS1zgYzc": {
+      "title": "我知道",
+      "excerpt": "还微笑着要我加油，我知道你还放不下我",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003upMMS1zgYzc",
+      "lyric_source": "https://lupipi.com/geci/我知道.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_00184ejM4XouuN": {
+      "title": "孤独患者",
+      "excerpt": "我不唱声嘶力竭的情歌，不表示没有心碎的时刻",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/00184ejM4XouuN",
+      "lyric_source": "https://i.y.qq.com/n2/m/share/details/song.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000x2ZyK1FYFht": {
+      "title": "可不可以",
+      "excerpt": "趁我还没有过保质期，趁你还愿意",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000x2ZyK1FYFht",
+      "lyric_source": "https://bd.kuwo.cn/play_detail/可不可以",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000GDzSZ0yAEB9": {
+      "title": "IF YOU",
+      "excerpt": "If you，如果还没有太迟我们能否重新回去",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000GDzSZ0yAEB9",
+      "lyric_source": "https://www.maigoo.com/if-you",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000nNzj03CNUIT": {
+      "title": "你要的全拿走",
+      "excerpt": "你要的全拿走，把回忆化成空",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000nNzj03CNUIT",
+      "lyric_source": "https://bd.kuwo.cn/play_detail/你要的全拿走",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004PLeSn23iQKZ": {
+      "title": "等你的季节",
+      "excerpt": "只想让你知道，我真的很好",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004PLeSn23iQKZ",
+      "lyric_source": "https://www.kugou.com/song/等你的季节",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003uh6Y81FI4Nv": {
+      "title": "如果当时",
+      "excerpt": "与你若只如初见，何须感伤离别",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003uh6Y81FI4Nv",
+      "lyric_source": "https://www.kuwo.cn/play_detail/如果当时",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001qW0XY1BqDiE": {
+      "title": "Moonride",
+      "excerpt": "Backseat, backseat of the car",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001qW0XY1BqDiE",
+      "lyric_source": "https://colorcodedlyrics.com/moonride",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_0016znix01HNzO": {
+      "title": "碎碎念",
+      "excerpt": "当你看着我 我看着你，话也不用再多说一句",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/0016znix01HNzO",
+      "lyric_source": "https://zhuanlan.zhihu.com/p/歌词碎碎念",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001KyJTt1kbkfP": {
+      "title": "一样的月光",
+      "excerpt": "你留下最清楚的步伐，竟是指引我孤单的方向",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001KyJTt1kbkfP",
+      "lyric_source": "https://wenwen.sogou.com/question/一样的月光歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000qXLmI47rb6L": {
+      "title": "冻结",
+      "excerpt": "冻结那时间 冻结初遇那一天，冻结那爱恋 冻结吻你那瞬间",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000qXLmI47rb6L",
+      "lyric_source": "https://baike.baidu.com/item/冻结/24205104",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004N3sjT22yYiQ": {
+      "title": "冷夜",
+      "excerpt": "随落叶泛黄堆叠着，月淡了 云散了",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004N3sjT22yYiQ",
+      "lyric_source": "https://baike.baidu.com/item/冷夜/66447713",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000hwIui3xVub9": {
+      "title": "下一个天亮",
+      "excerpt": "等下一个天亮，去上次牵手赏花那里散步好吗",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000hwIui3xVub9",
+      "lyric_source": "https://wenwen.sogou.com/question/下一个天亮歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_003mRf8u26lMMY": {
+      "title": "恶作剧",
+      "excerpt": "我想我会开始想念你，可是我刚刚才遇见了你",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/003mRf8u26lMMY",
+      "lyric_source": "https://www.mulanci.org/lyric/恶作剧",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000c3ohn2KPrcl": {
+      "title": "朋友",
+      "excerpt": "朋友 一生一起走，那些日子不再有",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000c3ohn2KPrcl",
+      "lyric_source": "https://wenwen.sogou.com/question/朋友歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "prototype_eason_backpack": {
+      "title": "你的背包",
+      "excerpt": "背了六年半，我每一天陪它上班",
+      "source_url": "https://y.qq.com/n/ryqq/search?w=%E9%99%88%E5%A5%95%E8%BF%85%20%E4%BD%A0%E7%9A%84%E8%83%8C%E5%8C%85",
+      "lyric_source": "https://wenwen.sogou.com/question/你的背包歌词",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_004CU50m2JjBjr": {
+      "title": "单车",
+      "excerpt": "茫茫人生好像荒野，如孩儿能伏于爸爸的肩膊",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/004CU50m2JjBjr",
+      "lyric_source": "https://www.kugou.com/song/单车",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_001xd0HI0X9GNq": {
+      "title": "一路向北",
+      "excerpt": "后视镜里的世界，越来越远的道别",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/001xd0HI0X9GNq",
+      "lyric_source": "https://www.kugou.com/song/一路向北",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    },
+    "qq_000sdDGD2Av18n": {
+      "title": "鲜花",
+      "excerpt": "开着我的烂摩托，去转一转",
+      "source_url": "https://y.qq.com/n/ryqq/songDetail/000sdDGD2Av18n",
+      "lyric_source": "https://lupipi.com/geci/鲜花.html",
+      "type": "lyric_excerpt",
+      "provenance": "user_provided"
+    }
+  }
+}

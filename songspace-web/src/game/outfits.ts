@@ -7,6 +7,7 @@ export interface OutfitDefinition {
   songTitle: string
   artist: string
   description: string
+  scoreBonus: number
   preview: string
 }
 export const OUTFIT_SLOTS: Record<OutfitSlot, string> = {
@@ -23,6 +24,7 @@ export const OUTFITS: OutfitDefinition[] = [
     songTitle: '你的背包',
     artist: '陈奕迅',
     description: '把一首歌背在身后，陪你走下一段路。人物外观装扮。',
+    scoreBonus: .10,
     preview: 'art/outfits/travel-backpack.svg',
   },
 ]
