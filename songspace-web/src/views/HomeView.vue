@@ -5,6 +5,7 @@ import { PhHouse, PhCompass, PhCards, PhVinylRecord, PhHeadphones, PhTrophy, PhC
 import { connectSave, cloud, identity, logoutGame, retrySave } from '@/game/cloud'
 import WorldCanvas from '@/components/WorldCanvas.vue'
 import WeatherPicker from '@/components/WeatherPicker.vue'
+import MapMusic from '@/components/MapMusic.vue'
 import GameHall from '@/components/GameHall.vue'
 import SpectrumGrid from '@/components/SpectrumGrid.vue'
 import RaceCanvas from '@/components/RaceCanvas.vue'
@@ -67,6 +68,7 @@ const page = ref<'home' | 'race' | 'packs' | 'warehouse' | 'world' | 'records' |
 watch(page, () => window.scrollTo({ top: 0, behavior: 'auto' }))
 const selected = computed(() => WORLD_OPTIONS.find((w) => w.id === world.value)!)
 const race = ref<InstanceType<typeof RaceCanvas>>(),
+  mapMusic = ref<InstanceType<typeof MapMusic>>(),
   cameraMode = ref(0),
   worldCanvas = ref<InstanceType<typeof WorldCanvas>>()
 const started = ref(false),
@@ -156,6 +158,7 @@ function selectMap(id: WorldId) {
   reset()
 }
 function reset() {
+  mapMusic.value?.stop()
   started.value = false
   ready.value = false
   result.value = null
@@ -181,12 +184,14 @@ async function start() {
   if (!ready.value || entering.value) return
   runMultiplier.value = currentMultiplier.value
   entering.value = true
+  void mapMusic.value?.play()
   const ok = await race.value?.enter()
   entering.value = false
   if (ok) started.value = true
 }
 function returnToMaps() { reset() }
 function end(s: RaceStatus) {
+  mapMusic.value?.stop()
   if (result.value) return
   const score = Math.floor(s.score * runMultiplier.value)
   const notes = settle(score, s.distance, s.coins, selected.value.title)
@@ -383,6 +388,7 @@ onBeforeUnmount(() => clearTimeout(timer))
             @end="end"
             @error="raceError = $event"
           />
+          <MapMusic ref="mapMusic" :world="world" :active="entering || started" :paused="state.paused" />
           <div v-if="started" class="camera-switch" aria-label="镜头机位">
             <button
               v-for="(label, i) in ['追随', '侧后方', '第一人称']"

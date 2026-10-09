@@ -6,7 +6,9 @@
 
 建议起点：2 核 CPU、4GB 内存、40–60GB SSD、5Mbps 公网带宽；系统可选 Ubuntu 24.04 LTS。前端在本机构建后上传，服务器无需安装 Node.js。
 
-这是基于当前实现的工程估算，未进行服务器并发压测。Three.js 场景在浏览器渲染；服务器提供静态资源、注册和存档读写，无需 GPU。2GB 内存可用于更小的试用，但宝塔、PostgreSQL 和 Python 同机运行余量有限。当前完整 dist 约 12.5MB（含所有静态文件，单次访问不一定全部加载）；多人首次访问更容易受带宽限制。暂不需要 Redis、队列或独立数据库服务器。
+已准备的整套发布包及脚本说明见 [deploy/README.md](../../deploy/README.md)。离线依赖针对 Linux x86_64 / Python 3.12；发布包已包含编译前端和地图音乐，采用最新工作区内容。
+
+这是基于当前实现的工程估算，未进行服务器并发压测。Three.js 场景在浏览器渲染；服务器提供静态资源、注册和存档读写，无需 GPU。2GB 内存可用于更小的试用，但宝塔、PostgreSQL 和 Python 同机运行余量有限。加入地图音乐后，当前完整 dist 约 43MB，其中三首 MP3 约 31MB（单次访问不一定全部加载，音频按需播放）；多人首次访问更容易受带宽限制。暂不需要 Redis、队列或独立数据库服务器。
 
 轻量服务器适用于小型网站、Web 应用及小游戏，套餐规格以购买页面为准：[阿里云轻量服务器规格](https://www.alibabacloud.com/help/zh/simple-application-server/product-overview/instance-families/)。PostgreSQL 的内存应给同机其他服务留出空间，勿套用专用数据库服务器的内存比例：[PostgreSQL 资源配置](https://www.postgresql.org/docs/current/runtime-config-resource.html)。
 
@@ -22,6 +24,7 @@
 | 三个世界的歌曲摆件 | 存入 `imagery` | 已同步 |
 | 歌曲图鉴、封面、歌词、模型 | 本地打包资源与 `/catalog/` JSON | 可部署，不依赖实时音乐接口 |
 | QQ 音乐 | 外链跳转及已有榜单快照 | 未接实时搜索、榜单更新或播放接口 |
+| 地图背景音乐 | `/catalog/map-music.json` 与三首本地 MP3 | 已打包，按需播放，需上线验证音频 Range 请求及播放 |
 | AI 音乐理解、生成世界/物件 | 暂无 API 调用 | 未实现 |
 | 共享排行榜、服务端经济和反作弊 | 暂无对应 API | 未实现，不适合把当前成绩用于竞争排名 |
 | User / World / Exploration / Asset / PlacedObject 模型 | 已有迁移，无业务路由 | 当前游戏使用独立 game_profiles 快照表 |

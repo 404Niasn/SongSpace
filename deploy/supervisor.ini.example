@@ -1,0 +1,14 @@
+[program:songspace]
+directory=/www/wwwroot/songspace
+command=/bin/bash /www/wwwroot/songspace/deploy/start.sh
+user=www
+autostart=true
+autorestart=true
+startsecs=5
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=/www/wwwroot/songspace/logs/backend.log
+stdout_logfile_maxbytes=10MB
+stdout_logfile_backups=3
+environment=PYTHONUNBUFFERED="1"

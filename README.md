@@ -1,126 +1,163 @@
-# Songspace / 歌境 Backend
+<div align="center">
 
-Build with AI. Build with Music.
+<img src="songspace-web/public/brand/icon-192.png" alt="歌境 SongSpace 标志" width="72" height="72" />
 
-歌曲逐渐成为个人世界的建造材料。当前已实现后端基础设施、基础数据模型及游戏存档同步。
+# 歌境 · SongSpace
 
-## 本地运行（PowerShell）
+### 收藏音乐，走进它的世界。
 
-在项目根目录执行，使用已有的 `songspace` Conda 环境和 PostgreSQL 数据库：
+将一首歌变成一次旅程、一件收藏，和属于你的微缩世界。
 
-```powershell
-conda activate songspace
-python -m pip install -e ".[dev]"
-Copy-Item .env.example .env # 已存在 .env 时不要覆盖
-# 编辑 .env，设置实际 DATABASE_URL
-python -m alembic upgrade head
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
+**Build with AI. Build with Music.**
 
-也可不激活环境：`conda run --no-capture-output -n songspace python -m uvicorn app.main:app --host 127.0.0.1 --port 8000`。
-开发时可额外添加 `--reload`。
-`requirements.lock.txt` 记录本次验证环境的精确依赖版本；需要复现时先运行 `python -m pip install -r requirements.lock.txt`，再安装可编辑项目。
+[产品介绍](docs/product/overview.md) · [快速开始](#快速开始) · [前端开发](songspace-web/README.md) · [后端开发](docs/development/backend.md) · [部署指南](docs/deploy/baota-demo.md)
 
-- Swagger：[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- 存活检查：`GET /api/v1/health` → `{"status":"ok"}`
-- 数据库检查：`GET /api/v1/health/ready` → `{"status":"ok","database":"connected"}`；连接或查询失败返回 503。
+**105 首歌曲** · **3 个音乐世界** · **5 类歌曲卡** · **跨设备存档**
 
-应用启动不创建表、不自动迁移；先执行 Alembic。存活检查不依赖数据库；就绪检查只验证连通性，迁移版本通过 Alembic 检查。
+</div>
 
-## 配置
+![歌境大厅：音乐世界主视觉与每日活动入口](docs/previews/home-signin-record.png)
 
-配置来自系统环境变量或根目录 `.env`，系统环境变量优先。真实 `.env` 已加入忽略规则。
+## 让喜欢的歌，成为可以探索的地方
 
-| 变量 | 用途 |
+歌境是一款融合 **3D 音乐探索、歌曲卡牌收藏与微缩世界布置** 的 Web 游戏。你可以沿着《大海》的海岸公路前进，在《江南》的青石板街穿行，或走进《挪威的森林》的林间步道。
+
+旅途中收集金币、躲避障碍，获得音符；拆开卡包，把歌曲收藏为道具、载具、装扮与景物，再带着它们开启下一段旅程。
+
+> 当前为可游玩的 Demo。下方图片选自仓库已有的真实界面与场景预览；截图中的库存、数值和部分界面文案属于拍摄时的示例状态，玩法以本文说明为准。
+
+## 一首歌，多种玩法
+
+| 体验 | 你可以做什么 |
 | --- | --- |
-| `DATABASE_URL` | 必填，格式 `postgresql+psycopg://用户:密码@主机:端口/songspace` |
-| `APP_NAME` | API 文档标题，默认 Songspace |
-| `APP_ENV` | 环境标识，默认 development |
-| `DEBUG` | 日志级别开关，默认 false |
-| `CORS_ORIGINS` | JSON 数组，默认空；示例允许本地 Vite 的两个来源 |
+| 音乐探索 | 选择歌曲地图，以追随、侧后方或第一人称视角探索；收集金币、换道避障、跳跃闯关 |
+| 拆包收藏 | 购买歌曲包或载具包，拖动撕封、逐张翻卡，收集真实歌曲封面与短摘句 |
+| 歌曲道具 | 装备两个道具槽，使用护盾、吸币、回血、复活、回溯等能力；重复卡提升道具等级 |
+| 歌曲载具 | 解锁《单车》的后架单车、《一路向北》的 AE86、《鲜花》的烂摩托，改变外观与巡航速度 |
+| 微缩世界 | 手动摆放歌曲意象装饰，撤回返还库存；用《黄昏》《雨爱》切换天气 |
+| 人物装扮 | 收藏《你的背包》，解锁旅途背包；预览、穿戴并带入探索 |
+| 每日活动 | 签到领取卡包，看卡通意象猜歌，完成探索、收藏与日常成就 |
+| 长期进度 | 保存收藏、装备、世界布置与最近十次探索记录，使用账号 ID 跨设备恢复 |
 
-用户名和密码中的 `@`、`#`、`%` 等字符需要 URL 编码。不要将真实连接信息提交到版本库。
+### 01 · 从一张微缩地图，走进一首歌
 
-## 目录与职责
+三张初始地图直接开放。出发前选择载具与道具，查看本局积分倍率；入场镜头从微缩场景过渡到探索视角。
 
-```text
-app/
-  main.py             应用工厂、生命周期、路由装配
-  config.py           Pydantic Settings 配置
-  api/router.py       /api/v1 聚合路由
-  api/routes/         按能力划分 HTTP 接口
-  schemas/            Pydantic 输入输出契约
-  services/           业务逻辑；未来音乐理解、世界成长在此实现
-  models/             SQLAlchemy ORM 数据模型
-  database/           DeclarativeBase、Engine、请求 Session
-  core/               通用基础设施，目前只有日志配置
-alembic/              迁移环境、模板、版本记录
-tests/                单元测试和 PostgreSQL 集成测试
-docs/plans/           当前基础架构实施计划
-songspace-web/        已有前端
-```
+![探索准备：歌曲地图、实时微缩世界、载具与双道具槽](docs/previews/exploration-covers-fixed.png)
 
-Router 调用 Service，Service 使用 Session 和 Model，Schema 定义 HTTP 契约。当前暴露健康接口与游戏会话、存档同步接口。
-每个请求使用独立 Session，异常回滚并关闭。依赖不自动 commit；未来写入 Service 使用 `with session.begin():` 管理一个业务动作的事务。
-连接池启用 `pool_pre_ping`；连接和 SQL 查询超时当前各为 5 秒。应用关闭时释放连接池。
+| 歌曲世界 | 场景特色 |
+| --- | --- |
+| 《挪威的森林》· 伍佰 | 林间步道、树木与雾化远景 |
+| 《大海》· 张雨生 | 海岸公路、动态海浪、棕榈树与灯塔 |
+| 《江南》· 林俊杰 | 青石板街、石桥、白墙黛瓦、垂柳与乌篷船 |
 
-## 基础模型
+探索自动向前，每 500 米进入下一关，逐渐增加速度和障碍难度。地图音乐随探索开始、暂停与结束联动，支持关闭音乐及跳转 QQ 音乐。
 
-所有模型使用 UUID 主键和带时区的创建/更新时间；UUID 由 ORM 生成。`updated_at` 由 SQLAlchemy 写入时更新，直接 SQL 更新需要自行维护。
+![海岸探索：镜头切换、生命、关卡进度与道具状态](docs/previews/race-life-difficulty-desktop.png)
 
-| 模型 / 表 | 核心字段 | 用途 |
-| --- | --- | --- |
-| User / users | display_name | 用户身份占位，不包含密码、注册或认证 |
-| World / worlds | user_id（唯一）、name、growth_points、state_version、state | 一用户一长期世界；成长积分支持未来音乐树规则；JSONB 保存场景级设置 |
-| MusicExploration / music_explorations | world_id、song_title、artist、provider、provider_song_id、status、analysis | 保存歌曲探索来源和未来 AI 结果；状态 pending/completed/failed |
-| Asset / assets | key（唯一）、name、category、resource_uri、description | 可复用物件资产目录，资源 URI 可空，不绑定具体 3D 技术 |
-| PlacedObject / placed_objects | world_id、asset_id、exploration_id、position_x/y/z、rotation_y、scale | 世界中的物件实例，可追溯歌曲探索；坐标默认 0、旋转单位为弧度、统一缩放默认 1 |
+### 02 · 把拆包的惊喜，变成自己的音乐收藏
 
-`User → World → MusicExploration`，`World → PlacedObject → Asset`。物件还可关联同一世界的 MusicExploration；组合外键阻止跨世界关联。初始物件允许没有探索来源。
+立体箔膜包装、拖动撕封、卡背揭晓、透视翻转与整包汇总，构成完整的开包过程。支持跳过动画及减少动态效果偏好；卡牌在撕包时入库，关闭或刷新不会丢失已获得的奖励。
 
-删除用户会级联删除世界及其探索、物件。被物件引用的资产和单独的探索记录禁止删除，保留来源；删除整个世界时相关记录一起删除。
-成长积分非负，缩放为正且有限，位置与旋转为有限值。这里只保留成长积分，不定义音乐树等级公式，也不自动累加积分。
+![歌曲卡包：立体箔膜包装与撕封入口](docs/previews/white-foil-pack.jpg)
 
-世界场景状态与物件实例分开存储，避免把整个世界塞进一个大 JSON。`state_version` 是 JSON 数据格式版本，不是并发锁；后续开放保存接口时应设计并发冲突处理。
-`state`、`analysis` 使用 JSONB 和 MutableDict，顶层修改可跟踪；嵌套修改需要重新赋值整个字段。AI 候选列表暂留在 analysis，不提前设计独立候选表或 AI 调用抽象层。
+歌曲仓库支持分类、歌曲与歌手搜索、只看已拥有、卡牌详情和 QQ 音乐跳转。当前曲库由 **2026-10-08 QQ 音乐热歌榜 100 首快照及补充歌曲**组成，共 105 首，并非实时排行榜。
 
-## 迁移与验证
+![歌曲卡片：真实专辑封面、功能分类与歌词短摘句；此图为六张卡片展示样例](docs/previews/supplied-lyric-cards.jpg)
+
+五类卡片分别对应装饰、道具、载具、地图和装扮。金色边框表示道具卡，彩色边框表示地图卡；稀有度与玩法身份相互关联。
+
+### 03 · 把歌曲留下，也把它带在身上
+
+花园、雪庭、月灯、观景台与唱片亭可以布置在自己的微缩世界里。装饰库存跨地图共用，摆放消耗可用库存，撤回后返还；已布置景物还会出现在探索前段。
+
+《黄昏》解锁夕阳，《雨爱》解锁雨天，天气同时作用于微缩世界和探索场景。《你的背包》提供可穿戴的旅途背包，穿戴不消耗歌曲卡，当前额外增加 10% 探索积分。
+
+![歌曲天气场景预览：雨天同步作用于微缩世界和海岸探索](docs/previews/world-rain-sync.jpg)
+
+### 04 · 每次回来，都有一点新的收获
+
+- **新手补给**：500 音符、3 个单抽包、1 个三连包和 1 个载具包。
+- **每日签到**：每天 1 个单抽包；连续第 5 天加送三连包，第 7 天加送五连包，每 7 天一轮，断签重新计数。
+- **每日猜歌**：每天 6 次机会，首猜命中获得五连包，第 2–3 次获得三连包，第 4–6 次获得单抽包。
+- **成就奖励**：12 项成就覆盖探索里程、最高分、收藏数量、开包、签到与猜歌；达到目标后领取卡包。
+
+## 第一次游玩
+
+1. 在登录页填写 2–16 字昵称注册，保存系统分配的账号 ID。
+2. 到卡包页拆开新手补给，在收藏页查看获得的歌曲与能力。
+3. 选择一张地图，装备载具与最多两个道具，进入探索。
+4. 收集金币并躲避障碍，结算获得音符，再购买卡包或布置世界。
+
+| 操作 | 按键 / 入口 |
+| --- | --- |
+| 左右换道 | `A` / `D` 或左右方向键 |
+| 跳跃 | `空格` |
+| 减速 | `S` |
+| 使用道具 | `1` / `2` 或点击道具栏，每个槽每局一次 |
+| 暂停 / 继续 | `Esc` 或界面按钮 |
+| 切换视角 | 场景内的追随、侧后方、第一人称按钮 |
+| 窄屏操作 | 屏幕上的换道和跳跃按钮 |
+
+基础得分为每米 1 分、每枚金币 50 分，结算每 40 分兑换 1 音符。世界装饰每 100 值增加 10% 积分，装饰加成最高 50%；穿戴加成额外计入，倍率在开局锁定。
+
+单抽包售价 60 音符，三连包 150 音符，载具包 300 音符。五连包仅通过奖励获得，至少包含一张金卡或彩卡；普通歌曲包连续抽取时，获得金卡或彩卡会重置保底计数，计数达到 20 时保证道具金卡。
+
+## 快速开始
+
+完整登录与存档体验需要同时运行前端、后端与 PostgreSQL。
+
+**环境**：Python 3.12+、PostgreSQL，以及 Node.js `^22.18.0` 或 `>=24.12.0`。以下命令适用于 Windows PowerShell。
+
+### 启动后端
+
+在项目根目录执行；已有虚拟环境可直接使用。
 
 ```powershell
-python -m alembic current
-python -m alembic check
-# 模型修改后生成并人工审查迁移
-python -m alembic revision --autogenerate -m "describe_schema_change"
-python -m alembic upgrade head
-python -m pytest -q
-python -m ruff check app tests alembic
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -e ".[dev]"
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+# 创建 PostgreSQL 数据库，并在 .env 中填写实际 DATABASE_URL
+.venv\Scripts\python.exe -m alembic upgrade head
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-新增模型必须在 `app/models/__init__.py` 导入，才能被 Alembic 发现。迁移只读取环境变量配置，alembic.ini 不存数据库密码。
-自动生成的迁移需要审查，尤其是重命名、删除和数据回填；不要用 `create_all()` 绕过迁移。
+### 启动前端
 
-单元测试不连接真实数据库。集成测试默认跳过；通过环境变量启用：
+另开一个终端：
 
 ```powershell
-$env:TEST_DATABASE_URL = $env:DATABASE_URL # 仅当已在当前 Shell 设置 DATABASE_URL
-python -m pytest tests/test_postgresql.py -q
-Remove-Item Env:TEST_DATABASE_URL
+cd songspace-web
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-也可以将 `.env` 的连接值填入 `TEST_DATABASE_URL`。集成测试创建随机命名的 `songspace_test_<uuid>` schema，验证迁移升级/降级/再升级、模型一致性、数据写入、唯一约束、来源外键、级联删除和缩放约束；结束后清理该 schema，不清理 public。测试账户需要 CREATE SCHEMA 权限。
+打开 [歌境登录页](http://127.0.0.1:5173/login)。Vite 会将 `/api` 转发到本机 8000 端口；后端接口文档位于 [Swagger UI](http://127.0.0.1:8000/docs)。
 
-当前已有 ID 登录和存档接口；尚无 AI、音乐平台实时接口、JWT、WebSocket 或任务队列。业务连接范围及单机宝塔部署步骤见 [部署文档](docs/deploy/baota-demo.md)。
+## 技术与文档
 
-## 游戏存档接口
+| 层级 | 技术与职责 |
+| --- | --- |
+| 交互界面 | Vue 3、TypeScript、Vite，承载大厅、收藏、活动与账号界面 |
+| 3D 与动效 | Three.js 场景、载具和人物；GSAP 开包、翻卡与入场动效 |
+| 服务接口 | FastAPI、Pydantic，提供账号、会话、健康检查与存档接口 |
+| 数据存储 | PostgreSQL、SQLAlchemy、Alembic，保存账号进度并管理数据迁移 |
+| 存档机制 | 浏览器本机缓存与云端同步，修订号防止旧存档覆盖较新进度 |
 
-本机已创建 PostgreSQL 数据库 `songspace`，连接配置位于被 Git 忽略的 `.env`。迁移 `0002_game_profiles` 为游戏存档新增独立表，不替代原有世界模型。
+- [产品总结与功能介绍](docs/product/overview.md)：适合产品交流、演示和功能概览。
+- [前端开发指南](songspace-web/README.md)：开发命令、玩法模块与专项验证。
+- [后端开发指南](docs/development/backend.md)：环境配置、数据模型、API 与迁移验证。
+- [宝塔 Demo 部署](docs/deploy/baota-demo.md) · [部署包说明](deploy/README.md)：生产代理、静态资源与发布包使用。
+- [内容来源与策划记录](docs/plans/2026-10-08-qqmusic-hot-100.md)：榜单快照及歌曲数据说明。
 
-- `POST /api/v1/game/sessions`：以初始游戏快照建立会话，仅返回一次原始令牌，数据库保存哈希。
-- `GET /api/v1/game/save`：Bearer 令牌读取当前存档。
-- `PATCH /api/v1/game/save`：提交修订号和完整状态，冲突返回 409，不覆盖较新的存档。
+## 当前版本说明
 
-前端 Vite 的 `/api` 代理到本机 8000。浏览器保留离线缓存并显示同步状态。独立登录页 `/login` 上方填写昵称，通过 `POST /api/v1/game/accounts` 注册，系统分配 `SS-XXXX-XXXX-XXXX` 格式 ID；昵称可重名；下方通过 `POST /api/v1/game/sessions/restore` 验证已有 ID 并恢复存档，兼容旧游戏 ID。ID 相当于密码，数据库只保存凭据哈希。服务端抽卡结算、反作弊和共享排行榜尚未实现。
+当前实现歌曲与预制 / 程序化模型的内容映射。品牌口号中的 AI 表达项目创作方向；运行时尚未接入 AI 歌曲分析或实时 3D 生成。
 
-生产部署需配置 Nginx 的 `/api/` 转发和 SPA 路由回退，Vite 开发代理不会进入 dist。宝塔配置示例见 [deploy/baota-nginx.conf](deploy/baota-nginx.conf)。
+《光年之外》已作为地图卡收藏内容加入，太空地图与星球车尚未开放。部分装饰仍复用通用意象模型，猜歌曲库目前为 3 题按日期轮换。
 
-本次使用根目录 `.venv` 安装依赖。启动后端：`.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000`；前端在 `songspace-web` 执行 `npm run dev -- --host 127.0.0.1 --port 5173`。
+账号 ID 是恢复存档的凭据，相当于密码，请妥善保存。断网时保留本机进度并等待重试；同步冲突会提示处理。当前经济、抽卡和闯关由客户端计算，尚未提供服务端结算、反作弊或多人排行榜。
+
+歌曲封面、歌词摘句与音频的来源记录保存在 `songspace-web/public/catalog/`，素材归相应权利人所有。
+
+生产构建存在 Three.js 包体提示；低性能设备和真实移动设备性能仍待验证。

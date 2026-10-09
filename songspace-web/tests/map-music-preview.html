@@ -1,0 +1,12 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌境 · 地图音乐校验</title><style>body{padding:32px;background:#f5f8f6;font:14px system-ui;color:#40574c}button{margin:6px;padding:12px;border:1px solid #d8e3db;border-radius:8px;background:#fff;color:inherit}.stage{position:relative;height:240px;border:1px solid #d8e3db;border-radius:14px;margin-top:20px;background:linear-gradient(135deg,#edf5ee,#d7e9e4)}</style></head><body><div id="app"></div><script type="module">
+import {createApp,h,ref} from 'vue'
+import MapMusic from '/src/components/MapMusic.vue'
+createApp({setup(){const world=ref('forest'),active=ref(false),paused=ref(false),player=ref();return()=>h('main',[
+h('h1','地图音乐校验'),
+...Object.entries({forest:'挪威的森林',sea:'大海',jiangnan:'江南'}).map(([id,title])=>h('button',{onClick:()=>{active.value=false;world.value=id;paused.value=false}},title)),
+h('button',{onClick:()=>{active.value=true;paused.value=false;player.value?.play()}},'开始闯关音乐'),
+h('button',{onClick:()=>paused.value=!paused.value},paused.value?'继续':'暂停'),
+h('button',{onClick:()=>active.value=false},'结束'),
+h('div',{class:'stage'},[h(MapMusic,{ref:player,world:world.value,active:active.value,paused:paused.value})])
+])}}).mount('#app')
+</script></body></html>
