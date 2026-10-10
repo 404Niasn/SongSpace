@@ -18,7 +18,7 @@ assert.equal(game.notes,balance)
 game.packs.five=1
 const five=openPack('five')
 assert.equal(five.length,5)
-assert.ok(five.some(c=>c.rarity==='gold'||c.rarity==='rainbow'))
+assert.ok(five.some(c=>c.kind==='item' && c.rarity==='gold'))
 assert.equal(game.packs.five,0)
 assert.deepEqual(openPack('five'),[])
 assert.equal(Object.values(game.owned).reduce((a,b)=>a+b,0),5)
@@ -66,3 +66,23 @@ try {
   assert.equal(openPack('single')[0].kind, 'map')
 } finally { crypto.getRandomValues = randomValues }
 console.log('PASS: ordinary song packs include map cards')
+
+// Even four rainbow maps must not satisfy the five-box gold guarantee.
+const originalPool = catalog.songs
+const map = originalPool.find(s => s.title === '富士山下')
+const item = originalPool.find(s => s.title === '心墙')
+catalog.songs = [map, item]
+const originalCrypto = globalThis.crypto
+Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { getRandomValues: array => { array.fill(0); return array } } })
+try {
+  game.packs.five = 1; game.pity = 0
+  const result = openPack('five')
+  assert.ok(result.slice(0, 4).every(c => c.kind === 'map'))
+  assert.equal(result[4].kind, 'item')
+  assert.equal(result[4].rarity, 'gold')
+  assert.equal(game.packs.five, 0)
+} finally {
+  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: originalCrypto })
+  catalog.songs = originalPool
+}
+console.log('PASS: rainbow maps cannot replace the five-box guaranteed gold item')

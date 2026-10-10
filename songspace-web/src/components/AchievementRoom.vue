@@ -29,7 +29,7 @@ function claim(id: string, reward: string) {
         <h1>成就</h1>
         <p>达成成就，领取卡包。</p>
       </div>
-      <button class="outline-btn" @click="emit('packs')">去开歌曲包 ↗</button>
+      <button class="outline-btn" @click="emit('packs')">去开歌曲包</button>
     </div>
     <div class="achievement-summary">
       <AchievementBadge icon="trophy" />

@@ -121,7 +121,7 @@ onBeforeUnmount(() => abort.abort())
           <img :src="cover(song)" :alt="`${song.album} 专辑封面`" loading="lazy" /><span
             class="song-rank"
             >{{ song.rank ? String(song.rank).padStart(2, '0') : '特选' }}</span
-          ><span class="cover-open">查看歌曲 ↗</span>
+          ><span class="cover-open">查看歌曲</span>
         </div>
         <h2 :title="song.title">{{ song.title }}</h2>
         <p :title="artists(song)">{{ artists(song) }}</p>
@@ -150,7 +150,7 @@ onBeforeUnmount(() => abort.abort())
             :href="selected.song_url"
             target="_blank"
             rel="noopener noreferrer"
-            >去 QQ 音乐听 <span>↗</span></a
+            >去 QQ 音乐听 </a
           >
         </div></template
       >

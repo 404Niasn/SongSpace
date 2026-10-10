@@ -1,37 +1,11 @@
-/* SongSpace's physical record collection: shared card stock and opening table. */
-.song-card-print.song-card-print.song-card-print.song-card-print,
-.single-card .song-card-print.song-card-print.song-card-print.song-card-print,
-.revealed-grid .song-card-print.song-card-print.song-card-print.song-card-print {
-  --ink:#2c4139; --edge:#bbc6c1; --paper:#f5f6f2;
-  color:var(--ink); border:3px solid var(--edge); border-radius:9px;
-  background:repeating-linear-gradient(0deg,#344b3904 0 1px,transparent 1px 3px),linear-gradient(125deg,#fff,#eff1eb);
-  box-shadow:inset 0 0 0 1px #fff,1px 2px 0 #c7cec7,2px 4px 0 #d5dbd4,0 12px 22px -12px #25463855;
-}
-.song-card-print.song-card-print.song-card-print.song-card-print.gold { --edge:#c9ad68; background:linear-gradient(120deg,#fffdf6,#f5f3e9); }
-.song-card-print.song-card-print.song-card-print.song-card-print.rainbow { --edge:#b9c6d4; background:linear-gradient(130deg,#fff,#f0f4f1); }
-.song-card-print.song-card-print.song-card-print.song-card-print.outfit { --edge:#6c9bc3; background:linear-gradient(130deg,#fff,#edf3f8); }
-.song-card-print.song-card-print.song-card-print.song-card-print.vehicle { --edge:#a88abd; background:linear-gradient(130deg,#fff,#f2eef7); }
-.song-card-print.song-card-print.song-card-print.song-card-print::after { animation:none; background:none; opacity:0; }
-.song-card-print.song-card-print.song-card-print.song-card-print::before { border-color:#9fab9d35; box-shadow:none; }
-.song-card-print .print-art { border-color:#b9c4bc; box-shadow:0 2px 5px #233d3620; }
-.song-card-print .print-art::after { background:linear-gradient(115deg,transparent 18%,#ffffff32 34%,transparent 49%,#ffffff08 78%); }
-.song-card-print.gold .print-title h3 { background:linear-gradient(110deg,#765925,#b49a54 40%,#675020 58%,#c2a46c); background-clip:text; -webkit-text-fill-color:transparent; }
-.song-card-print.rainbow .print-art::after { animation:record-foil 6s ease-in-out infinite; background:linear-gradient(115deg,transparent 18%,#82d9b440 33%,#bba1dd44 40%,#fff8 45%,#e8c39644 50%,transparent 65%); background-size:230% 100%; mix-blend-mode:soft-light; }
-.song-card-print .print-title small { color:#748179; letter-spacing:1px; }
-.song-card-print.outfit .print-title small { color:#47749e; }
-.song-card-print.vehicle .print-title small { color:#805b9d; }
-.song-card-print .print-footer { border-color:#cbd4ca; color:#637569; }
-.song-card-print .print-art>span { color:#344d40; background:#f4f6efe8; }
-.song-card-print .card-prose { color:#647469; }
-.card-aura .aura-bloom { animation:none; background:none; box-shadow:none; }
-.card-aura>i { display:none; }
+/* Record-box presentation. Card fronts retain their existing shared design. */
 .pack-visual { background:radial-gradient(ellipse at 50% 70%,#e1e9dd,#f6f8f3 70%); }
-.record-room.record-room { --opening-card-width:250px; --opening-card-height:375px; background:radial-gradient(ellipse at 50% 45%,#fff 0%,#eef2eb 74%); color:#294638; padding:70px 24px 28px; justify-content:flex-start; gap:0; overflow-y:auto; }
+.record-room.record-room { background:#fff; color:#294638; padding:70px 24px 28px; justify-content:flex-start; gap:0; overflow-y:auto; }
 .record-heading { text-align:center; z-index:2; flex-shrink:0; }
 .record-heading>span { font-size:10px; letter-spacing:3px; color:#829286; }
 .record-room .record-heading h2 { font-size:26px; font-weight:500; letter-spacing:1px; margin:12px 0 9px; color:#2c493d; }
 .record-heading p { font-size:12px; color:#7c8c7e; margin:0; }
-.record-stage { position:relative; width:min(540px,100%); height:450px; flex-shrink:0; isolation:isolate; }
+.record-stage { position:relative; width:min(540px,100%); height:calc(var(--opening-card-height) + 55px); flex-shrink:0; isolation:isolate; }
 .record-stage::after { content:''; position:absolute; bottom:25px; left:12%; right:12%; height:18px; background:#526c4720; border-radius:50%; filter:blur(16px); z-index:-1; }
 .record-box { position:absolute; width:100%; height:100%; inset:0; transform-origin:50% 65%; }
 .record-box.box-resting { transform:translate(95px,120px) rotate(7deg) scale(.68); }
@@ -70,10 +44,96 @@
 .collection-change button { font-size:11px; border:0; border-bottom:1px solid #afc1ad; padding:0 0 4px; color:#426948; background:none; }
 .record-room .opening-actions { margin-top:8px; flex-wrap:wrap; padding-bottom:24px; }
 @keyframes record-foil { 0%,100%{background-position:150% 0}50%{background-position:-50% 0} }
-@media(max-width:600px) { .record-room.record-room { padding:75px 16px 22px; --opening-card-width:230px; --opening-card-height:345px; }.record-stage { height:405px; }.record-room .record-heading h2 { font-size:22px; }.record-heading>span { font-size:8px; letter-spacing:2px; }.record-room .record-results { gap:26px; }.record-room .record-results>.record-result { flex-basis:250px; width:250px; }.record-room .record-result>.song-card-print { height:375px; }.record-box.box-resting { transform:translate(55px,100px) rotate(7deg) scale(.6); }.record-room .opening-skip { padding:8px; }.record-controls p { font-size:11px; } }
-@media(max-height:720px) and (min-width:601px) { .record-room.record-room { padding-top:58px; --opening-card-width:220px; --opening-card-height:330px; }.record-stage { height:375px; }.record-room .record-heading h2 { font-size:21px; margin:8px 0; }.record-room .record-controls { margin-top:0; } }
+@media(max-width:600px) { .record-room.record-room { padding:75px 16px 22px;  }.record-room .record-heading h2 { font-size:22px; }.record-heading>span { font-size:8px; letter-spacing:2px; }.record-room .record-results { gap:26px; }.record-room .record-results>.record-result { flex-basis:250px; width:250px; }.record-room .record-result>.song-card-print { height:375px; }.record-box.box-resting { transform:translate(55px,100px) rotate(7deg) scale(.6); }.record-room .opening-skip { padding:8px; }.record-controls p { font-size:11px; } }
+@media(max-height:720px) and (min-width:601px) { .record-room.record-room { padding-top:58px;  }.record-room .record-heading h2 { font-size:21px; margin:8px 0; }.record-room .record-controls { margin-top:0; } }
 @media(prefers-reduced-motion:reduce) { .song-card-print.rainbow .print-art::after { animation:none; background-position:50% 0; } }
 
 .record-room .record-results>.record-result { display:flex; flex-direction:column; gap:0; }
 .record-room .opening-close { left:auto; }
 .packs-page .shop-title { display:flex; gap:16px; flex-wrap:wrap; }
+
+/* Collection color classification only: preserve all original dimensions and type. */
+.song-card-print.outfit { border-color:#719bc9; }
+.song-card-print.outfit::after { background:linear-gradient(110deg,transparent 38%,#93c5ed77 44%,#e0f1ff 50%,transparent 62%); }
+.record-room .record-box.box-resting { transform:none; }
+
+.record-room .card-handoff { position:absolute; left:calc(50% - var(--opening-card-width)/2); top:28px; width:var(--opening-card-width); height:var(--opening-card-height); pointer-events:none; visibility:hidden; }
+/* Show the complete printed excerpt, not a clipped line or an ellipsis. */
+.record-room:not(.is-summary) .card-prose { display:block; -webkit-line-clamp:unset; max-height:none; overflow:visible; flex:0 0 auto; }
+.record-room:not(.is-summary) .print-title h3,.record-room:not(.is-summary) .print-title p { white-space:normal; overflow:visible; text-overflow:clip; -webkit-line-clamp:unset; }
+.record-room .single-card .print-title { flex:0 0 auto; }
+.record-room .single-card .print-art { flex-shrink:1; min-height:0; }
+.record-room .single-card .print-art img { object-fit:contain; }
+.record-room .record-result>.song-card-print { height:auto; min-height:340px; }
+
+/* Opening UI keeps only the card, progress and a clear next action. */
+.record-room .record-heading { min-height:38px; text-align:center; }
+.record-room .record-heading h2 { font-size:26px; color:#214633; }
+.record-room .record-heading .track-progress { margin:8px 0; font-size:18px; font-weight:700; color:#214633; letter-spacing:2px; }
+.record-room .record-controls { margin-top:16px; }
+.record-room .record-controls button,.record-room .opening-actions button { font-size:16px; }
+.record-room .opening-skip { font-size:14px; color:#214633; }
+.record-room .collection-change { text-align:center; }
+.record-room .collection-change strong { display:block; font-size:16px; color:#214633; line-height:1.5; }
+.record-room .collection-change button { margin-top:12px; font-size:16px; color:#214633; }
+.record-room .record-results { gap:32px; margin:30px auto; }
+.record-room .single-card .card-prose { font-size:13px; line-height:1.6; padding:8px; color:#2f4939; }
+.record-room .single-card .print-title>p~p { display:block; }
+.record-room .single-card .print-title h3 { font-size:20px; }
+.record-room .single-card .print-title p { font-size:14px; color:#355441; }
+.record-room:not(.is-summary) .print-title small { font-size:12px; color:#355441; opacity:1; }
+.record-room:not(.is-summary) .print-title p { color:#355441; opacity:1; }
+.record-room:not(.is-summary) .print-footer { font-size:12px; color:#355441; }
+.record-room .record-result .print-title h3 { font-size:18px; }
+.record-room .record-result .print-title p { font-size:14px; }
+.record-room .record-result .card-prose { font-size:13px; line-height:1.6; color:#2f4939; }
+.record-room .record-controls .spectrum-btn,.record-room .opening-actions .spectrum-btn { background:#365b47; color:#fff; }
+.record-room .record-back { background:linear-gradient(120deg,#ffffff14,transparent 35%,#bdcca30d 60%,transparent),linear-gradient(155deg,#244b43,#112f2b 70%,#294c42); }
+.record-room .record-back .vinyl-label { background:repeating-radial-gradient(circle,#182c29 0 2px,#30413a 3px,#152c27 4px 6px),conic-gradient(from 35deg,#ffffff20,transparent 20%,#ffffff15 28%,transparent 50%,#ffffff20 72%,transparent); background-blend-mode:soft-light; }
+
+/* Give the music-only fronts a balanced cover/text rhythm. */
+.record-room .single-card .song-card-print,.record-room .record-result .song-card-print { padding:16px; }
+.record-room .single-card .print-art { width:94%; margin:0 auto; }
+.record-room .record-result .print-art { width:100%; margin:0 auto; }
+.record-room .single-card .print-title,.record-room .record-result .print-title { padding:16px 0 0; gap:6px; }
+.record-room .single-card .card-prose,.record-room .record-result .card-prose { margin-top:14px; padding:12px 0 0; line-height:1.7; }
+.record-room .record-result>.song-card-print { min-height:340px; }
+
+/* Every step shares the same card baseline and action row. */
+.record-room.is-summary { padding-top:70px; }
+.record-room .record-heading { display:flex; align-items:center; justify-content:center; height:38px; min-height:38px; }
+.record-room .record-heading h2,.record-room .record-heading .track-progress { margin:0; }
+.record-room .record-stage.results-stage { width:100%; }
+.record-room .record-results { position:absolute; top:28px; left:0; width:100%; height:var(--opening-card-height); margin:0; gap:24px; padding:0 4px; flex-wrap:nowrap; justify-content:safe center; overflow-x:auto; overflow-y:hidden; }
+.record-room .record-results>.record-result { height:var(--opening-card-height); flex:0 0 205px; width:205px; max-width:none; }
+.record-room .record-result>.song-card-print { height:100%; min-height:0; aspect-ratio:auto; }
+.record-room .record-controls { width:100%; min-height:48px; flex-direction:row; justify-content:center; gap:12px; margin-top:16px; flex-shrink:0; }
+.record-room .record-controls button { min-height:48px; }
+.record-room.is-summary .record-controls>button { position:static; width:140px; min-width:0; height:48px; padding:12px 16px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; }
+.record-room .record-box { will-change:opacity; }
+.record-room .single-card { will-change:transform,opacity; }
+@media(max-height:720px) and (min-width:601px) { .record-room.is-summary { padding-top:58px; } }
+@media(max-width:600px) { .record-room.is-summary { padding-top:75px; }.record-room .record-results>.record-result { flex-basis:250px; width:250px; } }
+@media(max-width:360px) { .record-room.is-summary .record-controls>button { width:136px; } }
+
+/* Summary uses the collection component at its natural 2:3 ratio. */
+.record-room .record-results>.result-entry { flex:0 0 205px; width:205px; height:auto; padding:0; border:0; background:none; box-shadow:none; text-align:left; }
+.record-room .result-entry>.song-card-print { width:100%; height:auto; aspect-ratio:2/3; min-height:0; }
+/* Put rarity foil on the back itself, so the front does not bleed through. */
+.record-room .record-back { --back-rim:linear-gradient(125deg,#91a9b4,#f4fbff 30%,#b4ccd7 55%,#fff 76%,#819ca9); --rim-glow:#a5cad95c; border:6px solid transparent; background:linear-gradient(155deg,#244b43,#112f2b 70%,#294c42) padding-box,var(--back-rim) border-box; box-shadow:inset 0 0 0 1px #ecf4e56b,0 0 0 1px #fff9,0 0 16px var(--rim-glow),0 12px 22px -10px #24473245; }
+.record-room .record-back.gold { --rim-glow:#e7bf6170; --back-rim:linear-gradient(125deg,#c69a37,#fff0a5 28%,#d8ac48 55%,#fff5bd 78%,#b4872f); }
+.record-room .record-back.rainbow { --rim-glow:#c6a4ef80; --back-rim:linear-gradient(130deg,#8de6dc,#b8b4f0 27%,#f5b7d4 50%,#ffdda0 72%,#92d8f1); }
+.record-room .record-back.vehicle { --rim-glow:#b98ee078; --back-rim:linear-gradient(130deg,#a483d2,#eadbff 50%,#b49ada); }
+.record-room .record-back.outfit { --rim-glow:#84bdeb78; --back-rim:linear-gradient(130deg,#729bc9,#e0f1ff 50%,#8bb9dc); }
+.record-room .record-back::after { content:''; position:absolute; inset:-6px; padding:6px; border-radius:9px; pointer-events:none; background:linear-gradient(110deg,transparent 30%,#fff9 48%,#fff 51%,transparent 66%); background-size:300% 100%; animation:rim-light-stream 4s linear infinite; mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0); mask-composite:exclude; }
+@media(prefers-reduced-motion:reduce) { .record-room .record-back::after { animation:none; background-position:50% 0; } }
+
+/* Engraved record, readable imprint, and a quiet inset frame. */
+.record-room .record-back { padding:28px 18px 25px; background:linear-gradient(155deg,#2d5549,#153b30 70%,#204637) padding-box,var(--back-rim) border-box; }
+.record-room .record-back::before { content:''; position:absolute; inset:9px; border:1px solid #dce9cb35; border-radius:3px; pointer-events:none; }
+.record-room .record-back>small { font-size:15px; font-weight:650; letter-spacing:4px; color:#eef3df; opacity:1; text-shadow:0 1px 1px #0d281c; }
+.record-room .record-back>b { font-size:15px; font-weight:500; letter-spacing:2px; color:#eef3df; }
+.record-room .record-back>span { font-size:11px; color:#cfddbd; letter-spacing:3px; }
+.record-room .record-back .vinyl-label { position:relative; width:78%; max-width:200px; border:1px solid #abbf9366; background:conic-gradient(from 35deg,#091d19,#496454 12%,#112b23 26%,#091d19 45%,#425f4d 62%,#102820 80%,#091d19); box-shadow:0 6px 14px #061a1555,inset 0 0 0 5px #102c22,inset 0 0 0 6px #78917055; }
+.record-room .record-back .vinyl-label::before { content:''; position:absolute; inset:10px; border-radius:50%; background:repeating-radial-gradient(circle,transparent 0 3px,#cee0bc26 3px 4px,transparent 4px 6px); pointer-events:none; }
+.record-room .record-back .vinyl-label>span { position:relative; width:58px; height:58px; border:1px solid #f6f2d3; background:radial-gradient(circle at 35% 25%,#fff8dc,#dddbb8 70%); color:#294d3b; font-size:20px; font-weight:700; letter-spacing:1px; box-shadow:0 0 0 5px #0b211b,0 0 0 6px #aabc8f66; }

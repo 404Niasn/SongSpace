@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { PhHouse, PhCompass, PhCards, PhVinylRecord, PhHeadphones, PhTrophy, PhCube, PhMusicNotes, PhUserCircle, PhCloudSlash, PhX, PhEye, PhEyeSlash, PhCopy, PhCheck, PhSignOut, PhArrowRight, PhQuestion, PhGameController } from '@phosphor-icons/vue'
+import { PhHouse, PhCompass, PhCards, PhVinylRecord, PhHeadphones, PhTrophy, PhCube, PhMusicNotes, PhUserCircle, PhCloudSlash, PhX, PhEye, PhEyeSlash, PhCopy, PhCheck, PhSignOut, PhQuestion, PhGameController } from '@phosphor-icons/vue'
 import { connectSave, cloud, identity, logoutGame, retrySave, needsWelcome, dismissWelcome } from '@/game/cloud'
 import WorldCanvas from '@/components/WorldCanvas.vue'
 import WeatherPicker from '@/components/WeatherPicker.vue'
@@ -360,7 +360,7 @@ onBeforeUnmount(() => clearTimeout(timer))
               <VehiclePreview :model="vehicle?.song.vehicle_model" :name="vehicle?.song.vehicle_name || '初始单车'" :framing="1.12" />
             </div>
             <div class="vehicle-picker-wrap"><VehiclePicker :model-value="vehicle?.id || ''" :songs="ownedVehicles" @update:model-value="selectVehicle" /></div>
-            <div v-if="!ownedVehicles.length" class="vehicle-hint"><span>开载具卡，获得更多载具</span><button @click="navigate('packs')">去开卡<PhArrowRight :size="13" /></button></div>
+            <div v-if="!ownedVehicles.length" class="vehicle-hint"><span>开载具卡，获得更多载具</span><button @click="navigate('packs')">去开卡<PhCards :size="16" weight="duotone" /></button></div>
           </section>
           </div>
           <div class="race-prepare">
@@ -374,10 +374,10 @@ onBeforeUnmount(() => clearTimeout(timer))
                 <p>每 100 装饰值增加 10% 积分，装饰加成最高 +50%；已穿戴装扮额外 +{{ Math.round(outfitScoreBonus * 100) }}%。</p>
                 <div class="score-bonus-progress"><progress :value="Math.min(currentValue, 500)" max="500" /><span>{{ currentValue }} / 500 装饰值</span></div>
                 <small>结算积分 = 基础积分 × 倍率 · 每 40 积分兑换 1 音符</small>
-                <div class="prepare-bonus"><button class="text-button" @click="navigate('world')">{{ weatherSongId ? imageryFor(activeWeatherSong(world)!.title).name + ' · 调整歌境 ↗' : '去布置歌境，提升倍率 ↗' }}</button><button v-if="game.equippedTheme && weather === 'clear'" class="text-button" @click="evening = !evening; reset()">{{ evening ? '星空夜景' : '白昼' }} ↗</button><button class="text-button" @click="navigate('warehouse')">人物装扮 ↗</button></div>
+                <div class="prepare-bonus"><button class="text-button" @click="navigate('world')">{{ weatherSongId ? imageryFor(activeWeatherSong(world)!.title).name + ' · 调整歌境' : '去布置歌境，提升倍率' }}</button><button v-if="game.equippedTheme && weather === 'clear'" class="text-button" @click="evening = !evening; reset()">{{ evening ? '星空夜景' : '白昼' }}</button><button class="text-button" @click="navigate('warehouse')">人物装扮</button></div>
               </div>
               <button class="lime-btn start-race" :disabled="!ready || !!raceError" @click="start">
-                <span><b>{{ raceError ? '地图加载失败' : ready ? '进入地图' : '正在准备地图…' }}</b></span><span class="start-arrow"><PhArrowRight :size="22" weight="bold" /></span>
+                <span><b>{{ raceError ? '地图加载失败' : ready ? '进入地图' : '正在准备地图…' }}</b></span><span class="start-arrow"><PhGameController :size="24" weight="duotone" /></span>
               </button>
             </div>
           </div>
@@ -450,7 +450,7 @@ onBeforeUnmount(() => clearTimeout(timer))
             </div>
             <div v-if="state.paused" class="pause-overlay">
               <h2>已暂停</h2>
-              <button class="lime-btn" @click="race?.pause()">继续探索 →</button
+              <button class="lime-btn" @click="race?.pause()">继续探索</button
               ><button class="outline-btn" @click="race?.finish()">结算本局</button>
             </div></template
           >
@@ -486,7 +486,7 @@ onBeforeUnmount(() => clearTimeout(timer))
           <h1>把喜欢的歌，放进世界。</h1>
           <p>选择歌曲地图，摆放你收集到的意象。</p>
         </div>
-        <button class="outline-btn" @click="backToRace">去这个世界闯关 ↗</button>
+        <button class="outline-btn" @click="backToRace">去这个世界闯关</button>
       </div>
       <div class="mini-toolbar">
         <select :value="world" @change="selectMap(($event.target as HTMLSelectElement).value as WorldId)" aria-label="选择微缩地图">
@@ -529,7 +529,7 @@ onBeforeUnmount(() => clearTimeout(timer))
           <h1>每一程，都算数。</h1>
           <p>最高分 {{ game.best.toLocaleString() }} · 已完成 {{ game.runs }} 次闯关</p>
         </div>
-        <button class="lime-btn" @click="backToRace">开始新一局 →</button>
+        <button class="lime-btn" @click="backToRace">开始新一局</button>
       </div>
       <div class="record-table">
         <div class="record-row record-head">
@@ -554,7 +554,7 @@ onBeforeUnmount(() => clearTimeout(timer))
         <p v-if="accountNotice" class="account-notice" role="status">{{ accountNotice }}</p>
         <div class="welcome-gifts"><h3>欢迎礼包已到账</h3><p>500 音符 · 歌曲单抽包 ×3 · 歌曲三连包 ×1 · 载具歌单包 ×1</p><p>进入「卡包」，选择有库存的卡包，点击开启，再逐张翻开卡片。</p></div>
       </div>
-      <footer class="account-footer"><button @click="finishWelcome()">已保存，进入大厅</button><button class="account-copy" @click="finishWelcome(true)">已保存，去开卡<PhArrowRight :size="17" /></button></footer>
+      <footer class="account-footer"><button @click="finishWelcome()">已保存，进入大厅</button><button class="account-copy" @click="finishWelcome(true)">已保存，去开卡<PhCards :size="18" weight="duotone" /></button></footer>
     </dialog>
     <dialog ref="nickname" class="account-dialog" aria-labelledby="account-title" @close="showGameId = false">
       <header class="account-heading">

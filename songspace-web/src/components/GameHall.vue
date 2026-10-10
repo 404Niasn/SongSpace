@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { coverPath } from '@/game/coverAssets'
 import { computed } from 'vue'
-import { PhArrowUpRight, PhCompass, PhCards, PhCube, PhHeadphones, PhTrophy, PhArrowRight, PhCheck, PhVinylRecord } from '@phosphor-icons/vue'
+import { PhCompass, PhCards, PhCube, PhHeadphones, PhTrophy, PhCheck, PhVinylRecord } from '@phosphor-icons/vue'
 import { cloud } from '@/game/cloud'
 import PackModel from './PackModel.vue'
 import { game, catalog, ownedCount, claimDaily, dailySignDay, today, claimableAchievements } from '@/game/save'
@@ -28,7 +28,7 @@ function sign() {
           <span class="build-line build-ai"><span class="build-word">Build</span><span class="build-with">with</span><span class="build-medium">AI</span></span>
           <span class="build-line build-music"><span class="build-word">Build</span><span class="build-with">with</span><span class="build-medium">Music</span></span>
         </h2>
-        <button class="spectrum-btn" @click="emit('enter', 'race')">进入探索<PhArrowUpRight :size="20" weight="duotone" /></button>
+        <button class="spectrum-btn" @click="emit('enter', 'race')">进入探索<PhCompass :size="20" weight="duotone" /></button>
       </div>
     </section>
     <aside class="hall-daily-panel">
@@ -39,16 +39,16 @@ function sign() {
       </div>
       <ol class="sign-week" aria-label="连续七天签到进度" title="每天领取单抽包；第 5 天加送三连包，第 7 天加送五连包。断签后重新开始。"><li v-for="day in 7" :key="day" :class="{ complete: day <= completedDays, current: day === signDay, bonus: day === 5 || day === 7 }" :aria-label="`第 ${day} 天${day <= completedDays ? '已签到' : day === signDay ? '待签到' : ''}${day === 5 ? '，加送三连包' : day === 7 ? '，加送五连包' : ''}`"><span><PhCheck v-if="day <= completedDays" :size="14" weight="bold" /><template v-else>{{ day }}</template></span></li></ol>
       <div class="sign-milestones"><span>签到 5 天，加送三连包 ×1</span><span>签到 7 天，加送五连包 ×1</span></div>
-      <button class="spectrum-btn sign-button" :disabled="signed" @click="sign">{{ signed ? '今日已签到' : '签到 · 领取单抽包' }}<PhCheck v-if="signed" :size="18" weight="duotone" /><PhArrowRight v-else :size="18" weight="duotone" /></button>
-      <button class="hall-task-link" @click="emit('enter', 'daily')"><PhHeadphones :size="24" weight="duotone" /><span><b>每日猜歌</b><small>{{ guessed ? '已完成' : '首猜命中 · 五连包' }}</small></span><PhArrowUpRight :size="18" weight="duotone" /></button>
-      <button class="hall-task-link" @click="emit('enter', 'achievements')"><PhTrophy :size="24" weight="duotone" /><span><b>成就</b><small>{{ claimableAchievements ? claimableAchievements + ' 份奖励待领' : '查看进度' }}</small></span><PhArrowUpRight :size="18" weight="duotone" /></button>
+      <button class="spectrum-btn sign-button" :disabled="signed" @click="sign">{{ signed ? '今日已签到' : '签到 · 领取单抽包' }}<PhCheck v-if="signed" :size="18" weight="duotone" /><PhCards v-else :size="18" weight="duotone" /></button>
+      <button class="hall-task-link" @click="emit('enter', 'daily')"><PhHeadphones :size="24" weight="duotone" /><span><b>每日猜歌</b><small>{{ guessed ? '已完成' : '首猜命中 · 五连包' }}</small></span></button>
+      <button class="hall-task-link" @click="emit('enter', 'achievements')"><PhTrophy :size="24" weight="duotone" /><span><b>成就</b><small>{{ claimableAchievements ? claimableAchievements + ' 份奖励待领' : '查看进度' }}</small></span></button>
     </aside>
   </div>
   <div class="hall-collection-row">
-    <button class="hall-pack-panel" @click="emit('enter', 'packs')"><div class="hall-pack-info"><PhCards :size="27" weight="duotone" /><h2>卡包</h2><span>{{ pending ? pending + ' 包待拆' : '选择你的下一包' }}</span><b>进入商店<PhArrowUpRight :size="18" weight="duotone" /></b></div><div class="hall-pack-object"><PackModel title="歌曲三连包" :count="3" tone="mint" preview /></div></button>
-    <button class="hall-library-panel" @click="emit('enter', 'warehouse')"><div class="hall-library-heading"><PhVinylRecord :size="25" weight="duotone" /><h2>收藏</h2><span>{{ ownedCount }}<small> / {{ catalog.songs.length || 100 }}</small></span><PhArrowUpRight :size="18" weight="duotone" /></div><div class="hall-albums"><div v-for="s in covers" :key="s.id"><img :src="coverPath(s.cover_path)" :alt="s.title" :class="{locked: !game.owned[s.id]}"/><span>{{ s.title }}</span></div></div></button>
+    <button class="hall-pack-panel" @click="emit('enter', 'packs')"><div class="hall-pack-info"><PhCards :size="27" weight="duotone" /><h2>卡包</h2><span>{{ pending ? pending + ' 包待拆' : '选择你的下一包' }}</span><b>进入商店</b></div><div class="hall-pack-object"><PackModel title="歌曲三连包" :count="3" tone="mint" preview /></div></button>
+    <button class="hall-library-panel" @click="emit('enter', 'warehouse')"><div class="hall-library-heading"><PhVinylRecord :size="25" weight="duotone" /><h2>收藏</h2><span>{{ ownedCount }}<small> / {{ catalog.songs.length || 100 }}</small></span></div><div class="hall-albums"><div v-for="s in covers" :key="s.id"><img :src="coverPath(s.cover_path)" :alt="s.title" :class="{locked: !game.owned[s.id]}"/><span>{{ s.title }}</span></div></div></button>
   </div>
-  <div class="hall-footer-links"><button @click="emit('enter', 'world')"><PhCube :size="21" weight="duotone" />微缩世界<PhArrowUpRight :size="15" weight="duotone" /></button><button @click="emit('enter', 'records')"><PhCompass :size="21" weight="duotone" />探索记录<PhArrowUpRight :size="15" weight="duotone" /></button><span>最高分 <b>{{ game.best.toLocaleString() }}</b></span><span class="hall-sync" :class="cloud.status"><i />{{ cloud.status === 'synced' ? '存档已同步' : cloud.status === 'loading' ? '连接中' : cloud.status === 'pending' ? '正在保存' : '本机存档' }}</span></div>
+  <div class="hall-footer-links"><button @click="emit('enter', 'world')"><PhCube :size="21" weight="duotone" />微缩世界</button><button @click="emit('enter', 'records')"><PhCompass :size="21" weight="duotone" />探索记录</button><span>最高分 <b>{{ game.best.toLocaleString() }}</b></span><span class="hall-sync" :class="cloud.status"><i />{{ cloud.status === 'synced' ? '存档已同步' : cloud.status === 'loading' ? '连接中' : cloud.status === 'pending' ? '正在保存' : '本机存档' }}</span></div>
 </section>
 </template>
 <style scoped>

@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { gsap } from 'gsap'
 import PackModel from './PackModel.vue'
 import SongCard from './SongCard.vue'
-import { collectionChange } from '@/game/collectionChange'
+
 import '@/assets/record-room.css'
 import {
   game,
@@ -18,11 +18,17 @@ import {
   type GameCard,
 } from '@/game/save'
 const emit = defineEmits<{ warehouse: []; daily: []; message: [string]; use: [GameCard] }>()
-const beforeCounts = ref<Record<string, number>>({})
+
 const resultCards = computed(() => [...new Map(cards.value.map(c => [c.id, c])).values()])
-const resultChange = (card: GameCard) => collectionChange(card, beforeCounts.value[card.id] || 0)
+
 const boxTitle = (title: string) => title.replace('包', '盒')
-function useCard(card: GameCard) { close(); emit('use', card) }
+const boxDescription: Record<string, string> = {
+  single: '一首歌曲，开启一份新的音乐收藏。',
+  triple: '三首歌曲，把喜欢的旋律带回收藏。',
+  five: '每日猜歌或奖励获取，必出金卡。',
+  vehicle: '收藏一辆音乐载具，驶向下一段旅程。',
+}
+
 function again() { const id = active.value; close(); if (id) void choose(id) }
 const active = ref<string | null>(null),
   cards = ref<GameCard[]>([]),
@@ -37,7 +43,7 @@ const active = ref<string | null>(null),
 const pack = computed(() => PACKS.find((p) => p.id === active.value))
 const visiblePacks = PACKS.filter(p => p.id !== 'theme')
 const pending = computed(() => Object.values(game.packs).reduce((a, b) => a + b, 0))
-const animationClocks = new Map<ReturnType<typeof setInterval>, gsap.core.Timeline>()
+const animationClocks = new Map<gsap.core.Timeline, number>()
 const distribution = computed(() => ({
   map: catalog.songs.filter((s) => kindFor(s) === 'map').length,
   item: catalog.songs.filter((s) => kindFor(s) === 'item').length,
@@ -45,26 +51,26 @@ const distribution = computed(() => ({
   outfit: catalog.songs.filter((s) => kindFor(s) === 'outfit').length,
   decoration: catalog.songs.filter((s) => kindFor(s) === 'decoration').length,
 }))
+let suppressPullClick = false
 let previousOverflow = ''
 function play(timeline: gsap.core.Timeline, finish?: () => void) {
   timeline.pause()
   const began = performance.now()
   const duration = timeline.totalDuration()
-  const clock = setInterval(() => {
+  const tick = () => {
     const elapsed = (performance.now() - began) / 1000
     timeline.totalTime(Math.min(elapsed, duration), true)
     if (elapsed >= duration) {
-      clearInterval(clock)
-      animationClocks.delete(clock)
+      animationClocks.delete(timeline)
       timeline.totalTime(duration, true)
       finish?.()
-    }
-  }, 16)
-  animationClocks.set(clock, timeline)
+    } else animationClocks.set(timeline, requestAnimationFrame(tick))
+  }
+  animationClocks.set(timeline, requestAnimationFrame(tick))
 }
 function clearAnimations() {
-  animationClocks.forEach((timeline, clock) => {
-    clearInterval(clock)
+  animationClocks.forEach((clock, timeline) => {
+    cancelAnimationFrame(clock)
     timeline.kill()
   })
   animationClocks.clear()
@@ -93,8 +99,8 @@ async function choose(id: string) {
         .timeline({ paused: true })
         .fromTo(
           el,
-          { y: 50, rotation: -8, opacity: 0 },
-          { y: 0, rotation: 0, opacity: 1, duration: 0.65, ease: 'back.out(1.4)' },
+          { y: 28, rotation: -3, opacity: 0 },
+          { y: 0, rotation: 0, opacity: 1, duration: reducedMotion() ? .01 : .5, ease: 'power3.out' },
         ),
     )
 }
@@ -104,11 +110,13 @@ function purchase(id: string) {
 }
 function pointerDown(e: PointerEvent) {
   if (phase.value !== 'sealed') return
+  suppressPullClick = false
   drag.value = e.clientY
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
 }
 function pointerMove(e: PointerEvent) {
   if (drag.value === null) return
+  if (Math.abs(e.clientY - drag.value) > 5) suppressPullClick = true
   tear.value = Math.min(1, Math.max(0, (e.clientY - drag.value) / 100))
 }
 function pointerUp(e: PointerEvent) {
@@ -120,7 +128,7 @@ function pointerUp(e: PointerEvent) {
 }
 async function rip(skip = false) {
   if (busy.value || phase.value !== 'sealed' || !active.value) return
-  beforeCounts.value = { ...game.owned }
+
   const result = openPack(active.value)
   if (!result.length) {
     emit('message', '卡包无法开启，请重试。')
@@ -135,28 +143,24 @@ async function rip(skip = false) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
   const node = root.value!
   const timeline = gsap.timeline({ paused: true })
-    .to(node.querySelector('.drawer-pull'), { opacity: 0, duration: reduced ? .01 : .1 }, 0)
-    .to(openingProgress, { value: 1, duration: reduced ? .01 : .95, ease: 'power2.inOut' }, 0)
-    .to(node.querySelector('.record-box'), { y: 120, x: 95, scale: .68, rotation: 7, duration: reduced ? .01 : .8, ease: 'power2.inOut' }, reduced ? .01 : 1)
-    .fromTo(node.querySelector('.emerging-card'), { y: 130, scale: .48, rotationZ: -5, opacity: 0 },
-      { y: 0, scale: 1, rotationZ: 0, opacity: 1, duration: reduced ? .01 : .8, ease: 'power2.inOut' }, reduced ? .01 : 1)
+    .to(node.querySelector('.drawer-pull'), { opacity: 0, duration: reduced ? .01 : .12 }, 0)
+    .to(openingProgress, { value: 1, duration: reduced ? .01 : .85, ease: 'power2.inOut' }, 0)
+    .to(node.querySelector('.record-box'), { opacity: 0, duration: reduced ? .01 : .35, ease: 'power2.out' }, reduced ? .01 : .98)
 
   play(timeline, async () => {
     phase.value = 'cards'
-    busy.value = false
     await nextTick()
-    reveal()
+    enterCard()
   })
 }
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
-function entrance(fromPack = false) {
-  const el = root.value?.querySelector('.single-card')
-  if (!el) return
-  busy.value = true
-  play(gsap.timeline({ paused: true }).fromTo(el,
-    { y: fromPack ? 0 : 130, rotationX: 0, rotationZ: fromPack ? 0 : -5, opacity: fromPack ? 1 : 0, scale: fromPack ? 1 : .48 },
-    { y: 0, rotationX: 0, rotationZ: 0, opacity: 1, scale: 1, duration: reducedMotion() ? .01 : .5, ease: 'power3.out' }),
-    () => { busy.value = false; reveal() })
+function enterCard() {
+  const shell = root.value?.querySelector('.single-card')
+  if (!shell) { busy.value = false; return }
+  play(gsap.timeline({ paused: true }).fromTo(shell,
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: reducedMotion() ? .01 : .3, ease: 'power2.out', clearProps: 'opacity,transform' }),
+    () => { busy.value = false })
 }
 function reveal() {
   if (busy.value || flipped.value || phase.value !== 'cards') return
@@ -166,8 +170,8 @@ function reveal() {
   busy.value = true
   const reduced = reducedMotion()
   const timeline = gsap.timeline({ paused: true })
-    .to(shell, { y: -14, scale: 1.035, duration: reduced ? .01 : .24, ease: 'power2.out' }, 0)
-    .to(el, { rotationY: 180, duration: reduced ? .01 : .85, ease: 'power2.inOut' }, 0)
+    .to(shell, { y: -6, scale: 1.015, duration: reduced ? .01 : .22, ease: 'power2.out' }, .12)
+    .to(el, { rotationY: 180, duration: reduced ? .01 : .7, ease: 'power2.inOut' }, 0)
     .to(shell, { y: 0, scale: 1, duration: reduced ? .01 : .48, ease: 'power3.out' }, reduced ? .01 : .45)
     .fromTo(el.querySelector('.card-shine'), { xPercent: -160, opacity: 0 },
       { xPercent: 160, opacity: .65, duration: reduced ? .01 : .6, ease: 'power2.out' }, reduced ? 0 : .5)
@@ -199,13 +203,11 @@ async function nextCard() {
   const el = root.value?.querySelector('.single-card')
   if (!el) { busy.value = false; return }
   play(gsap.timeline({ paused: true }).to(el,
-    { x: -80, y: 12, rotationZ: -8, scale: .94, opacity: 0, duration: reducedMotion() ? .01 : .28, ease: 'power2.in' }), async () => {
+    { x: -155, y: 35, rotationZ: -12, scale: .82, opacity: 0, duration: reducedMotion() ? .01 : .28, ease: 'power2.in' }), async () => {
     revealed.value++
     flipped.value = false
     await nextTick()
-    const next = root.value?.querySelector('.single-card')
-    if (next) gsap.set(next, { clearProps: 'all' })
-    entrance()
+    enterCard()
   })
 }
 async function showAll() {
@@ -214,12 +216,12 @@ async function showAll() {
   revealed.value = cards.value.length
   busy.value = true
   await nextTick()
-  const entries = root.value?.querySelectorAll('.revealed-grid > .reveal-card')
+  const entries = root.value?.querySelectorAll('.record-results > .reveal-card')
   if (!entries?.length) { busy.value = false; return }
   play(gsap.timeline({ paused: true }).fromTo(entries,
-    { y: 30, rotationY: -12, opacity: 0, scale: .97 },
-    { y: 0, rotationY: 0, opacity: 1, scale: 1, stagger: reducedMotion() ? 0 : .075,
-      duration: reducedMotion() ? .01 : .55, ease: 'power3.out', clearProps: 'all' }),
+    { opacity: 0 },
+    { opacity: 1, stagger: reducedMotion() ? 0 : .05,
+      duration: reducedMotion() ? .01 : .3, ease: 'power2.out', clearProps: 'opacity' }),
     () => { busy.value = false })
 }
 async function skipAll() {
@@ -252,7 +254,7 @@ onBeforeUnmount(() => {
         <h1>唱片收藏室<span class="heading-count">{{ pending }} 盒待开启</span></h1>
       </div>
       <button class="outline-btn" @click="emit('warehouse')">
-        我的仓库 {{ ownedCount }}/{{ catalog.songs.length }} ↗
+        我的仓库 {{ ownedCount }}/{{ catalog.songs.length }}
       </button>
     </div>
     <div class="pack-summary">
@@ -285,15 +287,15 @@ onBeforeUnmount(() => {
         </div>
         <div class="pack-product-copy">
           <h3>{{ boxTitle(p.title) }}</h3>
-
-          <span class="stock">{{ p.id==='five' ? '每日猜歌首猜奖励' : '库存 ' + (game.packs[p.id] || 0) + ' 盒' }}</span
+          <p class="pack-description">{{ boxDescription[p.id] }}</p>
+          <span class="stock">库存 {{ game.packs[p.id] || 0 }} 盒</span
           ><button
             class="lime-btn"
             :disabled="!game.packs[p.id] || !catalog.songs.length"
             @click="choose(p.id)"
           >
             打开唱片盒</button
-          ><button v-if="p.id!=='five'" class="buy-btn" @click="purchase(p.id)"><span>购买唱片盒</span><b>♪ {{ p.price }}</b></button><button v-else class="reward-pack-btn" @click="emit('daily')">猜歌赢五连包 ↗</button>
+          ><button v-if="p.id!=='five'" class="buy-btn" @click="purchase(p.id)"><span>购买唱片盒</span><b>♪ {{ p.price }}</b></button><button v-else class="reward-pack-btn" @click="emit('daily')">猜歌赢五连包</button>
         </div>
       </article>
     </div>
@@ -304,7 +306,7 @@ onBeforeUnmount(() => {
         歌曲包在 {{ catalog.songs.length }} 首歌曲中等概率抽取。卡片类型由歌曲固定分配：彩卡
         {{ distribution.map }} 首、金卡 {{ distribution.item }} 首、载具卡
         {{ distribution.vehicle }}
-        首、装扮卡 {{ distribution.outfit }} 首、装饰卡 {{ distribution.decoration }} 首。单抽基础概率：彩卡 {{ (distribution.map / Math.max(1, catalog.songs.length) * 100).toFixed(2) }}%、金卡 {{ (distribution.item / Math.max(1, catalog.songs.length) * 100).toFixed(2) }}%，保底触发时按保底规则结算。五连至少一张金卡或彩卡；歌曲包连续 20 抽未出金卡或彩卡，第 20
+        首、装扮卡 {{ distribution.outfit }} 首、装饰卡 {{ distribution.decoration }} 首。单抽基础概率：彩卡 {{ (distribution.map / Math.max(1, catalog.songs.length) * 100).toFixed(2) }}%、金卡 {{ (distribution.item / Math.max(1, catalog.songs.length) * 100).toFixed(2) }}%，保底触发时按保底规则结算。五连必出至少一张金色道具卡，彩卡不替代五连金卡保底；歌曲包连续 20 抽未出金卡或彩卡，第 20
         抽替换为金卡。地图卡包含在普通歌曲卡池中。五连包只能通过奖励获得，无法购买；商店不出售地图包。载具包仅从载具卡池抽取，不计歌曲包保底。重复卡累计数量，每
         3 张提升一级。初始三张地图无需抽卡即可游玩。
       </p>
@@ -314,27 +316,55 @@ onBeforeUnmount(() => {
   <div v-if="active" ref="root" class="pack-overlay record-room" :class="{ 'is-summary': phase === 'summary' }" role="dialog" aria-modal="true" aria-label="开启唱片收藏盒" @click="backdropClick">
     <button v-if="!busy" class="opening-close" aria-label="关闭" @click="close">×</button>
     <button v-if="phase !== 'summary'" class="opening-skip outline-btn" @click="skipAll">直接查看全部</button>
-    <div class="record-heading"><span>SONGSPACE / RECORD COLLECTION</span><h2>{{ phase === 'summary' ? '已收入你的音乐收藏' : phase === 'cards' ? cards[revealed]?.song.title : boxTitle(pack!.title) }}</h2><p>{{ phase === 'summary' ? '让每一首歌，在你的世界里留下回声。' : phase === 'cards' ? `${String(revealed + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')} TRACKS` : '打开一盒音乐，遇见下一段旅程。' }}</p></div>
-    <div v-if="phase !== 'summary'" class="record-stage">
-      <div class="record-box" :class="{ 'box-resting': phase === 'cards' }">
-        <PackModel :title="pack!.title" :count="pack!.count" :tone="pack!.tone" :tear="tear" :opening="phase !== 'sealed'" :opening-progress="openingProgress">
-          <button v-if="phase === 'sealed' || phase === 'opening'" class="drawer-pull" :disabled="phase !== 'sealed'" @pointerdown.stop="pointerDown" @pointermove.stop="pointerMove" @pointerup.stop="pointerUp" @pointercancel="drag = null; tear = 0" @click.stop="rip()" aria-label="向下拉开唱片盒，或点击开启"><span>拉开</span><b>↓</b></button>
+    <div class="record-heading"><h2 v-if="phase === 'summary'">本次开盒结果</h2><h2 v-else-if="phase === 'sealed'">{{ boxTitle(pack!.title) }}</h2><p v-else class="track-progress" aria-live="polite">{{ revealed + 1 }} / {{ cards.length }}</p></div>
+    <div class="record-stage" :class="{ 'results-stage': phase === 'summary' }">
+      <div v-if="phase === 'sealed' || phase === 'opening'" class="record-box">
+        <PackModel :title="pack!.title" :count="pack!.count" :tone="pack!.tone" :tear="tear" :opening="phase === 'opening'" :opening-progress="openingProgress">
+          <button v-if="phase === 'sealed'" class="drawer-pull" @pointerdown.stop="pointerDown" @pointermove.stop="pointerMove" @pointerup.stop="pointerUp" @pointercancel="drag = null; tear = 0" @click.stop="!suppressPullClick && rip()" aria-label="向下拉开唱片盒，或点击开启" />
         </PackModel>
       </div>
-      <div v-if="phase === 'opening'" class="emerging-card record-back"><small>SONGSPACE</small><div class="vinyl-label"><span>SS<br/>SIDE A</span></div><b>每一首歌，都是一个世界</b><span>ORIGINAL MUSIC COLLECTION</span></div>
+
       <div v-if="phase === 'cards'" class="record-card-stage">
         <button :key="revealed" class="single-card" :disabled="busy" :aria-label="flipped ? '下一首歌曲' : '揭晓歌曲'" @click.stop="advance">
-          <span class="card-turner"><span class="card-side card-reverse record-back" :aria-hidden="flipped"><small>SONGSPACE</small><div class="vinyl-label"><span>SS<br/>SIDE A</span></div><b>每一首歌，都是一个世界</b><span>ORIGINAL MUSIC COLLECTION</span></span><span class="card-side card-obverse" :aria-hidden="!flipped"><SongCard :card="cards[revealed]!" /><span class="card-shine" /></span></span>
+          <span class="card-turner"><span class="card-side card-reverse record-back" :class="[cards[revealed]!.rarity, { vehicle: cards[revealed]!.kind === 'vehicle', outfit: cards[revealed]!.kind === 'outfit' }]" :aria-hidden="flipped"><small>SONGSPACE</small><div class="vinyl-label"><span>SS</span></div><b>一首歌，一个世界</b><span>音乐收藏卡</span></span><span class="card-side card-obverse" :aria-hidden="!flipped"><SongCard :card="cards[revealed]!" opening /><span class="card-shine" /></span></span>
         </button>
       </div>
-    </div>
-    <div v-if="phase === 'sealed'" class="record-controls"><p>向下拉动布带，取出你的歌曲收藏</p><button class="spectrum-btn" @click="rip()">打开唱片盒 <span>↓</span></button></div>
-    <div v-if="phase === 'cards'" class="record-controls"><p>{{ flipped ? resultChange(cards[revealed]!).title : '正在揭晓这首歌…' }}</p><button class="spectrum-btn" :disabled="busy" @click="advance">{{ revealed + 1 === cards.length ? '收入收藏' : '取出下一首' }} <span>→</span></button></div>
-    <template v-if="phase === 'summary'">
-      <div class="revealed-grid record-results">
-        <div v-for="card in resultCards" :key="card.id" class="reveal-card face record-result" :class="card.rarity"><SongCard :card="card" /><div class="collection-change"><small>{{ resultChange(card).title }}</small><p>{{ resultChange(card).detail }}</p><button v-if="card.kind === 'map' && !beforeCounts[card.id]" @click="useCard(card)">前往探索 ↗</button><button v-else @click="goWarehouse">查看收藏 ↗</button></div></div>
+      <div v-if="phase === 'summary'" class="record-results">
+        <div v-for="card in resultCards" :key="card.id" class="reveal-card collection-card result-entry" :class="card.rarity"><SongCard :card="card" collection /></div>
       </div>
-      <div class="opening-actions"><button class="outline-btn" @click="close">返回唱片架</button><button v-if="active && game.packs[active]" class="spectrum-btn" @click="again">再开一盒 →</button><button v-else class="spectrum-btn" @click="goWarehouse">我的音乐收藏 ↗</button></div>
-    </template>
+    </div>
+    <div class="record-controls">
+      <button v-if="phase === 'sealed' || phase === 'opening'" class="spectrum-btn" :disabled="busy" @click="rip()">{{ phase === 'opening' ? '正在开盒…' : '打开唱片盒' }}</button>
+      <button v-else-if="phase === 'cards'" class="spectrum-btn" :disabled="busy" @click="advance">{{ !flipped ? '翻开卡片' : revealed + 1 === cards.length ? '查看本次结果' : '下一首' }}</button>
+      <template v-else><button class="outline-btn" @click="close">完成</button><button v-if="active && game.packs[active]" class="spectrum-btn" :disabled="busy" @click="again">再开一盒</button><button v-else class="spectrum-btn" @click="goWarehouse">查看卡片</button></template>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.pack-product-copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(36px, auto) 18px 40px 44px;
+  gap: 9px;
+}
+.pack-product-copy > * { grid-column: 1; }
+.pack-product-copy h3 { grid-row: 1; }
+.pack-product-copy .pack-description {
+  grid-row: 2;
+  align-self: start;
+  margin: 0;
+  color: #3e594c;
+  font-size: 12px;
+  line-height: 18px;
+}
+.pack-product-copy .stock {
+  grid-row: 3;
+  color: #43586a;
+  margin: 0;
+  line-height: 18px;
+}
+.pack-product-copy > .lime-btn { grid-row: 4; }
+.pack-product-copy > .buy-btn,
+.pack-product-copy > .reward-pack-btn { grid-row: 5; }
+</style>

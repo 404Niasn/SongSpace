@@ -226,5 +226,27 @@
   box-shadow:inset 0 0 0 1px #fff,0 0 0 1px #b894dd,0 0 14px #b38ad366,0 8px 18px -12px #9878b766;
 }
 .song-card-print.vehicle::after{background:linear-gradient(110deg,transparent 38%,#c6a3f077 44%,#f0dfff 49%,#fff 51%,#c6a3f077 56%,transparent 62%);background-size:300% 100%}
+
+/* Tactile controls shared by game menus and the opening room. */
+:is(.play-app,.record-room) button:is(.lime-btn,.spectrum-btn) {
+  color:#fff; border:1px solid #294d3b; border-radius:10px;
+  background:linear-gradient(180deg,#52765e,#355640 65%,#2e4b38);
+  box-shadow:inset 0 1px 0 #c7e5cd66,inset 0 -1px 0 #16342355,0 3px 0 #213c2d,0 6px 12px #263f2e1c;
+  text-shadow:0 1px 1px #16342360; font-weight:650;
+  transition:background .16s,box-shadow .16s,transform .16s;
+}
+:is(.play-app,.record-room) button:is(.outline-btn,.buy-btn,.reward-pack-btn) {
+  border:1px solid #c6d2c9; border-radius:10px; color:#345440;
+  background:linear-gradient(180deg,#fff,#f1f5f0);
+  box-shadow:inset 0 1px 0 #fff,0 2px 0 #c8d3c9,0 5px 10px #2a463314;
+  font-weight:600; transition:background .16s,box-shadow .16s,transform .16s;
+}
+:is(.play-app,.record-room) button:is(.lime-btn,.spectrum-btn,.outline-btn,.buy-btn,.reward-pack-btn):hover:not(:disabled) { filter:none; transform:translateY(-1px); }
+:is(.play-app,.record-room) button:is(.lime-btn,.spectrum-btn,.outline-btn,.buy-btn,.reward-pack-btn):active:not(:disabled) { transform:translateY(2px); box-shadow:inset 0 2px 4px #1d36282b,0 1px 0 #9cab9c; }
+:is(.play-app,.record-room) button:is(.lime-btn,.spectrum-btn,.outline-btn,.buy-btn,.reward-pack-btn):disabled { text-shadow:none; box-shadow:inset 0 1px 0 #fff6; background:#e8ede7; color:#627768; border-color:#d3ddd2; opacity:1; }
+.record-room .record-controls button.spectrum-btn { background:linear-gradient(180deg,#52765e,#355640 65%,#2e4b38); box-shadow:inset 0 1px 0 #c7e5cd66,inset 0 -1px 0 #16342355,0 3px 0 #213c2d,0 6px 12px #263f2e1c; }
+.record-room .record-controls button.outline-btn { background:linear-gradient(180deg,#fff,#f1f5f0); box-shadow:inset 0 1px 0 #fff,0 2px 0 #c8d3c9,0 5px 10px #2a463314; }
+.record-room .record-controls button.spectrum-btn:disabled { background:#e8ede7; color:#627768; text-shadow:none; box-shadow:inset 0 1px 0 #fff6; }
+@media(prefers-reduced-motion:reduce) { :is(.play-app,.record-room) button:is(.lime-btn,.spectrum-btn,.outline-btn,.buy-btn,.reward-pack-btn) { transition:none; } }
 @media(max-width:700px){.skill-dock button{min-width:150px;min-height:68px;padding:12px;gap:8px}.skill-dock kbd{margin-top:0}.skill-dock img{width:36px;height:36px}}
 @media(max-width:380px){.skill-dock{left:10px;right:10px}.skill-dock button{flex:1;min-width:0;gap:6px;padding:10px}.skill-dock img{width:30px;height:30px}}

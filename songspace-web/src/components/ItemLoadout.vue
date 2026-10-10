@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { catalog, game, cardFor, persist } from '@/game/save'
 import { ITEMS, artPath, skillLevel } from '@/game/content'
-import { PhPlus, PhArrowUpRight } from '@phosphor-icons/vue'
+import { PhPlus } from '@phosphor-icons/vue'
 const emit = defineEmits<{ change: [] }>()
 const selecting = ref<number | null>(null)
 const owned = computed(() => catalog.songs.filter(s => game.owned[s.id] && ITEMS[s.title]))
@@ -26,7 +26,7 @@ function select(id: string) {
       <img v-if="song" :src="artPath(ITEMS[song.title]!.id)" alt="" />
       <PhPlus v-else :size="22" weight="light" />
       </span>
-      <span class="item-slot-copy"><small class="item-slot-label">道具 {{ i + 1 }}<template v-if="song"> · LV.{{ skillLevel(game.owned[song.id] || 0) }}</template></small><b>{{ song ? ITEMS[song.title]!.name : '添加一份助力' }}</b><small>{{ song ? ITEMS[song.title]!.description : '从已收藏的金卡中选择' }}</small></span><em>{{ song ? '更换' : '选择' }}<PhArrowUpRight :size="13" /></em>
+      <span class="item-slot-copy"><small class="item-slot-label">道具 {{ i + 1 }}<template v-if="song"> · LV.{{ skillLevel(game.owned[song.id] || 0) }}</template></small><b>{{ song ? ITEMS[song.title]!.name : '添加一份助力' }}</b><small>{{ song ? ITEMS[song.title]!.description : '从已收藏的金卡中选择' }}</small></span><em>{{ song ? '更换' : '选择' }}</em>
     </button>
   </div>
   <div v-if="selecting !== null" class="card-detail-overlay" @click.self="selecting = null">

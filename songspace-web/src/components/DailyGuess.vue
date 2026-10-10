@@ -111,7 +111,7 @@ function guess() {
             aria-label="猜歌答案"
             maxlength="40"
             required
-          /><button class="lime-btn">猜一首 →</button>
+          /><button class="lime-btn">猜一首</button>
         </form>
         <div v-else class="guess-finished">
           <h3>
@@ -122,7 +122,7 @@ function guess() {
             }}
           </h3>
           <p>明天还有一张新的意象。</p>
-          <button class="lime-btn" @click="emit('packs')">去开歌曲包 →</button>
+          <button class="lime-btn" @click="emit('packs')">去开歌曲包</button>
         </div>
         <p class="guess-rewards">第 1 次猜中：五连包<br />第 2–3 次：三连包 · 第 4–6 次：单抽包</p>
       </div>

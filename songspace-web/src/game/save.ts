@@ -244,7 +244,7 @@ export const PACKS = [
     title: '歌曲五连包',
     count: 5,
     price: 240,
-    tag: '至少一张金卡或彩卡',
+    tag: '必出至少一张金色道具卡',
     tone: 'gold',
   },
   {
@@ -253,7 +253,7 @@ export const PACKS = [
     count: 1,
     price: 300,
     tag: '单车 · 一路向北 · 鲜花',
-    tone: 'blue',
+    tone: 'sky',
   },
   {
     id: 'theme',
@@ -287,7 +287,7 @@ export function openPack(id: string): GameCard[] {
     let song =
       pool[Math.floor((crypto.getRandomValues(new Uint32Array(1))[0]! / 4294967296) * pool.length)]!
     if (
-      (id === 'five' && i === pack.count - 1 && !result.some((c) => c.rarity !== 'normal')) ||
+      (id === 'five' && i === pack.count - 1 && !result.some((c) => c.kind === 'item')) ||
       (songPack && game.pity >= 20)
     ) {
       const gold = catalog.songs.filter((s) => kindFor(s) === 'item')

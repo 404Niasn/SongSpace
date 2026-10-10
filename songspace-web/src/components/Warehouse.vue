@@ -3,7 +3,7 @@ import VehiclePreview from './VehiclePreview.vue'
 import { computed, ref } from 'vue'
 import SongCard from './SongCard.vue'
 import CharacterWardrobe from './CharacterWardrobe.vue'
-import { PhHeadphones, PhArrowSquareOut } from '@phosphor-icons/vue'
+import { PhHeadphones } from '@phosphor-icons/vue'
 import { catalog, game, cardFor, KIND_NAMES, ownedCount, persist, equipOutfit, type GameCard } from '@/game/save'
 import { artPath, imageryFor, skillLevel } from '@/game/content'
 import { availableImagery, placedCount } from '@/game/imagery'
@@ -145,7 +145,7 @@ function use(c: GameCard) {
           target="_blank"
           rel="noopener noreferrer"
           :aria-label="`去 QQ 音乐听《${selected.song.title}》`"
-          ><PhHeadphones :size="19" weight="duotone" /><span>去 QQ 音乐听</span><PhArrowSquareOut :size="16" /></a
+          ><PhHeadphones :size="19" weight="duotone" /><span>去 QQ 音乐听</span></a
         >
       </div>
     </article>
