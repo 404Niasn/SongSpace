@@ -67,6 +67,6 @@ defineExpose({ play, stop })
 <style scoped>
 .map-music{position:absolute;left:18px;bottom:18px;z-index:5;display:flex;align-items:center;gap:10px;max-width:calc(100% - 36px);padding:9px 11px;border:1px solid #ffffff9c;border-radius:11px;background:#f7faf5ec;color:#40574c;box-shadow:0 3px 12px #243c3220;backdrop-filter:blur(14px)}
 .map-music-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#e1ebe3;color:#688976}.map-music-copy{display:grid;gap:3px;min-width:0}.map-music-copy b{font-size:12px;font-weight:500}.map-music-copy small{font-size:9px;color:#83918a}.map-music button,.map-music a{display:grid;place-items:center;width:29px;height:29px;padding:0;border:0;border-radius:7px;background:transparent;color:#6e8177;cursor:pointer}.map-music button:hover,.map-music a:hover{background:#e4ece5}.map-music button:focus-visible,.map-music a:focus-visible{outline:2px solid #8ca797;outline-offset:2px}
-.map-music.in-race{left:auto;bottom:auto;right:18px;top:72px}
+.map-music.in-race{left:20px;bottom:auto;right:auto;top:20px}
 .playing{animation:music-breathe 1.8s ease-in-out infinite}@keyframes music-breathe{50%{background:#cbded0}}@media(prefers-reduced-motion:reduce){.playing{animation:none}}@media(max-width:650px){.map-music{left:10px;bottom:10px;padding:6px 8px}.map-music-icon{width:26px;height:26px}}
 </style>

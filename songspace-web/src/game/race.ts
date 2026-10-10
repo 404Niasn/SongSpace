@@ -1,4 +1,5 @@
 import * as T from 'three'
+import { cherryTree, fujiMountain, ringPlanet } from '@/worlds/songWorlds'
 import { jiangnanHouse, canalBoat } from '@/worlds/jiangnan'
 import { atmosphere } from '@/worlds/atmosphere'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
@@ -78,8 +79,7 @@ export class Race {
   private event = ''
   private eventUntil = 0
   private effects = new T.Group()
-  private effectId = ''
-  private effectUntil = 0
+  private activeEffects = new Map<SkillSlot['id'], { group: T.Group; start: number; broken: boolean; end?: number }>()
   private scenic: { group: T.Group; distance: number }[] = []
   private snapshots: { time: number; distance: number; coins: number; bonus: number; health: number; lane: number; x: number; jump: number; taken: string[] }[] = []
   private miniature: ReturnType<typeof buildWorld> | undefined
@@ -104,10 +104,13 @@ export class Race {
     private weather: WeatherId = 'clear',
   ) {
     this.skills = new Skills(slots.slice(0, 2))
-    this.sky = new T.Color(world === 'sea' ? '#f7d7b2' : world === 'forest' ? '#cce0cf' : '#d6e7e8')
+    this.sky = new T.Color(world === 'space' ? '#070b21' : world === 'fuji' ? '#e4dce9' : world === 'sea' ? '#f7d7b2' : world === 'forest' ? '#cce0cf' : '#d6e7e8')
     if (this.evening) this.sky.set('#283c54')
     if (this.weather === 'sunset') this.sky.set('#dfaa89')
     if (this.weather === 'rain') this.sky.set('#9daeb8')
+    if (this.weather === 'snow') this.sky.set('#d7e3ed')
+    if (this.weather === 'overcast') this.sky.set('#a5aeb8')
+    const muted = ['rain', 'snow', 'overcast'].includes(this.weather)
     this.scene.background = this.sky
     this.skyDome = atmosphere(world, this.evening, this.weather)
     this.scene.add(this.skyDome, this.weatherLayer.group)
@@ -123,11 +126,11 @@ export class Race {
     this.renderer.domElement.setAttribute('aria-label', '第三人称探索闯关场景')
     host.append(this.renderer.domElement)
     const sun = new T.DirectionalLight(
-      this.weather === 'rain' ? '#c8dce9' : this.weather === 'sunset' ? '#ffb978' : this.evening ? '#aecbe6' : '#ffefd5',
-      this.weather === 'rain' ? 0.7 : this.evening ? 1.4 : 2.4,
+      muted ? '#d0dfeb' : this.weather === 'sunset' ? '#ffb978' : this.evening ? '#aecbe6' : '#ffefd5',
+      muted ? .65 : this.evening ? 1.4 : 2.4,
     )
     sun.position.set(-25, this.weather === 'sunset' ? 12 : 40, 25)
-    sun.castShadow = true
+    sun.castShadow = !muted
     sun.shadow.mapSize.set(1024, 1024)
     Object.assign(sun.shadow.camera, {
       left: -28,
@@ -141,9 +144,9 @@ export class Race {
     this.scene.add(
       sun,
       new T.HemisphereLight(
-        this.evening ? '#8aaacb' : '#eff8ff',
+        muted ? '#d8e3ec' : this.evening ? '#8aaacb' : '#eff8ff',
         '#859976',
-        this.evening ? 1.5 : 1.5,
+        muted ? 1.7 : 1.5,
       ),
     )
     for (let i = 0; i < 8; i++) {
@@ -152,7 +155,7 @@ export class Race {
       this.chunks.push(chunk)
       this.scene.add(chunk)
     }
-    if (this.evening && this.weather === 'clear') {
+    if (world === 'space' || (this.evening && this.weather === 'clear')) {
       const vertices: number[] = []
       for (let i = 0; i < 120; i++)
         vertices.push(
@@ -165,6 +168,11 @@ export class Race {
       this.scene.add(
         new T.Points(stars, new T.PointsMaterial({ color: '#e5eacc', size: 0.22, fog: false })),
       )
+    }
+    if (world === 'fuji' || world === 'space') {
+      const landmark = world === 'fuji' ? fujiMountain() : ringPlanet()
+      landmark.position.set(-35, world === 'space' ? 32 : 0, -130)
+      landmark.scale.setScalar(2); this.scene.add(landmark)
     }
     this.makeBike()
     this.updatePedals()
@@ -382,7 +390,7 @@ export class Race {
     const g = new T.Group()
     this.box(
       g,
-      this.world === 'sea' ? '#8ba878' : '#90ad81',
+      this.world === 'space' ? '#151c35' : this.world === 'fuji' ? '#9aaf9d' : this.world === 'sea' ? '#8ba878' : '#90ad81',
       this.world === 'sea' ? 34 : 0,
       -0.25,
       -16,
@@ -392,7 +400,7 @@ export class Race {
     )
     const road = this.box(
       g,
-      this.world === 'forest' ? '#c5b697' : this.world === 'sea' ? '#525c68' : '#a1aaa4',
+      this.world === 'space' ? '#384565' : this.world === 'fuji' ? '#d9c8c6' : this.world === 'forest' ? '#c5b697' : this.world === 'sea' ? '#525c68' : '#a1aaa4',
       0,
       0.015,
       -16,
@@ -400,7 +408,29 @@ export class Race {
       0.08,
       32.1,
     )
-    if (this.world === 'jiangnan') {
+    if (this.world === 'fuji' || this.world === 'space') {
+      for (let j = 0; j < 8; j++) {
+        const side = j % 2 ? 1 : -1, z = -j * 4
+        if (this.world === 'fuji') {
+          const tree = cherryTree(); tree.position.set(side * (7 + j % 3), 0, z); g.add(tree)
+        } else {
+          const rock = this.mesh(new T.DodecahedronGeometry(1 + j % 3 * .4), '#7583a0', g, side * (11 + j % 3 * 4), 1 + j % 3, z)
+          rock.rotation.set(j, i, .3)
+          const light = this.box(g, '#89e0ff', side * 4, .18, z, .12, .12, 2)
+          ;(light.material as T.MeshStandardMaterial).emissive.set('#53cfff')
+        }
+      }
+      if (this.world === 'fuji') {
+        this.box(g, '#80b7c7', -25, .01, -16, 22, .05, 32)
+        if (i % 3 === 0) {
+          for (const x of [-4.7, 4.7]) this.box(g, '#b55054', x, 3, -16, .45, 6, .45)
+          this.box(g, '#514556', 0, 6, -16, 11, .5, .8)
+        }
+      } else if (i % 2 === 0) {
+        const arch = this.mesh(new T.TorusGeometry(6, .12, 8, 48, Math.PI), '#96c7ec', g, 0, .1, -16)
+        ;(arch.material as T.MeshStandardMaterial).emissive.set('#487db7')
+      }
+    } else if (this.world === 'jiangnan') {
       if (!this.stoneMaterial) {
         const canvas = document.createElement('canvas')
         canvas.width = 512
@@ -622,10 +652,10 @@ export class Race {
     this.box(b, '#344348', 0.39, 1.46, -0.72, 0.15, 0.07, 0.1)
     const chain = this.mesh(new T.TorusGeometry(0.16, 0.016, 8, 24), '#bac8bd', b, 0.07, 0.7, 0.05)
     chain.rotation.y = Math.PI / 2
-    const rider = buildRider()
+    const rider = buildRider('riding', this.outfits.some(outfit => outfit.id === 'red-high-heels'))
     b.add(rider.group)
     this.legs = rider.legs
-    addCharacterOutfits(b, this.outfits)
+    addCharacterOutfits(rider.group, this.outfits)
   }
   start() {
     if (this.miniature) this.miniature.group.visible = false
@@ -687,9 +717,11 @@ export class Race {
   }
   private feedback(id: SkillSlot['id'], text: string, broken = false) {
     this.event = text; this.eventUntil = this.elapsed + 2.5
-    this.scene.remove(this.effects); disposeObject(this.effects)
-    this.effects = buildSkillEffect(id, broken); this.effectId = id; this.effectUntil = this.elapsed + 1.6
-    this.scene.add(this.effects)
+    const previous = this.activeEffects.get(id)
+    if (previous) { this.effects.remove(previous.group); disposeObject(previous.group) }
+    const group = buildSkillEffect(id, broken)
+    this.effects.add(group)
+    this.activeEffects.set(id, { group, start: this.elapsed, broken })
   }
   togglePause() {
     if (this.running) {
@@ -802,7 +834,8 @@ export class Race {
       this.distance += dt * this.maxSpeed
       const difficulty = raceDifficulty(this.distance)
       if (difficulty.stage > previousStage) {
-        this.event = `第 ${difficulty.stage} 关 · 速度 +${difficulty.speedBonus} m/s · 障碍密度 ${Math.round(difficulty.obstacleSteps.length / 12 * 100)}%`
+        const hint = difficulty.stage <= 2 ? '旅途渐渐加快' : difficulty.stage <= 4 ? '前路更有挑战' : '保持专注，继续向前'
+        this.event = `第 ${difficulty.stage} 关 · ${hint}`
         this.eventUntil = this.elapsed + 4
       }
       this.boost = Math.max(0, this.boost - dt)
@@ -886,9 +919,26 @@ export class Race {
         if (p.group.userData.model === 'fireworks') p.group.children.filter(c => c.userData.spark !== undefined).forEach(c => c.visible = Math.sin(this.elapsed * 1.5 + c.userData.spark * 0.3) > -0.2)
       }
       this.effects.position.set(this.x, this.bike.position.y, 0)
-      const persistent = this.effectId === 'shield' ? this.skills.shield : this.effectId === 'magnet' ? this.skills.magnet > 0 : this.effectId === 'freeze' ? this.skills.freeze > 0 : ['courage', 'friend'].includes(this.effectId) ? this.skills.boost > 0 : false
-      this.effects.visible = persistent || this.elapsed < this.effectUntil
-      this.effects.rotation.y += dt * 0.5
+      this.effects.quaternion.copy(this.bike.quaternion)
+      for (const [id, effect] of this.activeEffects) {
+        const age = this.elapsed - effect.start
+        const persistent = !effect.broken && (id === 'shield' ? this.skills.shield : id === 'magnet' ? this.skills.magnet > 0 : id === 'freeze' ? this.skills.freeze > 0 : id === 'double' ? this.skills.countdown > 0 || this.skills.double > 0 : id === 'revive' ? this.skills.protection > 0 : ['courage', 'friend'].includes(id) ? this.skills.boost > 0 : false)
+        if (!persistent) effect.end ??= Math.max(effect.start + 1.1, this.elapsed)
+        const fadeOut = effect.end === undefined ? 1 : Math.max(0, 1 - (this.elapsed - effect.end) / .5)
+        if (fadeOut <= 0) {
+          this.effects.remove(effect.group); disposeObject(effect.group); this.activeEffects.delete(id); continue
+        }
+        const fade = Math.min(1, age / .2) * fadeOut
+        effect.group.scale.setScalar(effect.broken ? 1 + age * .65 : 1 + Math.sin(age * 3) * .025)
+        effect.group.position.y = effect.broken ? -age * .25 : Math.sin(age * 2) * .045
+        effect.group.traverse(object => {
+          if (!(object instanceof T.Mesh)) return
+          const material = object.material as T.Material
+          object.userData.baseOpacity ??= material.opacity
+          material.opacity = object.userData.baseOpacity * fade
+          if (object.userData.orbit) object.rotation.z = age * (id === 'rewind' ? -1.4 : .8)
+        })
+      }
     }
 
     const riderY = this.bike.position.y

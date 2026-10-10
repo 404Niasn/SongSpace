@@ -223,10 +223,10 @@ export class WorldEngine {
   }
 
   private applyLighting() {
-    const backgrounds = { forest: '#e8eee1', sea: '#e7eff0', jiangnan: '#e9eee7' }
-    const sunset = this.weather === 'sunset' || this.evening
-    const rain = this.weather === 'rain'
-    const sky = rain ? '#9daeb8' : sunset ? '#e9b497' : backgrounds[this.world]
+    const backgrounds = { forest: '#e8eee1', sea: '#e7eff0', jiangnan: '#e9eee7', fuji: '#eee0e7', space: '#070b21' }
+    const sunset = this.weather === 'sunset' || (this.weather === 'clear' && this.evening)
+    const muted = ['rain', 'snow', 'overcast'].includes(this.weather)
+    const sky = this.weather === 'snow' ? '#d7e3ed' : this.weather === 'overcast' ? '#a5aeb8' : muted ? '#9daeb8' : sunset ? '#e9b497' : backgrounds[this.world]
     this.scene.background = new THREE.Color(sky)
     this.scene.fog = new THREE.Fog(
       sky,
@@ -234,9 +234,10 @@ export class WorldEngine {
       this.mode === 'overview' ? 310 : 170,
     )
     this.sunlight.position.set(sunset ? -55 : -40, sunset ? 20 : 75, 35)
-    this.sunlight.color.set(rain ? '#c8dce9' : sunset ? '#ffb978' : '#fff2ce')
-    this.sunlight.intensity = rain ? 0.7 : sunset ? 2.6 : 3.1
-    this.ambient.intensity = rain ? 1.5 : sunset ? 1.6 : 2.1
+    this.sunlight.color.set(muted ? '#d0dfeb' : sunset ? '#ffb978' : '#fff2ce')
+    this.sunlight.intensity = muted ? 0.65 : sunset ? 2.6 : 3.1
+    this.sunlight.castShadow = !muted
+    this.ambient.intensity = muted ? 1.7 : sunset ? 1.6 : 2.1
   }
 
   private keyDown = (event: KeyboardEvent) => {

@@ -3,7 +3,7 @@ import { freshGame, game, persist, replaceGame } from './save.ts'
 import { imagery } from './imagery.ts'
 
 type Snapshot = { game: typeof game; imagery: typeof imagery }
-type Session = { token: string; revision: number; dirty: boolean; gameId?: string }
+type Session = { token: string; revision: number; dirty: boolean; gameId?: string; welcomePending?: boolean }
 const key = 'songspace.session.v1'
 export const cloud = reactive<{ status: 'loading' | 'synced' | 'pending' | 'offline' | 'conflict'; error: string }>({ status: 'loading', error: '' })
 let session: Session | null = null
@@ -11,6 +11,8 @@ try { session = JSON.parse(localStorage.getItem(key) || 'null') } catch { /* pre
 if (!session || typeof session.token !== 'string' || !Number.isInteger(session.revision)) session = null
 export const identity = reactive({ gameId: session?.gameId || session?.token || '', valid: !!session })
 export function hasSession() { return !!session && identity.valid }
+export function needsWelcome() { return !!session?.welcomePending }
+export function dismissWelcome() { if (session) { session.welcomePending = false; cacheSession() } }
 let applying = false, running = false, queued = false, initialized = false
 let timer: ReturnType<typeof setTimeout> | undefined
 let reconnectTimer: ReturnType<typeof setTimeout> | undefined
@@ -52,7 +54,7 @@ function applySnapshot(state: Snapshot) {
   applying = true
   try {
     replaceGame(state.game)
-    for (const world of ['forest', 'sea', 'jiangnan'] as const) imagery[world] = state.imagery?.[world] || []
+    for (const world of ['forest', 'sea', 'jiangnan', 'fuji', 'space'] as const) imagery[world] = state.imagery?.[world] || []
     persist()
     localStorage.setItem('songspace.imagery.v2', JSON.stringify(imagery))
   } finally { applying = false }
@@ -78,18 +80,18 @@ export async function logoutGame() {
   identity.gameId = ''
   identity.valid = false
   replaceGame(freshGame())
-  for (const world of ['forest', 'sea', 'jiangnan'] as const) imagery[world] = []
+  for (const world of ['forest', 'sea', 'jiangnan', 'fuji', 'space'] as const) imagery[world] = []
   cloud.status = 'offline'
   cloud.error = ''
 }
 export async function startGame(name: string) {
   await finishCurrentSave()
-  const state = { game: freshGame(), imagery: { forest: [], sea: [], jiangnan: [] } }
+  const state = { game: freshGame(), imagery: { forest: [], sea: [], jiangnan: [], fuji: [], space: [] } }
   state.game.name = name.trim()
   const result = await request('accounts', 'POST', { nickname: name.trim(), state })
   clearTimeout(timer)
   queued = false
-  session = { token: result.token, revision: result.revision, dirty: false, gameId: result.game_id || result.token }
+  session = { token: result.token, revision: result.revision, dirty: false, gameId: result.game_id || result.token, welcomePending: true }
   identity.gameId = session.gameId!
   identity.valid = true
   cacheSession()

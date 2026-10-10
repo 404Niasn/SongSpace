@@ -3,7 +3,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { gsap } from 'gsap'
 import PackModel from './PackModel.vue'
 import SongCard from './SongCard.vue'
-import CardAura from './CardAura.vue'
+import { collectionChange } from '@/game/collectionChange'
+import '@/assets/record-room.css'
 import {
   game,
   catalog,
@@ -16,7 +17,13 @@ import {
   kindFor,
   type GameCard,
 } from '@/game/save'
-const emit = defineEmits<{ warehouse: []; daily: []; message: [string] }>()
+const emit = defineEmits<{ warehouse: []; daily: []; message: [string]; use: [GameCard] }>()
+const beforeCounts = ref<Record<string, number>>({})
+const resultCards = computed(() => [...new Map(cards.value.map(c => [c.id, c])).values()])
+const resultChange = (card: GameCard) => collectionChange(card, beforeCounts.value[card.id] || 0)
+const boxTitle = (title: string) => title.replace('包', '盒')
+function useCard(card: GameCard) { close(); emit('use', card) }
+function again() { const id = active.value; close(); if (id) void choose(id) }
 const active = ref<string | null>(null),
   cards = ref<GameCard[]>([]),
   phase = ref<'sealed' | 'opening' | 'cards' | 'summary'>('sealed'),
@@ -79,7 +86,7 @@ async function choose(id: string) {
   previousOverflow = document.body.style.overflow
   document.body.style.overflow = 'hidden'
   await nextTick()
-  const el = root.value?.querySelector('.foil-pack')
+  const el = root.value?.querySelector('.record-box')
   if (el)
     play(
       gsap
@@ -92,27 +99,28 @@ async function choose(id: string) {
     )
 }
 function purchase(id: string) {
-  if (buyPack(id)) emit('message', '卡包已放入库存，可以开启了。')
+  if (buyPack(id)) emit('message', '唱片盒已放入收藏室，可以开启了。')
   else emit('message', '音符不足，去闯关收集更多音符吧。')
 }
 function pointerDown(e: PointerEvent) {
   if (phase.value !== 'sealed') return
-  drag.value = e.clientX
+  drag.value = e.clientY
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
 }
 function pointerMove(e: PointerEvent) {
   if (drag.value === null) return
-  tear.value = Math.min(1, Math.max(0, (e.clientX - drag.value) / 130))
+  tear.value = Math.min(1, Math.max(0, (e.clientY - drag.value) / 100))
 }
 function pointerUp(e: PointerEvent) {
   if (drag.value === null) return
-  const distance = e.clientX - drag.value
+  const distance = e.clientY - drag.value
   drag.value = null
   if (distance >= 60 || tear.value > 0.7) void rip()
   else tear.value = 0
 }
 async function rip(skip = false) {
   if (busy.value || phase.value !== 'sealed' || !active.value) return
+  beforeCounts.value = { ...game.owned }
   const result = openPack(active.value)
   if (!result.length) {
     emit('message', '卡包无法开启，请重试。')
@@ -127,18 +135,17 @@ async function rip(skip = false) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
   const node = root.value!
   const timeline = gsap.timeline({ paused: true })
-    .to(node.querySelector('.tear-strip'), { opacity: 0, duration: reduced ? .01 : .1 }, 0)
-    .to(openingProgress, { value: 1, duration: reduced ? .01 : .85, ease: 'power2.inOut' }, 0)
-    .fromTo(node.querySelector('.emerging-card'), { y: 82, opacity: 1, clipPath: 'inset(0% 0% 100% 0%)' },
-      { y: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: reduced ? .01 : 1.05, ease: 'power2.inOut' }, reduced ? .01 : .65)
-    .to(node.querySelector('.pack-glow'), { opacity: .3, duration: reduced ? .01 : .6 }, reduced ? 0 : .7)
-    .to(node.querySelector('.pack-ground'), { scaleX: .7, opacity: 0, duration: reduced ? .01 : .55 }, reduced ? .02 : 1.15)
-    .to(node.querySelector('.foil-pack'), { y: 480, rotation: 5, opacity: 0, duration: reduced ? .01 : .8, ease: 'power2.in' }, reduced ? .02 : 1.15)
+    .to(node.querySelector('.drawer-pull'), { opacity: 0, duration: reduced ? .01 : .1 }, 0)
+    .to(openingProgress, { value: 1, duration: reduced ? .01 : .95, ease: 'power2.inOut' }, 0)
+    .to(node.querySelector('.record-box'), { y: 120, x: 95, scale: .68, rotation: 7, duration: reduced ? .01 : .8, ease: 'power2.inOut' }, reduced ? .01 : 1)
+    .fromTo(node.querySelector('.emerging-card'), { y: 130, scale: .48, rotationZ: -5, opacity: 0 },
+      { y: 0, scale: 1, rotationZ: 0, opacity: 1, duration: reduced ? .01 : .8, ease: 'power2.inOut' }, reduced ? .01 : 1)
+
   play(timeline, async () => {
     phase.value = 'cards'
     busy.value = false
     await nextTick()
-    entrance(true)
+    reveal()
   })
 }
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -147,9 +154,9 @@ function entrance(fromPack = false) {
   if (!el) return
   busy.value = true
   play(gsap.timeline({ paused: true }).fromTo(el,
-    { y: fromPack ? 0 : 24, rotationX: fromPack ? 0 : 6, rotationZ: fromPack ? 0 : -2, opacity: fromPack ? 1 : 0, scale: fromPack ? 1 : .96 },
+    { y: fromPack ? 0 : 130, rotationX: 0, rotationZ: fromPack ? 0 : -5, opacity: fromPack ? 1 : 0, scale: fromPack ? 1 : .48 },
     { y: 0, rotationX: 0, rotationZ: 0, opacity: 1, scale: 1, duration: reducedMotion() ? .01 : .5, ease: 'power3.out' }),
-    () => { busy.value = false })
+    () => { busy.value = false; reveal() })
 }
 function reveal() {
   if (busy.value || flipped.value || phase.value !== 'cards') return
@@ -242,7 +249,7 @@ onBeforeUnmount(() => {
     <div class="page-heading">
       <div>
         <p class="eyebrow">CARD PACKS</p>
-        <h1>卡包商店<span class="heading-count">{{ pending }} 包待拆</span></h1>
+        <h1>唱片收藏室<span class="heading-count">{{ pending }} 盒待开启</span></h1>
       </div>
       <button class="outline-btn" @click="emit('warehouse')">
         我的仓库 {{ ownedCount }}/{{ catalog.songs.length }} ↗
@@ -250,7 +257,7 @@ onBeforeUnmount(() => {
     </div>
     <div class="pack-summary">
       <div>
-        <small>待开启卡包</small><strong>{{ pending }}<span> 包</span></strong>
+        <small>待开启唱片盒</small><strong>{{ pending }}<span> 盒</span></strong>
       </div>
       <div>
         <small>收藏进度</small><strong>{{ ownedCount }}<span> / {{ catalog.songs.length }}</span></strong
@@ -268,8 +275,8 @@ onBeforeUnmount(() => {
       </button>
     </div>
     <div class="shop-title">
-      <h2>选一包</h2>
-      <span>金卡＝道具 · 彩卡＝地图 · 载具按属性分档</span>
+      <h2>选一盒音乐</h2>
+      <span>彩 · 地图 / 金 · 道具 / 银 · 装饰 / 蓝 · 装扮 / 紫 · 载具</span>
     </div>
     <div class="pack-shop">
       <article v-for="p in visiblePacks" :key="p.id" class="pack-product" :class="p.tone">
@@ -277,22 +284,22 @@ onBeforeUnmount(() => {
           <PackModel :title="p.title" :count="p.count" :tone="p.tone" preview />
         </div>
         <div class="pack-product-copy">
-          <h3>{{ p.title }}</h3>
+          <h3>{{ boxTitle(p.title) }}</h3>
 
-          <span class="stock">{{ p.id==='five' ? '每日猜歌首猜奖励' : '库存 ' + (game.packs[p.id] || 0) + ' 包' }}</span
+          <span class="stock">{{ p.id==='five' ? '每日猜歌首猜奖励' : '库存 ' + (game.packs[p.id] || 0) + ' 盒' }}</span
           ><button
             class="lime-btn"
             :disabled="!game.packs[p.id] || !catalog.songs.length"
             @click="choose(p.id)"
           >
-            打开卡包</button
-          ><button v-if="p.id!=='five'" class="buy-btn" @click="purchase(p.id)"><span>购买卡包</span><b>♪ {{ p.price }}</b></button><button v-else class="reward-pack-btn" @click="emit('daily')">猜歌赢五连包 ↗</button>
+            打开唱片盒</button
+          ><button v-if="p.id!=='five'" class="buy-btn" @click="purchase(p.id)"><span>购买唱片盒</span><b>♪ {{ p.price }}</b></button><button v-else class="reward-pack-btn" @click="emit('daily')">猜歌赢五连包 ↗</button>
         </div>
       </article>
     </div>
     <details class="odds">
       <summary>查看开包规则与概率</summary>
-      <p>歌曲库精选了 QQ 音乐热歌榜 Top 100 和经典歌曲。<template v-if="catalog.chartDate">榜单采集日期：{{ catalog.chartDate }}。</template>榜单歌曲保留采集时的排名，经典歌曲作为额外精选加入，不代表当前实时榜单。当前彩色闪卡为《江南》《光年之外》，地图卡包含在普通歌曲卡池中；《光年之外》对应的太空地图后续开放。</p>
+      <p>歌曲库精选了 QQ 音乐热歌榜 Top 100 和经典歌曲。<template v-if="catalog.chartDate">榜单采集日期：{{ catalog.chartDate }}。</template>榜单歌曲保留采集时的排名，经典歌曲作为额外精选加入，不代表当前实时榜单。当前彩色闪卡为《江南》《富士山下》《光年之外》，地图卡包含在普通歌曲卡池中；获得《富士山下》或《光年之外》后解锁对应地图。</p>
       <p>
         歌曲包在 {{ catalog.songs.length }} 首歌曲中等概率抽取。卡片类型由歌曲固定分配：彩卡
         {{ distribution.map }} 首、金卡 {{ distribution.item }} 首、载具卡
@@ -304,67 +311,30 @@ onBeforeUnmount(() => {
     </details>
     <p v-if="catalog.error" role="alert">{{ catalog.error }}</p>
   </section>
-  <div
-    v-if="active"
-    ref="root"
-    class="pack-overlay"
-    role="dialog"
-    aria-modal="true"
-    aria-label="开启歌曲卡包"
-    @click="backdropClick"
-  >
-    <button v-if="!busy" class="opening-close" aria-label="关闭开包" @click="close">×</button>
-    <button v-if="phase !== 'summary'" class="opening-skip outline-btn" @click="skipAll">查看全部 · 跳过动画</button>
-    <h2>{{ phase === 'summary' ? '本包收获' : phase === 'cards' ? (flipped ? '已揭晓' : '点击翻牌') : pack?.title }}</h2>
-    <div v-if="phase === 'sealed' || phase === 'opening'" class="opening-stage">
-      <div class="pack-glow" />
-      <div class="pack-ground" aria-hidden="true" />
-      <div v-if="phase === 'opening'" class="emerging-card card-reverse card-back-design"><CardAura /><small>SONGSPACE</small><strong>♪</strong><span>音乐收藏卡</span></div>
-      <div class="foil-pack" :class="pack?.tone">
-        <div class="pack-body">
-          <PackModel
-            :title="pack!.title"
-            :count="pack!.count"
-            :tone="pack!.tone"
-            :tear="tear"
-            :opening="phase === 'opening'"
-            :opening-progress="openingProgress"
-          >
-            <button
-              class="tear-strip"
-              @pointerdown="pointerDown"
-              @pointermove.stop="pointerMove"
-              @pointerup="pointerUp"
-              @pointercancel="drag = null; tear = 0"
-              aria-label="向右撕开包装"
-            />
-          </PackModel>
-        </div>
+  <div v-if="active" ref="root" class="pack-overlay record-room" :class="{ 'is-summary': phase === 'summary' }" role="dialog" aria-modal="true" aria-label="开启唱片收藏盒" @click="backdropClick">
+    <button v-if="!busy" class="opening-close" aria-label="关闭" @click="close">×</button>
+    <button v-if="phase !== 'summary'" class="opening-skip outline-btn" @click="skipAll">直接查看全部</button>
+    <div class="record-heading"><span>SONGSPACE / RECORD COLLECTION</span><h2>{{ phase === 'summary' ? '已收入你的音乐收藏' : phase === 'cards' ? cards[revealed]?.song.title : boxTitle(pack!.title) }}</h2><p>{{ phase === 'summary' ? '让每一首歌，在你的世界里留下回声。' : phase === 'cards' ? `${String(revealed + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')} TRACKS` : '打开一盒音乐，遇见下一段旅程。' }}</p></div>
+    <div v-if="phase !== 'summary'" class="record-stage">
+      <div class="record-box" :class="{ 'box-resting': phase === 'cards' }">
+        <PackModel :title="pack!.title" :count="pack!.count" :tone="pack!.tone" :tear="tear" :opening="phase !== 'sealed'" :opening-progress="openingProgress">
+          <button v-if="phase === 'sealed' || phase === 'opening'" class="drawer-pull" :disabled="phase !== 'sealed'" @pointerdown.stop="pointerDown" @pointermove.stop="pointerMove" @pointerup.stop="pointerUp" @pointercancel="drag = null; tear = 0" @click.stop="rip()" aria-label="向下拉开唱片盒，或点击开启"><span>拉开</span><b>↓</b></button>
+        </PackModel>
+      </div>
+      <div v-if="phase === 'opening'" class="emerging-card record-back"><small>SONGSPACE</small><div class="vinyl-label"><span>SS<br/>SIDE A</span></div><b>每一首歌，都是一个世界</b><span>ORIGINAL MUSIC COLLECTION</span></div>
+      <div v-if="phase === 'cards'" class="record-card-stage">
+        <button :key="revealed" class="single-card" :disabled="busy" :aria-label="flipped ? '下一首歌曲' : '揭晓歌曲'" @click.stop="advance">
+          <span class="card-turner"><span class="card-side card-reverse record-back" :aria-hidden="flipped"><small>SONGSPACE</small><div class="vinyl-label"><span>SS<br/>SIDE A</span></div><b>每一首歌，都是一个世界</b><span>ORIGINAL MUSIC COLLECTION</span></span><span class="card-side card-obverse" :aria-hidden="!flipped"><SongCard :card="cards[revealed]!" /><span class="card-shine" /></span></span>
+        </button>
       </div>
     </div>
-    <template v-if="phase === 'sealed'"
-      ><p class="opening-hint">按住顶部封口，向右撕开</p>
-      <button class="lime-btn" @click="rip()">撕开包装</button></template
-    >
-    <div v-if="phase === 'cards'" class="single-reveal-stage">
-      <button :key="revealed" class="single-card" :disabled="busy" :aria-label="flipped ? '下一张卡片' : '翻开第 ' + (revealed + 1) + ' 张卡'" @click="advance">
-        <CardAura :rarity="flipped ? cards[revealed]!.rarity : 'normal'" />
-        <span class="card-turner">
-          <span class="card-side card-reverse card-back-design" :aria-hidden="flipped">
-            <small>SONGSPACE</small><strong>♪</strong><span>音乐收藏卡</span>
-          </span>
-          <span class="card-side card-obverse" :aria-hidden="!flipped">
-            <SongCard :card="cards[revealed]!" /><span class="card-shine" />
-          </span>
-        </span>
-      </button>
-    </div>
+    <div v-if="phase === 'sealed'" class="record-controls"><p>向下拉动布带，取出你的歌曲收藏</p><button class="spectrum-btn" @click="rip()">打开唱片盒 <span>↓</span></button></div>
+    <div v-if="phase === 'cards'" class="record-controls"><p>{{ flipped ? resultChange(cards[revealed]!).title : '正在揭晓这首歌…' }}</p><button class="spectrum-btn" :disabled="busy" @click="advance">{{ revealed + 1 === cards.length ? '收入收藏' : '取出下一首' }} <span>→</span></button></div>
     <template v-if="phase === 'summary'">
-      <p class="pack-result-count">这一包 {{ cards.length }} 张 · 新卡 {{ cards.filter(c => c.isNew).length }} 张 · 重复 {{ cards.filter(c => !c.isNew).length }} 张</p>
-      <div class="revealed-grid">
-        <div v-for="(card, i) in cards" :key="i" class="reveal-card face" :class="card.rarity"><CardAura :rarity="card.rarity" /><SongCard :card="card" /></div>
+      <div class="revealed-grid record-results">
+        <div v-for="card in resultCards" :key="card.id" class="reveal-card face record-result" :class="card.rarity"><SongCard :card="card" /><div class="collection-change"><small>{{ resultChange(card).title }}</small><p>{{ resultChange(card).detail }}</p><button v-if="card.kind === 'map' && !beforeCounts[card.id]" @click="useCard(card)">前往探索 ↗</button><button v-else @click="goWarehouse">查看收藏 ↗</button></div></div>
       </div>
-      <div class="opening-actions"><button class="outline-btn" @click="close">收下，继续开包</button><button class="spectrum-btn" @click="goWarehouse">去仓库查看 ↗</button></div>
+      <div class="opening-actions"><button class="outline-btn" @click="close">返回唱片架</button><button v-if="active && game.packs[active]" class="spectrum-btn" @click="again">再开一盒 →</button><button v-else class="spectrum-btn" @click="goWarehouse">我的音乐收藏 ↗</button></div>
     </template>
   </div>
 </template>

@@ -36,4 +36,18 @@ assert.equal(worldValue('sea'), 0)
 delete game.owned[sunset.id]
 game.worldWeather.sea = sunset.id
 assert.equal(weatherForWorld('sea'), 'clear', 'Unowned weather must not activate')
+for (const [title, weather] of [['认真的雪', 'snow'], ['阴天', 'overcast']]) {
+  const song = catalog.songs.find(s => s.title === title)
+  assert.ok(song)
+  assert.equal(setWorldWeather('forest', song.id), false)
+  game.owned[song.id] = 1
+  assert.equal(setWorldWeather('forest', song.id), true)
+  assert.equal(weatherForWorld('forest'), weather)
+  assert.equal(worldValue('forest'), 35)
+  assert.equal(game.owned[song.id], 1)
+  assert.equal(placeImagery('forest', {songId: song.id, x: 1, z: 1, rotation: 0}), false)
+  const snapshot = JSON.parse(cache.get('songspace.game.v1'))
+  replaceGame(freshGame()); replaceGame(snapshot)
+  assert.equal(weatherForWorld('forest'), weather)
+}
 console.log('PASS: weather unlocks, per-map selection, nonconsumption, value, legacy filtering, and restored state')

@@ -6,7 +6,7 @@ globalThis.window = new EventTarget()
 const { game, persist } = await import('../src/game/save.ts')
 const { imagery } = await import('../src/game/imagery.ts')
 globalThis.document = new EventTarget()
-const { connectSave, startGame, restoreGame, hasSession, identity, flushSave, cloud, logoutGame } = await import('../src/game/cloud.ts')
+const { connectSave, startGame, restoreGame, hasSession, identity, flushSave, cloud, logoutGame, needsWelcome, dismissWelcome } = await import('../src/game/cloud.ts')
 const profiles = new Map()
 let calls = 0, offline = false
 let registrationError
@@ -47,6 +47,11 @@ registrationError = undefined
 await startGame('新玩家')
 assert.equal(hasSession(), true)
 assert.equal(game.name, '新玩家')
+assert.equal(needsWelcome(), true, 'New accounts receive the save-ID and gift introduction')
+assert.equal(JSON.parse(memory.get('songspace.session.v1')).welcomePending, true, 'Introduction survives a refresh')
+dismissWelcome()
+assert.equal(needsWelcome(), false)
+assert.equal(JSON.parse(memory.get('songspace.session.v1')).welcomePending, false)
 const firstId = identity.gameId
 assert.match(firstId, /^SS-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/)
 assert.notEqual(firstId, game.name)
@@ -62,6 +67,7 @@ game.runs = 99
 imagery.sea = [{ songId: 'old-song', x: 1, z: 1, rotation: 0 }]
 profiles.set('legacy-ID', { token: 'legacy-ID', revision: 4, state: { game: { name: '老玩家', notes: 50, owned: {}, packs: {} }, imagery: {} } })
 await restoreGame('legacy-ID')
+assert.equal(needsWelcome(), false, 'Returning accounts do not receive another registration gift introduction')
 assert.equal(identity.gameId, 'legacy-ID')
 assert.equal(game.name, '老玩家')
 assert.equal(game.notes, 50)

@@ -1,7 +1,7 @@
 import { COMMENT_QUOTES } from './commentQuotes.ts'
 export type SkillId = 'shield' | 'magnet' | 'revive' | 'courage' | 'tea' | 'freeze' | 'double' | 'rewind' | 'friend'
 export type ImageryModel = 'garden' | 'pavilion' | 'fireworks' | 'lantern' | 'snow' | 'record'
-export type WeatherId = 'clear' | 'sunset' | 'rain'
+export type WeatherId = 'clear' | 'sunset' | 'rain' | 'snow' | 'overcast'
 export const ITEMS: Record<string, { id: SkillId; name: string; description: string; prose: string }> = {
   心墙: { id: 'shield', name: '心墙护盾', description: '抵挡一次碰撞；护盾持续到触发', prose: COMMENT_QUOTES["心墙"]!.excerpt },
   你要的全拿走: { id: 'magnet', name: '拾光磁铁', description: '吸取前方 12 米、相邻车道金币，持续 8 秒', prose: COMMENT_QUOTES["你要的全拿走"]!.excerpt },
@@ -17,7 +17,8 @@ export interface ImageryContent { name: string; model: ImageryModel; value: numb
 const DECORATIONS: Record<string, ImageryContent> = {
   樱花草: { name: '春信花园', model: 'garden', value: 20, prose: '把没说完的话，交给下一次花开。' },
   夏夜最后的烟火: { name: '并肩观景台', model: 'fireworks', value: 50, prose: '烟火会散场，但有人陪你看过的夜，会在心里亮很久。' },
-  认真的雪: { name: '旧街雪庭', model: 'snow', value: 35, prose: '雪落下来的时候，城市安静了，记忆却有了声音。' },
+  认真的雪: { name: '雪天天气', model: 'snow', weather: 'snow', value: 35, prose: '雪落下来的时候，城市安静了，记忆却有了声音。' },
+  阴天: { name: '阴天天气', model: 'pavilion', weather: 'overcast', value: 35, prose: '云层遮住阳光，世界笼罩在柔和的灰蓝天光里。' },
   青花: { name: '青花月灯', model: 'lantern', value: 30, prose: '把一段旧时光，藏进温润的蓝白之间。' },
   晴天: { name: '等风花园', model: 'garden', value: 25, prose: '青春里有些雨，下了很久；想起你时，仍像晴天。' },
   下一个天亮: { name: '天亮候亭', model: 'pavilion', value: 40, prose: '慢一点没关系，愿你等到的天亮，真的有光。' },

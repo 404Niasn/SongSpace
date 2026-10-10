@@ -14,7 +14,7 @@ export function renderWorldThumbnails(): Record<WorldId, string> {
   try {
     for (const option of WORLD_OPTIONS) {
       const scene = new THREE.Scene()
-      scene.background = new THREE.Color('#e7ebde')
+      scene.background = new THREE.Color(option.id === 'space' ? '#070b21' : option.id === 'fuji' ? '#eee0e7' : '#e7ebde')
       const model = buildWorld(option.id)
       const sunlight = new THREE.DirectionalLight('#fff2ce', 3)
       sunlight.position.set(-40, 65, 35)

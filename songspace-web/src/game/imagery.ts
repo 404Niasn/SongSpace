@@ -3,16 +3,16 @@ import { catalog, game, kindFor, persist } from './save.ts'
 import { decorationMultiplier, imageryFor, type WeatherId } from './content.ts'
 import type { WorldId } from '../worlds/types.ts'
 export interface PlacedImagery { songId: string; x: number; z: number; rotation: number }
-const ids: WorldId[] = ['forest', 'sea', 'jiangnan']
+const ids: WorldId[] = ['forest', 'sea', 'jiangnan', 'fuji', 'space']
 let stored: Partial<Record<WorldId, PlacedImagery[]>> = {}
 try { stored = JSON.parse(localStorage.getItem('songspace.imagery.v2') || '{}') } catch { /* old save remains intact */ }
-export const imagery = reactive<Record<WorldId, PlacedImagery[]>>({ forest: [], sea: [], jiangnan: [] })
+export const imagery = reactive<Record<WorldId, PlacedImagery[]>>({ forest: [], sea: [], jiangnan: [], fuji: [], space: [] })
 for (const id of ids) imagery[id] = Array.isArray(stored?.[id]) ? stored[id]!.filter(p => p && typeof p.songId === 'string' && [p.x, p.z, p.rotation].every(Number.isFinite)).slice(0, 50) : []
 export function placedCount(songId: string) { return ids.reduce((n, id) => n + imagery[id].filter(p => p.songId === songId).length, 0) }
 export function availableImagery(songId: string) { return Math.max(0, (game.owned[songId] || 0) - placedCount(songId)) }
 export function validPlacements(world: WorldId) {
   const seen: Record<string, number> = {}
-  const valid: Record<WorldId, PlacedImagery[]> = { forest: [], sea: [], jiangnan: [] }
+  const valid: Record<WorldId, PlacedImagery[]> = { forest: [], sea: [], jiangnan: [], fuji: [], space: [] }
   for (const id of ids) for (const p of imagery[id]) {
     const song = catalog.songs.find(s => s.id === p.songId)
     if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || (seen[p.songId] || 0) >= (game.owned[p.songId] || 0)) continue

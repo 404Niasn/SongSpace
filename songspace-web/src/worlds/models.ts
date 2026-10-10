@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { buildSongWorld } from './songWorlds'
 import { jiangnanHouse } from './jiangnan'
 import type { DecorationKind, WorldId, WorldModel } from './types'
 
@@ -14,6 +15,7 @@ function random(seed: number) {
 
 // Shared materials and geometry stay local to a world so switching can dispose everything.
 export function buildWorld(id: WorldId): WorldModel {
+  if (id === 'fuji' || id === 'space') return buildSongWorld(id)
   const rng = random(id === 'forest' ? 73 : id === 'sea' ? 91 : 137)
   const group = new THREE.Group()
   group.name = id

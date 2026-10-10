@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { PhSun, PhSunHorizon, PhCloudRain, PhCaretDown, PhCheck } from '@phosphor-icons/vue'
+import { PhSun, PhSunHorizon, PhCloudRain, PhCloud, PhSnowflake, PhCaretDown, PhCheck } from '@phosphor-icons/vue'
 import type { GameCard } from '@/game/save'
 import { imageryFor } from '@/game/content'
 
@@ -11,7 +11,7 @@ const trigger = ref<HTMLButtonElement>()
 const open = ref(false)
 const options = computed(() => [
   { id: '', name: '默认天气', song: '地图原生光照', icon: PhSun },
-  ...props.cards.map(card => ({ id: card.id, name: imageryFor(card.song.title).name, song: `《${card.song.title}》`, icon: imageryFor(card.song.title).weather === 'rain' ? PhCloudRain : PhSunHorizon })),
+  ...props.cards.map(card => ({ id: card.id, name: imageryFor(card.song.title).name, song: `《${card.song.title}》`, icon: ({ rain: PhCloudRain, snow: PhSnowflake, overcast: PhCloud, sunset: PhSunHorizon })[imageryFor(card.song.title).weather!] })),
 ])
 const selected = computed(() => options.value.find(option => option.id === props.modelValue) || options.value[0]!)
 function select(value: string) { emit('update:modelValue', value); open.value = false; trigger.value?.focus() }
@@ -35,7 +35,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
 <template>
   <div ref="root" class="weather-picker" @keydown="keyboard" @focusout="event => { if (!root?.contains(event.relatedTarget as Node)) open = false }">
     <button ref="trigger" class="weather-trigger" aria-label="选择已解锁天气" aria-haspopup="menu" :aria-expanded="open" @click="open = !open">
-      <span class="weather-icon" :class="{ rain: selected.icon === PhCloudRain, sunset: selected.icon === PhSunHorizon }"><component :is="selected.icon" :size="21" weight="duotone" /></span>
+      <span class="weather-icon" :class="{ rain: [PhCloudRain, PhSnowflake, PhCloud].includes(selected.icon), sunset: selected.icon === PhSunHorizon }"><component :is="selected.icon" :size="21" weight="duotone" /></span>
       <span class="weather-label"><small>世界天气</small><b>{{ selected.name }}</b></span>
       <PhCaretDown class="weather-caret" :class="{ open }" :size="13" />
     </button>
@@ -43,11 +43,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outside))
       <div v-if="open" class="weather-options" role="menu" aria-label="已解锁天气">
         <span class="weather-menu-label">选择天气</span>
         <button v-for="option in options" :key="option.id" role="menuitemradio" :aria-checked="modelValue === option.id" :class="{ selected: modelValue === option.id }" @click="select(option.id)">
-          <span class="weather-icon" :class="{ rain: option.icon === PhCloudRain, sunset: option.icon === PhSunHorizon }"><component :is="option.icon" :size="22" weight="duotone" /></span>
+          <span class="weather-icon" :class="{ rain: [PhCloudRain, PhSnowflake, PhCloud].includes(option.icon), sunset: option.icon === PhSunHorizon }"><component :is="option.icon" :size="22" weight="duotone" /></span>
           <span class="weather-option-copy"><b>{{ option.name }}</b><small>{{ option.song }}</small></span>
           <PhCheck v-if="modelValue === option.id" :size="16" weight="bold" />
         </button>
-        <p v-if="cards.length === 0">收集《黄昏》《雨爱》解锁天气</p>
+        <p v-if="cards.length === 0">收集《黄昏》《雨爱》《认真的雪》《阴天》解锁天气</p>
       </div>
     </Transition>
   </div>

@@ -19,6 +19,7 @@ const points = [
 <style scoped>
 .card-aura{--light:155,194,212;position:absolute;inset:0;pointer-events:none;z-index:-1;border-radius:11px;overflow:visible}
 .card-aura.gold{--light:230,187,71}.card-aura.rainbow{--light:172,160,224}
+.card-aura.vehicle{--light:178,133,226}
 .aura-bloom{position:absolute;inset:-3px;border-radius:13px;box-shadow:0 0 14px rgba(var(--light),.48),0 0 34px rgba(var(--light),.28),0 0 62px rgba(var(--light),.13);background:rgba(var(--light),.07);animation:card-breathe 5s ease-in-out infinite}
 i{position:absolute;width:3px;height:3px;border-radius:50%;background:rgb(var(--light));box-shadow:0 0 3px #fff,0 0 7px rgba(var(--light),.95),0 0 13px rgba(var(--light),.5);animation:card-mote 6s ease-in-out infinite;opacity:0}
 i:nth-of-type(3n){width:2px;height:2px}

@@ -3,9 +3,12 @@ import forestCover from '@/assets/map-covers/003S4zP93vJRib.jpg'
 import seaCover from '@/assets/map-covers/001dW8Ey2VtnuP.jpg'
 import jiangnanCover from '@/assets/map-covers/000y5gq7449K9I.jpg'
 
-export type WorldId = 'forest' | 'sea' | 'jiangnan'
+export type WorldId = 'forest' | 'sea' | 'jiangnan' | 'fuji' | 'space'
 export type ViewMode = 'overview' | 'roam'
 export type DecorationKind = 'bench' | 'lamp' | 'flowers'
+
+import fujiCover from '@/assets/covers/qqmusic/004Z85XP1c25b7.jpg'
+import spaceCover from '@/assets/covers/qqmusic/001mTkmb4GJlh4.jpg'
 
 export const WORLD_OPTIONS = [
   {
@@ -44,6 +47,8 @@ export const WORLD_OPTIONS = [
     color: '#65736c',
     atmosphere: '水乡薄雾',
   },
+  { id: 'fuji', title: '富士山下', artist: '陈奕迅', album: "What's Going On...?", cover: fujiCover, english: 'UNDER MOUNT FUJI', description: '沿樱花小径穿过鸟居，在湖畔望见覆雪的富士山。', scene: '雪山 · 樱花 · 湖畔鸟居', color: '#a4778c', atmosphere: '樱色晴空' },
+  { id: 'space', title: '光年之外', artist: 'G.E.M.邓紫棋', album: '光年之外', cover: spaceCover, english: 'LIGHT YEARS AWAY', description: '沿星际栈道驶向远方，穿过星环与陨石，仰望无尽宇宙。', scene: '星球 · 星环 · 太空栈道', color: '#7477c4', atmosphere: '深空星河' },
 ] as const
 
 export interface Decoration {

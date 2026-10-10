@@ -10,6 +10,7 @@ export interface RiderLeg {
   pedal: T.Mesh
   crank: T.Mesh
   side: number
+  highHeels: boolean
 }
 
 const up = new T.Vector3(0, 1, 0)
@@ -111,7 +112,7 @@ function surface(shapes: Shape[], material: T.Material) {
 }
 
 export type CharacterPose = 'riding' | 'standing' | 'driving'
-export function buildRider(pose: CharacterPose = 'riding') {
+export function buildRider(pose: CharacterPose = 'riding', highHeels = false) {
   const standing = pose === 'standing'
   const group = new T.Group()
   group.name = 'rider'
@@ -147,17 +148,18 @@ export function buildRider(pose: CharacterPose = 'riding') {
     const elbow = standing ? new T.Vector3(side * .40, 1.10, 0) : pose === 'driving' ? new T.Vector3(side * .26, 1.88, -.5) : new T.Vector3(side * .31, 1.77, -.40)
     const wrist = standing ? new T.Vector3(side * .47, .87, -.015) : pose === 'driving' ? new T.Vector3(side * .25, 2.06, -1.09) : new T.Vector3(side * .385, 1.475, -.715)
     tube([shoulder, elbow, wrist], .105, .09)
-    const rest = standing ? { hip: new T.Vector3(side * .17, .77, 0), knee: new T.Vector3(side * .17, .445, 0), ankle: new T.Vector3(side * .17, .12, 0), pedal: new T.Vector3() } : riderJoints(side, side < 0 ? Math.PI : 0)
+    const rest = standing ? { hip: new T.Vector3(side * .17, .77, 0), knee: new T.Vector3(side * .17, .445, 0), ankle: new T.Vector3(side * .17, highHeels ? .23 : .12, 0), pedal: new T.Vector3() } : riderJoints(side, side < 0 ? Math.PI : 0, highHeels)
     if (standing) capsule(rest.hip, rest.ankle, .115, .10)
     else tube([rest.hip, rest.knee, rest.ankle], .13, .10)
-    oval(rest.ankle.clone().add(new T.Vector3(0, -.01, -.025)), 1, new T.Vector3(.125, .10, .14))
+    if (highHeels) oval(rest.ankle.clone().add(new T.Vector3(0, -.08, -.05)), 1, new T.Vector3(.105, .065, .19), -.45)
+    else oval(rest.ankle.clone().add(new T.Vector3(0, -.01, -.025)), 1, new T.Vector3(.125, .10, .14))
     const thigh = new T.Bone(), shin = new T.Bone(), foot = new T.Bone()
     thigh.position.copy(rest.hip); shin.position.subVectors(rest.knee, rest.hip); foot.position.subVectors(rest.ankle, rest.knee)
     root.add(thigh); thigh.add(shin); shin.add(foot); bones.push(thigh, shin, foot)
     const pedal = new T.Mesh(new T.BoxGeometry(.18, .04, .13), metal), crank = new T.Mesh(new T.CylinderGeometry(.018, .018, 1, 8), metal)
     if (!standing) group.add(pedal, crank)
     else { pedal.geometry.dispose(); crank.geometry.dispose() }
-    legs.push({ thigh, shin, foot, rest, pedal, crank, side })
+    legs.push({ thigh, shin, foot, rest, pedal, crank, side, highHeels })
   }
   const geometry = surface(shapes, white), positions = geometry.getAttribute('position'), indices: number[] = [], weights: number[] = []
   const p = new T.Vector3(), direction = new T.Vector3(), offset = new T.Vector3()
@@ -192,11 +194,11 @@ export function buildRider(pose: CharacterPose = 'riding') {
   return { group, legs, skin }
 }
 
-export function riderJoints(side: number, phase: number) {
+export function riderJoints(side: number, phase: number, highHeels = false) {
   // Bury the thigh roots inside the rounded pelvis so pedalling never exposes a gap.
   const hip = new T.Vector3(side * .15, 1.55, .33)
   const pedal = new T.Vector3(side * .23, .70 + Math.sin(phase) * .17, .05 + Math.cos(phase) * .17)
-  const ankle = pedal.clone().add(new T.Vector3(0, .13, .06))
+  const ankle = pedal.clone().add(new T.Vector3(0, highHeels ? .23 : .13, .06))
   const direction = ankle.clone().sub(hip)
   // Equal fixed-length limbs form a triangle; the knee bends towards the handlebars.
   const knee = hip.clone().add(ankle).multiplyScalar(.5)
@@ -207,7 +209,7 @@ export function riderJoints(side: number, phase: number) {
 
 export function poseRider(legs: RiderLeg[], phase: number, seated = false) {
   for (const leg of legs) {
-    const joints = riderJoints(leg.side, seated ? 0 : phase + (leg.side < 0 ? Math.PI : 0)), rest = leg.rest
+    const joints = riderJoints(leg.side, seated ? 0 : phase + (leg.side < 0 ? Math.PI : 0), leg.highHeels), rest = leg.rest
     const thighRotation = new T.Quaternion().setFromUnitVectors(rest.knee.clone().sub(rest.hip).normalize(), joints.knee.clone().sub(joints.hip).normalize())
     const shinRotation = new T.Quaternion().setFromUnitVectors(rest.ankle.clone().sub(rest.knee).normalize(), joints.ankle.clone().sub(joints.knee).normalize())
     leg.thigh.quaternion.copy(thighRotation)

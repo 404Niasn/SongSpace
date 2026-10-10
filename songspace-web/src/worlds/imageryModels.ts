@@ -87,8 +87,8 @@ export function buildImagery(model: ImageryModel): T.Group {
 
 export function buildSkillEffect(id: SkillId, broken = false): T.Group {
   const g = new T.Group()
-  const color = id === 'freeze' ? '#8cdae9' : id === 'revive' || id === 'shield' ? '#eeb3bd' : '#efd18a'
-  const mat = new T.MeshBasicMaterial({ color, transparent: true, opacity: 0.6, depthWrite: false })
+  const color = ({ shield: '#94ceff', magnet: '#c3a5ff', revive: '#ffbecd', courage: '#ffbe7c', tea: '#a1efc5', freeze: '#8cdae9', double: '#ffe08b', rewind: '#a4baff', friend: '#f4c6ed' } satisfies Record<SkillId, string>)[id]
+  const mat = new T.MeshBasicMaterial({ color, transparent: true, opacity: 0.55, depthWrite: false, blending: T.AdditiveBlending })
   const jewel = (shape: T.Shape, x: number, y: number, size = 1) => {
     const m = new T.Mesh(new T.ExtrudeGeometry(shape, { depth: 0.07, bevelEnabled: true, bevelSize: 0.025, bevelThickness: 0.025, bevelSegments: 3 }), mat.clone())
     m.position.set(x, y, -0.1); m.scale.setScalar(size); g.add(m); return m
@@ -96,12 +96,12 @@ export function buildSkillEffect(id: SkillId, broken = false): T.Group {
   const star = new T.Shape()
   for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5 + Math.PI / 2, r = i % 2 ? 0.2 : 0.48; if (i === 0) star.moveTo(Math.cos(a) * r, Math.sin(a) * r); else star.lineTo(Math.cos(a) * r, Math.sin(a) * r) }; star.closePath()
   const tube = (points: T.Vector3[], radius = 0.016) => { const mesh = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points), 24, radius, 6, false), mat.clone()); g.add(mesh); return mesh }
-  const ring = (r: number, y: number) => { const m = new T.Mesh(new T.TorusGeometry(r, 0.025, 8, 64), mat.clone()); m.rotation.x = Math.PI / 2; m.position.y = y; g.add(m); return m }
+  const ring = (r: number, y: number) => { const m = new T.Mesh(new T.TorusGeometry(r, 0.025, 8, 64), mat.clone()); m.rotation.x = Math.PI / 2; m.position.y = y; m.userData.orbit = true; g.add(m); return m }
   if (id === 'shield') {
-    const shell = new T.Mesh(new T.SphereGeometry(1.45, 32, 24), new T.MeshPhysicalMaterial({ color, transparent: true, opacity: 0.15, roughness: 0.05, metalness: 0.2, side: T.DoubleSide, depthWrite: false }))
+    const shell = new T.Mesh(new T.SphereGeometry(1.6, 32, 20), new T.MeshBasicMaterial({ color, transparent: true, opacity: 0.08, side: T.FrontSide, depthWrite: false }))
     shell.scale.set(0.7, 1, 0.8); shell.position.y = 1.3; if (!broken) g.add(shell); else { shell.geometry.dispose(); (shell.material as T.Material).dispose() }
     const heart = new T.Shape(); heart.moveTo(0, 0); heart.bezierCurveTo(-0.55, 0.4, -0.4, 0.85, 0, 0.5); heart.bezierCurveTo(0.4, 0.85, 0.55, 0.4, 0, 0)
-    if (!broken) jewel(heart, 0, 2.6)
+    if (!broken) { jewel(heart, 0, 2.9, .65); ring(1.05, .3); ring(1.05, 2.3) }
     else for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8
       const shard = new T.Mesh(new T.SphereGeometry(1.45, 5, 4, a, 0.18, 0.4 + (i % 4) * 0.55, 0.22), mat.clone())

@@ -12,10 +12,18 @@ const host = ref<HTMLElement>(), error = ref(false)
 let renderer: T.WebGLRenderer | undefined, controls: OrbitControls | undefined
 let resize: ResizeObserver | undefined, frame = 0, character: T.Group | undefined
 let attachments: T.Group | undefined, scene: T.Scene | undefined
-let turn = 0, greeting = -10
+let turn = 0, greeting = -10, wearingHeels = false
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 function dress() {
-  if (!character) return
+  if (!character || !scene) return
+  const heels = props.outfits.some(outfit => outfit.id === 'red-high-heels')
+  if (heels !== wearingHeels) {
+    const rotation = character.rotation.clone()
+    if (attachments) { character.remove(attachments); disposeObject(attachments); attachments = undefined }
+    scene.remove(character); disposeObject(character)
+    character = buildRider('standing', heels).group
+    character.rotation.copy(rotation); scene.add(character); wearingHeels = heels
+  }
   if (attachments) { character.remove(attachments); disposeObject(attachments) }
   attachments = addCharacterOutfits(character, props.outfits, 'standing')
 }
@@ -26,11 +34,11 @@ onMounted(() => {
     const target = host.value!
     scene = new T.Scene()
     const camera = new T.PerspectiveCamera(35, 1, .1, 30)
-    camera.position.set(1.3, 1.6, 4.5)
+    camera.position.set(1.05, 1.45, -4.0)
     renderer = new T.WebGLRenderer({ alpha: true, antialias: true })
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5))
     renderer.shadowMap.enabled = true
-    renderer.shadowMap.type = T.PCFSoftShadowMap
+    renderer.shadowMap.type = T.VSMShadowMap
     renderer.toneMapping = T.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.1
     renderer.domElement.setAttribute('role', 'img')
@@ -38,20 +46,23 @@ onMounted(() => {
     target.append(renderer.domElement)
     scene.add(new T.HemisphereLight('#ffffff', '#9baeb3', 2))
     const light = new T.DirectionalLight('#fff5e5', 2.2)
-    light.position.set(-3, 6, 4); light.castShadow = true
-    light.shadow.mapSize.set(512, 512)
+    light.position.set(-2, 6, 3); light.castShadow = true
+    light.shadow.mapSize.set(1024, 1024)
     Object.assign(light.shadow.camera, { left: -2, right: 2, top: 3, bottom: -2 })
-    light.shadow.normalBias = .025
+    light.shadow.normalBias = .015
+    light.shadow.radius = 8
+    light.shadow.blurSamples = 8
+    light.shadow.bias = -.0001
     scene.add(light)
     const rim = new T.DirectionalLight('#eaf3ff', .8)
     rim.position.set(3, 4, -3); scene.add(rim)
-    const ground = new T.Mesh(new T.CircleGeometry(1.15, 48), new T.ShadowMaterial({ opacity: .13 }))
-    ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true
+    const ground = new T.Mesh(new T.PlaneGeometry(20, 20), new T.ShadowMaterial({ opacity: .12 }))
+    ground.rotation.x = -Math.PI / 2; ground.position.y = .005; ground.receiveShadow = true
     scene.add(ground)
     character = buildRider('standing').group
     scene.add(character); dress()
     controls = new OrbitControls(camera, renderer.domElement)
-    controls.target.set(0, 1.0, 0)
+    controls.target.set(0, 1.03, 0)
     controls.enablePan = false; controls.enableZoom = false; controls.enableDamping = true
     controls.minPolarAngle = .65; controls.maxPolarAngle = Math.PI / 2
     controls.update()
@@ -59,7 +70,11 @@ onMounted(() => {
       const width = target.clientWidth, height = target.clientHeight
       if (!width || !height) return
       renderer!.setSize(width, height)
-      camera.aspect = width / height; camera.updateProjectionMatrix()
+      camera.aspect = width / height
+      // Frame the whole silhouette, including heels, in the narrow wardrobe panel.
+      const distance = Math.max(3.75, 1.25 / (Math.tan(T.MathUtils.degToRad(camera.fov / 2)) * camera.aspect))
+      camera.position.sub(controls!.target).normalize().multiplyScalar(distance).add(controls!.target)
+      camera.updateProjectionMatrix(); controls!.update()
     })
     resize.observe(target)
     let previous = performance.now()
@@ -73,7 +88,11 @@ onMounted(() => {
       character!.rotation.z = reducedMotion ? 0 : Math.sin(time * 1.1) * .008
       const progress = T.MathUtils.clamp((time - greeting) / 1.3, 0, 1)
       character!.rotation.x = Math.sin(progress * Math.PI) * .12
-      controls!.update(); renderer!.render(scene!, camera)
+      controls!.update()
+      // Keep the studio key light on the viewer's left while dragging the camera.
+      const azimuth = controls!.getAzimuthalAngle()
+      light.position.set(-2 * Math.cos(azimuth) + 3 * Math.sin(azimuth), 6, 2 * Math.sin(azimuth) + 3 * Math.cos(azimuth))
+      renderer!.render(scene!, camera)
     }
     frame = requestAnimationFrame(render)
   } catch (e) { error.value = true; console.error(e) }

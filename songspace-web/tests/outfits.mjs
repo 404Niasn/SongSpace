@@ -102,7 +102,7 @@ assert.equal(game.equippedOutfits.head, 'test-head')
 assert.equal(unequipOutfit('back'), true)
 assert.equal(game.equippedOutfits.head, 'test-head')
 assert.equal(unequipOutfit('head'), true)
-OUTFITS.splice(1)
+OUTFITS.splice(2)
 game.equippedOutfits = { back: 'unknown' }
 persist()
 assert.equal(equippedOutfits.value.length, 0)

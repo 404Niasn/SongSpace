@@ -1,0 +1,79 @@
+/* SongSpace's physical record collection: shared card stock and opening table. */
+.song-card-print.song-card-print.song-card-print.song-card-print,
+.single-card .song-card-print.song-card-print.song-card-print.song-card-print,
+.revealed-grid .song-card-print.song-card-print.song-card-print.song-card-print {
+  --ink:#2c4139; --edge:#bbc6c1; --paper:#f5f6f2;
+  color:var(--ink); border:3px solid var(--edge); border-radius:9px;
+  background:repeating-linear-gradient(0deg,#344b3904 0 1px,transparent 1px 3px),linear-gradient(125deg,#fff,#eff1eb);
+  box-shadow:inset 0 0 0 1px #fff,1px 2px 0 #c7cec7,2px 4px 0 #d5dbd4,0 12px 22px -12px #25463855;
+}
+.song-card-print.song-card-print.song-card-print.song-card-print.gold { --edge:#c9ad68; background:linear-gradient(120deg,#fffdf6,#f5f3e9); }
+.song-card-print.song-card-print.song-card-print.song-card-print.rainbow { --edge:#b9c6d4; background:linear-gradient(130deg,#fff,#f0f4f1); }
+.song-card-print.song-card-print.song-card-print.song-card-print.outfit { --edge:#6c9bc3; background:linear-gradient(130deg,#fff,#edf3f8); }
+.song-card-print.song-card-print.song-card-print.song-card-print.vehicle { --edge:#a88abd; background:linear-gradient(130deg,#fff,#f2eef7); }
+.song-card-print.song-card-print.song-card-print.song-card-print::after { animation:none; background:none; opacity:0; }
+.song-card-print.song-card-print.song-card-print.song-card-print::before { border-color:#9fab9d35; box-shadow:none; }
+.song-card-print .print-art { border-color:#b9c4bc; box-shadow:0 2px 5px #233d3620; }
+.song-card-print .print-art::after { background:linear-gradient(115deg,transparent 18%,#ffffff32 34%,transparent 49%,#ffffff08 78%); }
+.song-card-print.gold .print-title h3 { background:linear-gradient(110deg,#765925,#b49a54 40%,#675020 58%,#c2a46c); background-clip:text; -webkit-text-fill-color:transparent; }
+.song-card-print.rainbow .print-art::after { animation:record-foil 6s ease-in-out infinite; background:linear-gradient(115deg,transparent 18%,#82d9b440 33%,#bba1dd44 40%,#fff8 45%,#e8c39644 50%,transparent 65%); background-size:230% 100%; mix-blend-mode:soft-light; }
+.song-card-print .print-title small { color:#748179; letter-spacing:1px; }
+.song-card-print.outfit .print-title small { color:#47749e; }
+.song-card-print.vehicle .print-title small { color:#805b9d; }
+.song-card-print .print-footer { border-color:#cbd4ca; color:#637569; }
+.song-card-print .print-art>span { color:#344d40; background:#f4f6efe8; }
+.song-card-print .card-prose { color:#647469; }
+.card-aura .aura-bloom { animation:none; background:none; box-shadow:none; }
+.card-aura>i { display:none; }
+.pack-visual { background:radial-gradient(ellipse at 50% 70%,#e1e9dd,#f6f8f3 70%); }
+.record-room.record-room { --opening-card-width:250px; --opening-card-height:375px; background:radial-gradient(ellipse at 50% 45%,#fff 0%,#eef2eb 74%); color:#294638; padding:70px 24px 28px; justify-content:flex-start; gap:0; overflow-y:auto; }
+.record-heading { text-align:center; z-index:2; flex-shrink:0; }
+.record-heading>span { font-size:10px; letter-spacing:3px; color:#829286; }
+.record-room .record-heading h2 { font-size:26px; font-weight:500; letter-spacing:1px; margin:12px 0 9px; color:#2c493d; }
+.record-heading p { font-size:12px; color:#7c8c7e; margin:0; }
+.record-stage { position:relative; width:min(540px,100%); height:450px; flex-shrink:0; isolation:isolate; }
+.record-stage::after { content:''; position:absolute; bottom:25px; left:12%; right:12%; height:18px; background:#526c4720; border-radius:50%; filter:blur(16px); z-index:-1; }
+.record-box { position:absolute; width:100%; height:100%; inset:0; transform-origin:50% 65%; }
+.record-box.box-resting { transform:translate(95px,120px) rotate(7deg) scale(.68); }
+.record-box .pack-model { position:relative; width:100%; height:100%; }
+.record-box .drawer-pull { position:absolute; left:var(--pull-x,50%); top:var(--pull-y,80%); transform:translate(-50%,-50%); width:70px; height:66px; border:0; border-radius:5px; background:transparent; cursor:ns-resize; touch-action:none; display:flex; align-items:center; flex-direction:column; justify-content:flex-end; color:#657f6b; }
+.drawer-pull span { font-size:10px; transform:translateY(36px); letter-spacing:2px; }
+.drawer-pull b { font-size:17px; font-weight:400; transform:translateY(37px); }
+.drawer-pull:focus-visible { outline:2px solid #567962; outline-offset:3px; }
+.record-room .emerging-card,.record-room .record-card-stage { position:absolute; width:var(--opening-card-width); height:var(--opening-card-height); left:calc(50% - var(--opening-card-width)/2); top:28px; margin:0; z-index:3; }
+.record-room .emerging-card { transform:none; opacity:0; }
+.record-room .single-card { display:block; width:100%; height:100%; margin:0; padding:0; background:transparent; border:0; border-radius:9px; perspective:1200px; }
+.record-room .card-turner { display:block; position:relative; width:100%; height:100%; transform-style:preserve-3d; }
+.record-room .card-side { position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+.record-room .card-obverse { transform:rotateY(180deg); }
+.record-room .record-back { box-sizing:border-box; display:flex; align-items:center; flex-direction:column; justify-content:space-between; padding:24px 12px; border:3px solid #b6c4b8; border-radius:9px; color:#e6ecdf; background:repeating-linear-gradient(0deg,#ffffff04 0 1px,transparent 1px 3px),#365647; box-shadow:inset 0 0 0 1px #71917a,1px 2px 0 #b7c5b7,2px 4px 0 #d3dad0,0 12px 22px -10px #24473245; }
+.record-room .record-back::before,.record-room .record-back::after { content:none; }
+.record-back>small { font-size:13px; letter-spacing:3px; }
+.record-back>b { font-size:12px; font-weight:400; letter-spacing:1px; }
+.record-back>span { font-size:7px; letter-spacing:2px; color:#b9cebc; }
+.vinyl-label { display:grid; place-items:center; width:170px; aspect-ratio:1; border-radius:50%; border:1px solid #80937d; background:repeating-radial-gradient(circle,#1e372e 0 2px,#52684f 2.5px,#1e372e 3.5px); box-shadow:inset 0 0 24px #162b2380; }
+.vinyl-label>span { display:grid; place-content:center; width:56px; height:56px; border-radius:50%; background:#dce4ce; color:#3a5947; font-size:11px; line-height:1.6; text-align:center; letter-spacing:2px; }
+.record-room .record-controls { display:flex; flex-direction:column; align-items:center; gap:12px; position:relative; z-index:4; margin-top:6px; }
+.record-controls p { font-size:12px; color:#788975; margin:0; }
+.record-room .spectrum-btn { min-width:180px; color:#f2f6ef; background:#365b47; border-color:#365b47; box-shadow:none; }
+.record-room .spectrum-btn:disabled { opacity:.5; }
+.record-room .outline-btn { background:#f7f9f3; color:#526e59; border-color:#cdd8c9; }
+.record-room .opening-skip { right:68px; top:22px; font-size:11px; }
+.record-room .opening-close { top:22px; right:24px; color:#526e59; }
+.record-room.is-summary { padding-top:65px; }
+.record-room .record-results { display:flex; justify-content:center; align-items:flex-start; flex-wrap:wrap; gap:25px; width:min(1250px,100%); margin:32px auto; overflow:visible; }
+.record-room .record-results>.record-result { flex:0 0 205px; width:205px; max-width:250px; height:auto; aspect-ratio:auto; background:none; border:0; padding:0; box-shadow:none; overflow:visible; cursor:default; }
+.record-room .record-result>.song-card-print { width:100%; height:308px; }
+.record-room .collection-change { padding:20px 2px 0; text-align:left; color:#385942; }
+.collection-change small { font-size:12px; font-weight:600; }
+.record-room .collection-change p { margin:8px 0 10px; font-size:11px; line-height:1.7; color:#788775; min-height:38px; }
+.collection-change button { font-size:11px; border:0; border-bottom:1px solid #afc1ad; padding:0 0 4px; color:#426948; background:none; }
+.record-room .opening-actions { margin-top:8px; flex-wrap:wrap; padding-bottom:24px; }
+@keyframes record-foil { 0%,100%{background-position:150% 0}50%{background-position:-50% 0} }
+@media(max-width:600px) { .record-room.record-room { padding:75px 16px 22px; --opening-card-width:230px; --opening-card-height:345px; }.record-stage { height:405px; }.record-room .record-heading h2 { font-size:22px; }.record-heading>span { font-size:8px; letter-spacing:2px; }.record-room .record-results { gap:26px; }.record-room .record-results>.record-result { flex-basis:250px; width:250px; }.record-room .record-result>.song-card-print { height:375px; }.record-box.box-resting { transform:translate(55px,100px) rotate(7deg) scale(.6); }.record-room .opening-skip { padding:8px; }.record-controls p { font-size:11px; } }
+@media(max-height:720px) and (min-width:601px) { .record-room.record-room { padding-top:58px; --opening-card-width:220px; --opening-card-height:330px; }.record-stage { height:375px; }.record-room .record-heading h2 { font-size:21px; margin:8px 0; }.record-room .record-controls { margin-top:0; } }
+@media(prefers-reduced-motion:reduce) { .song-card-print.rainbow .print-art::after { animation:none; background-position:50% 0; } }
+
+.record-room .record-results>.record-result { display:flex; flex-direction:column; gap:0; }
+.record-room .opening-close { left:auto; }
+.packs-page .shop-title { display:flex; gap:16px; flex-wrap:wrap; }

@@ -128,7 +128,7 @@ function use(c: GameCard) {
         <button v-if="selected.count" class="lime-btn" :disabled="selected.kind === 'decoration' && !imageryFor(selected.song.title).weather && availableImagery(selected.id) < 1" @click="use(selected)">
           {{
             selected.outfit ? '穿戴这件装扮' : selected.kind === 'map'
-              ? selected.song.title === '光年之外' ? '太空地图 · 后续开放' : '选择《江南》地图'
+              ? `选择《${selected.song.title}》地图`
               : selected.kind === 'vehicle'
                 ? '装备' + (selected.song.vehicle_name || '载具')
                 : selected.kind === 'item'
@@ -137,7 +137,7 @@ function use(c: GameCard) {
           }}
         </button>
         <p v-if="selected.kind === 'map'">
-          {{ selected.song.title === '光年之外' ? '彩色闪卡对应《光年之外》太空地图，后续开放。' : '彩色闪卡对应《江南》地图，在烟雨中的青石板街骑行。' }}
+          {{ `已解锁《${selected.song.title}》地图，可进入探索与微缩世界。` }}
         </p>
         <a
           class="music-link"

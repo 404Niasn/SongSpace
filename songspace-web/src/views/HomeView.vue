@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { PhHouse, PhCompass, PhCards, PhVinylRecord, PhHeadphones, PhTrophy, PhCube, PhMusicNotes, PhUserCircle, PhCloudSlash, PhX, PhEye, PhEyeSlash, PhCopy, PhCheck, PhSignOut, PhArrowRight, PhQuestion, PhGameController } from '@phosphor-icons/vue'
-import { connectSave, cloud, identity, logoutGame, retrySave } from '@/game/cloud'
+import { connectSave, cloud, identity, logoutGame, retrySave, needsWelcome, dismissWelcome } from '@/game/cloud'
 import WorldCanvas from '@/components/WorldCanvas.vue'
 import WeatherPicker from '@/components/WeatherPicker.vue'
 import MapMusic from '@/components/MapMusic.vue'
@@ -17,7 +17,6 @@ import ItemLoadout from '@/components/ItemLoadout.vue'
 import SkillBar from '@/components/SkillBar.vue'
 import VehiclePreview from '@/components/VehiclePreview.vue'
 import VehiclePicker from '@/components/VehiclePicker.vue'
-import { raceDifficulty } from '@/game/raceDifficulty'
 import { ITEMS, artPath, imageryFor, skillLevel } from '@/game/content'
 import { availableImagery, worldValue, worldMultiplier, weatherForWorld, activeWeatherSong, setWorldWeather } from '@/game/imagery'
 import { WORLD_OPTIONS, type WorldId } from '@/worlds/types'
@@ -30,6 +29,7 @@ import {
   ownedCount,
   cardFor,
   kindFor,
+  isWorldUnlocked,
   claimableAchievements,
   equippedOutfits,
   outfitScoreBonus,
@@ -153,6 +153,7 @@ function changeCamera(mode:number) {
   race.value?.camera(mode)
 }
 function selectMap(id: WorldId) {
+  if (!isWorldUnlocked(id)) { message('先获得对应歌曲彩卡，即可解锁这张地图。'); return }
   if (world.value === id) return
   world.value = id
   reset()
@@ -181,7 +182,7 @@ function openHelp() {
   help.value?.showModal()
 }
 async function start() {
-  if (!ready.value || entering.value) return
+  if (!ready.value || entering.value || !isWorldUnlocked(world.value)) return
   runMultiplier.value = currentMultiplier.value
   entering.value = true
   void mapMusic.value?.play()
@@ -220,12 +221,13 @@ function useItem(index: number) {
 }
 function equip(c: GameCard) {
   if (c.kind === 'map') {
-    if (c.song.title === '光年之外') { message('已收藏《光年之外》彩卡，太空地图后续开放。'); return }
-    world.value = 'jiangnan'
+    const target = WORLD_OPTIONS.find(w => w.title === c.song.title)
+    if (!target || !isWorldUnlocked(target.id)) return
+    world.value = target.id
     evening.value = false
     game.equippedTheme = c.id
     persist()
-    message('已选择《江南》地图 · 烟雨与青石板街')
+    message(`已选择《${c.song.title}》地图`)
     reset()
   } else if (c.kind === 'vehicle') {
     vehicle.value = c
@@ -255,13 +257,22 @@ function rename() {
   message('昵称已保存。')
 }
 const nickname = ref<HTMLDialogElement>(),
-  help = ref<HTMLDialogElement>()
+  help = ref<HTMLDialogElement>(),
+  welcome = ref<HTMLDialogElement>()
+function finishWelcome(openPacks = false) {
+  dismissWelcome()
+  welcome.value?.close()
+  if (openPacks) navigate('packs')
+}
 onMounted(async () => {
+  if (needsWelcome()) welcome.value?.showModal()
   await connectSave()
   if (!identity.valid) { await router.replace('/login'); return }
   name.value = game.name
   await loadCatalog()
-  if (catalog.songs.some(s => s.id === game.equippedTheme && s.title === '江南' && game.owned[s.id])) world.value = 'jiangnan'
+  const theme = catalog.songs.find(s => s.id === game.equippedTheme && game.owned[s.id])
+  const target = WORLD_OPTIONS.find(w => w.title === theme?.title)
+  if (target && isWorldUnlocked(target.id)) world.value = target.id
   evening.value = false
   const savedVehicle = catalog.songs.find((s) => s.id === game.equippedVehicle && game.owned[s.id])
   if (savedVehicle && kindFor(savedVehicle) === 'vehicle') vehicle.value = cardFor(savedVehicle)
@@ -329,13 +340,14 @@ onBeforeUnmount(() => clearTimeout(timer))
             class="track-option"
             :class="{ active: world === w.id }"
             :aria-pressed="world === w.id"
+            :aria-disabled="!isWorldUnlocked(w.id)"
             @click="selectMap(w.id)"
           >
             <img :src="w.cover" :alt="w.artist + '《' + w.album + '》专辑封面'" width="68" height="68" />
             <div>
               <h3>{{ w.title }}</h3>
               <p>
-                {{ w.artist }}
+                {{ isWorldUnlocked(w.id) ? w.artist : '🔒 获得同名彩卡解锁' }}
               </p>
 
             </div>
@@ -399,10 +411,8 @@ onBeforeUnmount(() => clearTimeout(timer))
               {{ label }}
             </button>
           </div>
-          <div v-if="started" class="stage-title">
-            <small>{{ selected.english }}</small
-            ><b>{{ selected.title }}</b
-            ><span>无尽赛道 · 第 {{ state.stage }} 关</span>
+          <div v-if="started" class="life-status" :class="{ critical: state.health === 1 }" role="status" :aria-label="`剩余生命 ${state.health}，最多 3 点`">
+            <span class="life-pips" aria-hidden="true"><i v-for="point in 3" :key="point" :class="{ lost: point > state.health }">♥</i></span>
           </div>
           <div v-if="raceError" class="race-error" role="alert">{{ raceError }}</div>
           <template v-if="started"
@@ -416,22 +426,12 @@ onBeforeUnmount(() => clearTimeout(timer))
               <div>
                 <small>探索距离</small><b>{{ state.distance }}<em> m</em></b>
               </div>
-              <div class="life-status" :class="{ critical: state.health === 1 }" role="status" :aria-label="`剩余生命 ${state.health}，最多 3 点`">
-                <small>剩余生命</small>
-                <b class="life-count">{{ state.health }}<em> / 3</em></b>
-                <span class="life-pips" aria-hidden="true"><i v-for="point in 3" :key="point" :class="{ lost: point > state.health }">♥</i></span>
-              </div>
             </div>
             <div class="stage-progress">
               <span>第 {{ state.stage }} 关</span
               ><progress :value="state.distance % 500" max="500" /><span
                 >{{ 500 - (state.distance % 500) }} m</span
               >
-            </div>
-            <div class="race-difficulty" aria-label="当前关卡难度">
-              <span>速度 <b>+{{ raceDifficulty(state.distance).speedBonus }} m/s</b></span>
-              <span>障碍密度 <b>{{ Math.round(raceDifficulty(state.distance).obstacleSteps.length / 12 * 100) }}%</b></span>
-              <span>{{ state.stage >= 6 ? '最高难度' : '每 500 米提升' }}</span>
             </div>
             <div class="race-bottom">
               <span
@@ -475,7 +475,7 @@ onBeforeUnmount(() => clearTimeout(timer))
         </div>
       </div>
     </section>
-    <PackRoom v-else-if="page === 'packs'" @warehouse="page = 'warehouse'" @daily="page = 'daily'" @message="message" />
+    <PackRoom @use="equip" v-else-if="page === 'packs'" @warehouse="page = 'warehouse'" @daily="page = 'daily'" @message="message" />
     <DailyGuess v-else-if="page === 'daily'" @packs="page = 'packs'" @message="message" />
     <AchievementRoom v-else-if="page === 'achievements'" @packs="page = 'packs'" @message="message" />
     <Warehouse v-else-if="page === 'warehouse'" @equip="equip" @decorate="decorateOwned" @message="message" />
@@ -489,9 +489,9 @@ onBeforeUnmount(() => clearTimeout(timer))
         <button class="outline-btn" @click="backToRace">去这个世界闯关 ↗</button>
       </div>
       <div class="mini-toolbar">
-        <select v-model="world" aria-label="选择微缩地图">
-          <option v-for="w in WORLD_OPTIONS" :key="w.id" :value="w.id">
-            {{ w.title }}
+        <select :value="world" @change="selectMap(($event.target as HTMLSelectElement).value as WorldId)" aria-label="选择微缩地图">
+          <option v-for="w in WORLD_OPTIONS" :key="w.id" :value="w.id" :disabled="!isWorldUnlocked(w.id)">
+            {{ w.title }}{{ isWorldUnlocked(w.id) ? '' : ' · 获得彩卡解锁' }}
           </option></select
         ><span>装饰值 {{ currentValue }} · 积分 ×{{ currentMultiplier.toFixed(2) }}</span>
         <button v-if="placement" @click="placement = null">取消摆放</button>
@@ -545,6 +545,17 @@ onBeforeUnmount(() => clearTimeout(timer))
       </div>
     </section>
     <div v-if="toast" class="game-toast" role="status">{{ toast }}</div>
+    <dialog ref="welcome" class="account-dialog welcome-dialog" aria-labelledby="welcome-title" @cancel.prevent="finishWelcome()">
+      <header class="account-heading"><div><h2 id="welcome-title">先保存你的账号 ID</h2><p>下次登录时，输入这段 ID 即可找回歌境。</p></div></header>
+      <div class="account-identity">
+        <label for="welcome-id">请复制并妥善保存，请勿分享给他人</label>
+        <input id="welcome-id" :value="identity.gameId" readonly spellcheck="false" @focus="($event.target as HTMLInputElement).select()" />
+        <div class="account-id-actions"><button class="account-copy" autofocus @click="copyGameId"><PhCopy :size="16" />复制账号 ID</button></div>
+        <p v-if="accountNotice" class="account-notice" role="status">{{ accountNotice }}</p>
+        <div class="welcome-gifts"><h3>欢迎礼包已到账</h3><p>500 音符 · 歌曲单抽包 ×3 · 歌曲三连包 ×1 · 载具歌单包 ×1</p><p>进入「卡包」，选择有库存的卡包，点击开启，再逐张翻开卡片。</p></div>
+      </div>
+      <footer class="account-footer"><button @click="finishWelcome()">已保存，进入大厅</button><button class="account-copy" @click="finishWelcome(true)">已保存，去开卡<PhArrowRight :size="17" /></button></footer>
+    </dialog>
     <dialog ref="nickname" class="account-dialog" aria-labelledby="account-title" @close="showGameId = false">
       <header class="account-heading">
         <span class="account-avatar"><PhUserCircle :size="30" weight="duotone" /></span>
@@ -600,13 +611,10 @@ onBeforeUnmount(() => clearTimeout(timer))
 .account-notice { margin-top:10px; font-size:12px; line-height:1.6; color:#456b56; }.account-footer { display:flex; align-items:center; justify-content:space-between; padding:18px 26px; background:#f7f9f7; border-top:1px solid #e5ebe6; font-size:12px; color:#6b7a70; }.account-footer button { display:flex; align-items:center; gap:9px; min-height:36px; padding:0 4px; color:#456b56; }
 @media(max-width:440px) { .account-heading { padding:22px 20px; }.account-name-form,.account-identity { padding-left:20px; padding-right:20px; }.account-footer { padding:16px 20px; } }
 /* Exploration setup: album list on the left, live miniature and equipment on the right. */
-.race-hud .life-status { min-width:78px;padding-left:16px;border-left:1px solid #cedbd1; }
-.race-hud .life-count { color:#496c57;font-size:26px; }.life-count em { font-size:13px;color:#6d8375; }
-.life-pips { display:flex;gap:6px;color:#619879;font-size:16px;line-height:1;margin-top:4px; }.life-pips i { font-style:normal; }.life-pips .lost { color:#cdd7d0; }
-.race-hud .life-status.critical .life-count,.life-status.critical .life-pips { color:#b15e4c; }
-.race-difficulty { position:absolute;top:172px;right:20px;display:flex;gap:14px;align-items:center;padding:10px 14px;border:1px solid #d6e3db;border-radius:8px;background:#f5faf6ee;color:#627d6b;font-size:11px; }
-.race-difficulty b { color:#385943;font-weight:600; }
-@media(max-width:700px) { .race-hud .life-status { padding-left:10px;min-width:64px; }.race-hud .life-count { font-size:22px; }.life-pips { font-size:13px; }.race-difficulty { top:140px;right:13px;gap:10px;font-size:10px; }.race-difficulty>span:last-child { display:none; } }
+.life-status { position:absolute;top:84px;left:20px;z-index:5;padding:9px 12px;border:1px solid #ffffff9c;border-radius:9px;background:#f7faf5ec; }
+.life-pips { display:flex;gap:9px;color:#619879;font-size:23px;line-height:1; }.life-pips i { font-style:normal; }.life-pips .lost { color:#cdd7d0; }
+.life-status.critical .life-pips { color:#b15e4c; }
+.welcome-dialog .account-identity { padding-top:0; }.welcome-gifts { margin-top:24px;padding-top:20px;border-top:1px solid #e5ebe6; }.welcome-gifts h3 { font-size:15px;color:#456b56; }.welcome-gifts p { margin-top:10px;font-size:13px;color:#6b7a70;line-height:1.8; }
 .race-page { max-width: 1400px; margin: auto; padding: 26px 36px; }
 .race-page .race-topline { margin-bottom: 20px; }
 .race-page .race-topline h1 { color: #34433b; font-size: 23px; font-weight: 600; }

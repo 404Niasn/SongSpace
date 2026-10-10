@@ -1,0 +1,18 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SongSpace · 唱片盒体验预览</title></head><body><div id="app"></div><script type="module">
+// Preview inventory is memory-only; never read or write the player's saved game.
+const memory = new Map()
+Object.defineProperty(window, 'localStorage', { value: { getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,String(v)),removeItem:k=>memory.delete(k),clear:()=>memory.clear() } })
+await import('/src/assets/main.css'); await import('/src/assets/spectrum.css'); await import('/src/assets/imagery.css'); await import('/src/assets/product.css')
+const {createApp,h} = await import('vue')
+const {default:PackRoom} = await import('/src/components/PackRoom.vue')
+const {default:SongCard} = await import('/src/components/SongCard.vue')
+const {game,loadCatalog,catalog,cardFor} = await import('/src/game/save.ts')
+await loadCatalog(); game.packs={single:9,triple:9,five:9,vehicle:9,theme:0}
+const samples=['富士山下','心墙','樱花草','红色高跟鞋','单车'].map(title=>catalog.songs.find(s=>s.title===title)).filter(Boolean)
+for(const song of samples) game.owned[song.id]=1
+createApp({render:()=>h('main',{style:'max-width:1280px;margin:auto;padding:24px'},[
+ h('p',{style:'color:#738471;font-size:12px;margin-bottom:22px'},'体验预览 · 测试唱片盒，不消耗账号库存 · 下方可对照五类卡面'),
+ h(PackRoom,{onWarehouse:()=>document.querySelector('#finishes').scrollIntoView({behavior:'smooth'}),onUse:()=>alert('预览中不切换地图；正式页面会前往对应歌境。')}),
+ h('section',{id:'finishes',style:'margin-top:48px'},[h('h2',{style:'font-size:20px;margin-bottom:24px'},'五类音乐收藏卡'),h('div',{style:'display:flex;gap:24px;flex-wrap:wrap'},samples.map(song=>h('div',{style:'width:210px'},[h(SongCard,{card:cardFor(song)})])))])
+])}).mount('#app')
+</script></body></html>

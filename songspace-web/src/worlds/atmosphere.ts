@@ -2,7 +2,8 @@ import * as T from 'three'
 import type { WorldId } from './types'
 import type { WeatherId } from '../game/content'
 export function atmosphere(world: WorldId, evening: boolean, weather: WeatherId = 'clear') {
-  const colors = weather === 'rain' ? ['#657d89', '#b5c4ca'] : weather === 'sunset' ? ['#b56d89', '#f6bf86'] : evening
+  const muted = ['rain', 'snow', 'overcast'].includes(weather)
+  const colors = world === 'space' ? ['#030617', '#191d46'] : world === 'fuji' && weather === 'clear' && !evening ? ['#a8c9e5', '#f4dce3'] : weather === 'snow' ? ['#879eaf', '#e2ebf0'] : weather === 'overcast' ? ['#697580', '#b7c0c7'] : weather === 'rain' ? ['#657d89', '#b5c4ca'] : weather === 'sunset' ? ['#b56d89', '#f6bf86'] : evening
     ? ['#13283c', '#697184']
     : world === 'sea'
       ? ['#b98185', '#f5cfaa']
@@ -15,7 +16,7 @@ export function atmosphere(world: WorldId, evening: boolean, weather: WeatherId 
     uniforms: {
       zenith: { value: new T.Color(colors[0]) },
       horizon: { value: new T.Color(colors[1]) },
-      sunVisibility: { value: weather === 'rain' ? 0 : 1 },
+      sunVisibility: { value: world === 'space' || muted ? 0 : 1 },
     },
     vertexShader:
       'varying vec3 vDirection;void main(){vDirection=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',

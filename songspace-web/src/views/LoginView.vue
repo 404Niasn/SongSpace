@@ -42,7 +42,6 @@ async function submit(mode: 'start' | 'restore') {
       <section class="login-form" aria-labelledby="login-title">
         <h2 id="login-title">欢迎来到歌境</h2>
         <p>取个昵称，系统会为你分配账号 ID。</p>
-        <p class="register-rewards">注册礼包：500 音符 · 单抽包 ×3 · 三连包 ×1 · 载具包 ×1</p>
         <form @submit.prevent="submit('start')">
           <label for="register-name">昵称</label>
           <input id="register-name" v-model="name" @input="error = ''" maxlength="16" autocomplete="nickname" placeholder="给自己起个名字" :disabled="busy" aria-describedby="register-help" />
@@ -74,7 +73,6 @@ async function submit(mode: 'start' | 'restore') {
 .login-art { width:230px; height:200px; margin:0 0 26px; }.login-art img { width:100%; height:100%; object-fit:contain; }
 .login-form { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:26px; box-shadow:0 12px 50px #344e3c06; }
 .login-form h2 { font-size:24px; font-weight:600; }.login-form>p { color:var(--muted); font-size:13px; line-height:1.7; margin-top:10px; }
-.login-form .register-rewards { padding:10px 12px; border:1px solid var(--line); border-radius:8px; color:var(--accent); font-size:12px; }
 .existing-account { border-top:1px solid var(--line); margin-top:20px; padding-top:18px; }.existing-account h3 { font-size:15px; font-weight:550; }.existing-account .login-primary { margin-top:16px; }
 .login-form label { display:block; font-size:13px; font-weight:550; margin:16px 0 9px; }
 .login-form input { width:100%; min-width:0; min-height:46px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:12px; font-size:14px; }.login-form input::placeholder { color:var(--muted); }.login-form input:focus { outline:2px solid var(--accent); outline-offset:2px; }

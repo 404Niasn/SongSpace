@@ -6,6 +6,8 @@ const { catalog, game, kindFor, cardFor, openPack } = await import('../src/game/
 const { LYRIC_EXCERPTS } = await import('../src/game/lyricExcerpts.ts')
 catalog.songs = JSON.parse(await readFile(new URL('../public/catalog/qqmusic-hot-100.json', import.meta.url), 'utf8')).songs
 assert.equal(new Set(catalog.songs.map(song => song.id)).size, catalog.songs.length)
+assert.deepEqual(catalog.songs.filter(song => kindFor(song) === 'vehicle').map(song => song.title).sort(), ['一路向北', '单车', '鲜花'], 'Only the three explicit vehicle cards are in the pool')
+assert.equal(kindFor({ id: 'chart-song', title: '榜单歌曲', rank: 8 }), 'decoration', 'Chart rank does not create extra vehicle cards')
 const bicycle = catalog.songs.find(song => song.title === '单车' && song.artists.some(artist => artist.name === '陈奕迅'))
 assert.ok(bicycle)
 assert.equal(bicycle.card_kind, 'vehicle')

@@ -52,7 +52,7 @@ interface Save {
   pity: number
   history: { score: number; distance: number; coins: number; notes: number; map: string }[]
   equippedTheme: string
-  worldWeather: Partial<Record<'forest' | 'sea' | 'jiangnan', string>>
+  worldWeather: Partial<Record<WorldId, string>>
   worldScenery: Partial<Record<WorldId, Decoration[]>>
   equippedVehicle: string
   equippedItem: string
@@ -161,12 +161,15 @@ export async function loadCatalog() {
     catalog.error = '卡库载入失败，请刷新后重试。'
   }
 }
+export function isWorldUnlocked(world: WorldId): boolean {
+  const title = world === 'fuji' ? '富士山下' : world === 'space' ? '光年之外' : null
+  return !title || catalog.songs.some(s => s.title === title && (game.owned[s.id] || 0) > 0)
+}
 export function kindFor(song: Song): CardKind {
   if (song.card_kind === 'vehicle') return 'vehicle'
-  if (['江南', '光年之外'].includes(song.title)) return 'map'
+  if (['江南', '富士山下', '光年之外'].includes(song.title)) return 'map'
   if (outfitForSong(song)) return 'outfit'
   if (ITEMS[song.title]) return 'item'
-  if (song.rank % 8 === 0) return 'vehicle'
   return 'decoration'
 }
 export function cardFor(song: Song, rarity?: GameCard['rarity']): GameCard {
@@ -184,7 +187,7 @@ export function cardFor(song: Song, rarity?: GameCard['rarity']): GameCard {
     effect: outfit
       ? outfit.name + ' · 穿戴积分 +' + Math.round(outfit.scoreBonus * 100) + '% · ' + OUTFIT_SLOTS[outfit.slot]
       : kind === 'map'
-        ? song.title === '光年之外' ? '《光年之外》太空地图 · 后续开放' : '《江南》地图 · 烟雨与青石板街'
+        ? `《${song.title}》地图 · ${song.title === '光年之外' ? '星球与太空栈道' : song.title === '富士山下' ? '雪山与樱花湖畔' : '烟雨与青石板街'}`
         : kind === 'vehicle'
           ? (song.vehicle_name || '巡航自行车') + ' · ' + ((song.vehicle_model ? VEHICLES[song.vehicle_model].speed : 14 + (song.rank % 3)) + Math.min(2, upgrade)) + ' m/s'
           : kind === 'item'
@@ -249,7 +252,7 @@ export const PACKS = [
     title: '载具歌单包',
     count: 1,
     price: 300,
-    tag: '新配色 · 更快的巡航速度',
+    tag: '单车 · 一路向北 · 鲜花',
     tone: 'blue',
   },
   {
