@@ -153,6 +153,6 @@ function use(c: GameCard) {
 </template>
 <style scoped>
 .card-detail .music-link{display:inline-flex;align-items:center;gap:9px;min-height:42px;margin-top:14px;padding:0 15px;border:1px solid #c4dbcd;border-radius:9px;background:linear-gradient(125deg,#f3faf4,#e4f1e8);color:#397558;font-size:12px;font-weight:500;text-decoration:none;box-shadow:inset 0 1px #fff;transition:background .15s,border-color .15s}.card-detail .music-link:hover{background:#deede2;border-color:#a3c7b0}.card-detail .music-link:focus-visible{outline:2px solid #78ab8c;outline-offset:3px}
-.wardrobe-page{--page-padding:20px 32px 24px}.wardrobe-page .wardrobe-sections{margin-bottom:0}.wardrobe-page .wardrobe-sections button{padding:8px 20px}.wardrobe-page .page-heading{margin-bottom:12px;padding-bottom:8px}.wardrobe-page .page-heading h1{font-size:26px}
+.wardrobe-page .wardrobe-sections{margin-bottom:0}
 .wardrobe-sections{display:flex;width:fit-content;margin-bottom:20px}.wardrobe-sections button{padding:11px 20px;font-size:12px}.outfit-card-detail{display:flex;gap:12px;align-items:center;margin:16px 0}.outfit-card-detail img{width:95px;height:95px;border-radius:8px}.outfit-card-detail p{font-size:12px;line-height:1.7}
 </style>

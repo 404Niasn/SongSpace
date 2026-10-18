@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import { buildSongWorld } from './songWorlds'
 import { jiangnanHouse } from './jiangnan'
 import type { DecorationKind, WorldId, WorldModel } from './types'
+import { pineTree, palmTree, birchTree, groundPlants, landform, rockFormation } from './scenery.ts'
+import { forestLookout, shoreShelter } from './mapLandmarks.ts'
 
 const RADIUS = 43
 
@@ -177,25 +179,18 @@ export function buildWorld(id: WorldId): WorldModel {
     scale: number,
     type: 'pine' | 'round' | 'willow' = 'pine',
   ) => {
+    if (type === 'pine' || (id === 'forest' && type === 'round')) {
+      const plant = type === 'pine' ? pineTree(x * .7 + z) : birchTree(x + z)
+      plant.position.set(x, 0, z); plant.scale.setScalar(scale); group.add(plant)
+      colliders.push({ x, z, radius: .55 * scale })
+      return
+    }
     const plant = new THREE.Group()
     plant.position.set(x, 0, z)
     plant.scale.setScalar(scale)
     group.add(plant)
     cylinder(0, 1.5, 0, 0.18, 0.35, 3, '#6f6850', plant, 7)
-    if (type === 'pine') {
-      for (let layer = 0; layer < 3; layer++)
-        cylinder(
-          0,
-          2.7 + layer * 1.25,
-          0,
-          0,
-          2.05 - layer * 0.44,
-          3.0 - layer * 0.25,
-          ['#416f50', '#4a7d57', '#5a8b63'][layer]!,
-          plant,
-          7,
-        )
-    } else {
+    {
       const crown = mesh(
         new THREE.IcosahedronGeometry(type === 'willow' ? 2.5 : 2.0, 1),
         type === 'willow' ? '#81a96b' : '#78975b',
@@ -398,6 +393,8 @@ export function buildWorld(id: WorldId): WorldModel {
   }
 
   if (id === 'forest') {
+    const lookout = forestLookout(); lookout.position.set(-27, .08, 13); lookout.rotation.y = -.3; group.add(lookout)
+    colliders.push({ x: -27, z: 13, radius: 6.5 })
     house(10, -9, false, -0.35, 1.15)
     house(17, 8, false, 0.5, 0.72)
     for (let i = 0; i < 105; i++) {
@@ -411,7 +408,7 @@ export function buildWorld(id: WorldId): WorldModel {
         colliders.some((c) => Math.hypot(c.x - x, c.z - z) < c.radius + 2)
       )
         continue
-      tree(x, z, 0.7 + rng() * 0.8, rng() < 0.14 ? 'round' : 'pine')
+      tree(x, z, 0.7 + rng() * 0.8, rng() < 0.32 ? 'round' : 'pine')
     }
     for (let i = 0; i < 15; i++) {
       const z = -35 + rng() * 70
@@ -424,12 +421,25 @@ export function buildWorld(id: WorldId): WorldModel {
         box(x, 0.17, z, 0.55, 0.18, 3.0, '#b39b76')
       }
     for (let i = 0; i < 5; i++) {
-      const hill = mesh(new THREE.IcosahedronGeometry(6, 1), '#718a68')
-      hill.position.set(-24 + i * 10, 1.5, -32)
-      hill.scale.set(1, 0.7 + rng() * 0.7, 0.75)
-      colliders.push({ x: hill.position.x, z: hill.position.z, radius: 5.5 })
+      const hill = landform(i + 73)
+      hill.position.set(-24 + i * 10, 0, -32); group.add(hill)
+      colliders.push({ x: hill.position.x, z: hill.position.z, radius: 6.5 })
     }
+    for (const [x, z] of [[-18, 12], [20, -22], [-25, -9]]) {
+      const log = cylinder(x!, .42, z!, .36, .42, 4.5, '#79634d', group, 10)
+      log.rotation.z = Math.PI / 2; log.rotation.y = .4
+      colliders.push({ x: x!, z: z!, radius: 2.4 })
+      for (let j = 0; j < 5; j++) {
+        const mx = x! + Math.sin(j * 2.4) * 2.8, mz = z! + Math.cos(j * 2.4) * 2
+        cylinder(mx, .2, mz, .045, .07, .4, '#e3d6be', group, 6)
+        const cap = mesh(new THREE.SphereGeometry(.22, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#bc856e'); cap.position.set(mx, .4, mz)
+      }
+    }
+    group.add(groundPlants(650, 78, 66, (x, z) => !isWater(x, z) && !onRoad(x, z) && colliders.every(c => Math.hypot(c.x - x, c.z - z) > c.radius + .8), 73))
   } else if (id === 'sea') {
+    const shelter = shoreShelter(); shelter.position.set(-1, .08, 18); shelter.rotation.y = -.25; group.add(shelter)
+    colliders.push({ x: -1, z: 18, radius: 4.2 })
+    group.add(groundPlants(400, 78, 66, (x, z) => x > coast(z) + 2 && !onRoad(x, z) && (x < coast(z) + 9 || x > 25), 91, true))
     // Lighthouse with a gallery, glazing and red conical roof.
     cylinder(-3, 3.5, -20, 1.05, 1.55, 7, '#f3ead3', group, 16)
     cylinder(-3, 3.9, -20, 1.23, 1.26, 0.65, '#bf7864', group, 16)
@@ -456,17 +466,9 @@ export function buildWorld(id: WorldId): WorldModel {
     for (let i = 0; i < 10; i++) {
       const z = -33 + i * 7
       const x = 3.3 + Math.sin(i) * 1.5
-      const palm = new THREE.Group()
+      const palm = palmTree(i * .7)
       palm.position.set(x, 0, z)
       group.add(palm)
-      const trunk = cylinder(0, 2.8, 0, 0.14, 0.28, 5.6, '#a29372', palm, 7)
-      trunk.rotation.z = 0.1
-      for (let j = 0; j < 7; j++) {
-        const leaf = mesh(new THREE.ConeGeometry(0.55, 4, 4), '#678e65', palm)
-        const a = (j / 7) * Math.PI * 2
-        leaf.position.set(Math.cos(a) * 1.4, 5.5, Math.sin(a) * 1.4)
-        leaf.rotation.set(Math.cos(a) * 1.1, 0, Math.sin(a) * 1.1)
-      }
       colliders.push({ x, z, radius: 0.6 })
     }
     for (let i = 0; i < 11; i++) {
@@ -486,6 +488,15 @@ export function buildWorld(id: WorldId): WorldModel {
     boat(-19, -12, true, 1.6)
     boat(-29, 8, true, 1.3)
     boat(-24, 23, true, 0.9)
+    for (let i = 0; i < 22; i++) {
+      const z = -34 + i * 3.1
+      rock(coast(z) + 1.1 + Math.sin(i) * .3, z, .35 + (i % 4) * .2)
+    }
+    for (let i = 0; i < 4; i++) {
+      const cliff = rockFormation(i)
+      cliff.position.set(-14 - i * 3, .5, -31 + i * 1.4); cliff.scale.set(4, 3 + i * .6, 3); group.add(cliff)
+      colliders.push({ x: cliff.position.x, z: cliff.position.z, radius: 4.5 })
+    }
     for (let z = -33; z < 36; z += 8) box(14, 0.15, z, 0.12, 0.025, 2, '#e7d1a0')
   } else {
     const textureCanvas = document.createElement('canvas')

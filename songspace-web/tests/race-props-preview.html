@@ -1,20 +1,27 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌境 · 探索模型预览</title>
-<style>body{margin:0;background:#edf1ec;font-family:'Microsoft YaHei',sans-serif;color:#34443b}header{position:absolute;top:24px;left:32px;pointer-events:none}h1{font-size:22px;margin:0 0 8px}p{font-size:12px;margin:0;color:#65776b}canvas{display:block;width:100vw;height:100vh}footer{position:absolute;bottom:24px;left:32px;font-size:12px;color:#65776b}</style></head>
-<body><header><h1>探索物件</h1><p>原木与木车 / 海岸货箱 / 竹编瓷器货筐 / 浮雕音符金币</p></header><footer>拖动旋转视角，滚轮缩放。此预览不读取或修改玩家存档。</footer>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌曲地图 · 特色障碍物</title>
+<style>body{margin:0;background:#edf1ec;font:15px system-ui;color:#34443b}header{position:absolute;top:20px;left:28px;right:28px;display:flex;align-items:center;gap:20px}h1{font-size:20px;margin:0 auto 0 0}select,button{font:inherit;border:1px solid #cbd6cb;border-radius:8px;padding:10px 18px;background:#fff;color:inherit}button.active{background:#345647;color:#fff}canvas{display:block}footer{position:absolute;bottom:18px;left:28px;color:#65776b;font-size:13px}</style></head>
+<body><header><h1>地图特色障碍物</h1><select id="world" aria-label="地图"><option value="all">全部地图</option><option value="forest">树林</option><option value="sea">大海</option><option value="jiangnan">江南</option><option value="fuji">富士山下</option><option value="space">光年之外</option></select><button id="moving">移动障碍物</button><button id="freeze">冻结效果</button></header><footer>拖动旋转 · 滚轮缩放 · 每张图三种造型；预览不修改玩家存档。</footer>
 <script type="module">
 import * as T from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { buildRaceCoin, buildRaceObstacle } from '/src/game/raceProps.ts'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { buildRaceObstacle, freezeRaceObstacle } from '/src/game/raceProps.ts'
+import { disposeObject } from '/src/worlds/models.ts'
+const names={forest:'树林',sea:'大海',jiangnan:'江南',fuji:'富士山下',space:'光年之外'}
 const scene=new T.Scene();scene.background=new T.Color('#edf1ec')
-const camera=new T.PerspectiveCamera(38,innerWidth/innerHeight,.1,100);camera.position.set(5,6,9)
-const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;document.body.append(renderer.domElement)
+const camera=new T.PerspectiveCamera(38,innerWidth/innerHeight,.1,100)
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;document.body.append(renderer.domElement)
 scene.add(new T.HemisphereLight('#eff8ff','#859976',1.5))
-const sun=new T.DirectionalLight('#ffefd5',2.4);sun.position.set(-5,10,6);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun)
+const sun=new T.DirectionalLight('#ffefd5',2.4);sun.position.set(-5,10,6);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9});scene.add(sun)
 const ground=new T.Mesh(new T.PlaneGeometry(30,30),new T.MeshStandardMaterial({color:'#edf1ec',roughness:.9}));ground.rotation.x=-Math.PI/2;ground.position.y=-.015;ground.receiveShadow=true;scene.add(ground)
-for(const [index,world] of ['forest','sea','jiangnan'].entries())for(const moving of [false,true]){const prop=buildRaceObstacle(world,moving,index);prop.position.set((index-1)*2.3,0,moving?1.2:-.7);scene.add(prop)}
-const coin=buildRaceCoin();coin.scale.setScalar(2.1);coin.position.set(0,1.25,-2.1);coin.rotation.y=.12;scene.add(coin)
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.35,-.3);controls.enableDamping=true;controls.update()
-function render(){requestAnimationFrame(render);controls.update();renderer.render(scene,camera)}render()
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=3;controls.maxDistance=24
+let props=new T.Group(),moving=false,frozen=false
+scene.add(props)
+function label(text,x,z){const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const ctx=canvas.getContext('2d');ctx.font='36px sans-serif';ctx.fillStyle='#34443b';ctx.textAlign='center';ctx.fillText(text,256,60);const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;const sprite=new T.Sprite(new T.SpriteMaterial({map:texture,depthTest:false}));sprite.position.set(x,.04,z);sprite.scale.set(1.6,.3,1);props.add(sprite)}
+function renderProps(){scene.remove(props);props.traverse(object=>{if(object.isSprite){object.material.map?.dispose();object.material.dispose()}});disposeObject(props);props=new T.Group();scene.add(props);const selected=document.querySelector('#world').value,worlds=selected==='all'?Object.keys(names):[selected];for(const [index,world] of worlds.entries()){const x=(index-(worlds.length-1)/2)*2.4;label(names[world],x,-2.8);for(let style=0;style<3;style++){const prop=buildRaceObstacle(world,moving,style*3);prop.position.set(x,0,-1.7+style*1.7);props.add(prop);freezeRaceObstacle(prop,frozen);if(worlds.length===1)label(prop.name,x,-.9+style*1.7)}}camera.position.set(worlds.length===1?3:7,worlds.length===1?4:8,worlds.length===1?6:12);controls.target.set(0,.3,0);controls.update()}
+document.querySelector('#world').addEventListener('change',renderProps)
+document.querySelector('#moving').addEventListener('click',e=>{moving=!moving;e.target.classList.toggle('active',moving);renderProps()})
+document.querySelector('#freeze').addEventListener('click',e=>{frozen=!frozen;e.target.classList.toggle('active',frozen);for(const prop of props.children)if(prop.isGroup)freezeRaceObstacle(prop,frozen)})
+renderProps();function render(){requestAnimationFrame(render);controls.update();renderer.render(scene,camera)}render()
 addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()})
 </script></body></html>

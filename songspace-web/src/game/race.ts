@@ -1,5 +1,8 @@
 import * as T from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { cherryTree, fujiMountain, ringPlanet } from '@/worlds/songWorlds'
+import { CherryPetals, pineTree, birchTree, palmTree, groundPlants, terrainMaterial, coastalLighthouse } from '@/worlds/scenery'
+import { forestLookout, shoreShelter, lakesidePavilion, observatory, stoneLantern } from '@/worlds/mapLandmarks'
 import { jiangnanHouse, canalBoat } from '@/worlds/jiangnan'
 import { atmosphere } from '@/worlds/atmosphere'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
@@ -35,6 +38,8 @@ export class Race {
   private renderer: T.WebGLRenderer
   private scene = new T.Scene()
   private camera = new T.PerspectiveCamera(46, 1, 0.1, 500)
+  private overviewControls: OrbitControls
+  private roadLandmarks = new T.Group()
   private bike = new T.Group()
   private chunks: T.Group[] = []
   private tokens: {
@@ -76,6 +81,7 @@ export class Race {
   private skills: Skills
   private bonusCoins = 0
   private elapsed = 0
+  private petals: CherryPetals | undefined
   private event = ''
   private eventUntil = 0
   private effects = new T.Group()
@@ -86,7 +92,7 @@ export class Race {
   private enteringAt = 0
   private entryPosition = new T.Vector3()
   private entryLook = new T.Vector3()
-  private overviewPosition = new T.Vector3(72, 72, 81)
+  private overviewPosition = new T.Vector3(82, 82, 92)
   private overviewLook = new T.Vector3(0, -12, 0)
   private entered: ((ok: boolean) => void) | undefined
   private weatherLayer = new WeatherLayer(45, 145, -45)
@@ -171,8 +177,13 @@ export class Race {
     }
     if (world === 'fuji' || world === 'space') {
       const landmark = world === 'fuji' ? fujiMountain() : ringPlanet()
-      landmark.position.set(-35, world === 'space' ? 32 : 0, -130)
-      landmark.scale.setScalar(2); this.scene.add(landmark)
+      landmark.position.set(-35, world === 'space' ? 27 : 0, -140)
+      landmark.scale.setScalar(world === 'space' ? 1.35 : 1.4); this.roadLandmarks.add(landmark)
+    }
+    this.scene.add(this.roadLandmarks)
+    if (world === 'fuji') {
+      this.petals = new CherryPetals(150, 17, 65, true)
+      this.scene.add(this.petals.mesh)
     }
     this.makeBike()
     this.updatePedals()
@@ -202,8 +213,17 @@ export class Race {
     this.renderer.compile(this.scene, this.camera)
     this.skyDome.visible = skyVisible
     this.showRoad(false)
-    this.camera.position.set(1.15, 2.6, 5.7)
-    this.camera.lookAt(0, 1.4, -7)
+    this.overviewLook.set(0, -3, 0)
+    this.camera.position.copy(this.overviewPosition)
+    this.overviewControls = new OrbitControls(this.camera, this.renderer.domElement)
+    this.overviewControls.target.copy(this.overviewLook)
+    this.overviewControls.enablePan = false
+    this.overviewControls.enableDamping = true
+    this.overviewControls.minDistance = 65
+    this.overviewControls.maxDistance = 170
+    this.overviewControls.minPolarAngle = .15
+    this.overviewControls.maxPolarAngle = Math.PI * .46
+    this.overviewControls.update()
     window.addEventListener(
       'keydown',
       (e) => {
@@ -277,56 +297,17 @@ export class Race {
     return m
   }
   private tree(p: T.Object3D, x: number, z: number, scale: number) {
+    const refined = this.world === 'forest' ? Math.abs(Math.floor(z)) % 3 === 0 ? birchTree(x + z) : pineTree(x + z) : this.world === 'sea' ? palmTree(x + z) : undefined
+    if (refined) {
+      refined.position.set(x, 0, z); refined.scale.setScalar(scale); p.add(refined)
+      return
+    }
     const g = new T.Group()
     g.position.set(x, 0, z)
     g.scale.setScalar(scale)
     p.add(g)
     this.mesh(new T.CylinderGeometry(0.14, 0.25, 3, 10), '#806952', g, 0, 1.5, 0)
-    if (this.world === 'forest') {
-      for (let i = 0; i < 3; i++)
-        this.mesh(
-          new T.ConeGeometry(1.8 - i * 0.35, 2.9, 10),
-          ['#397258', '#4b8461', '#65956a'][i]!,
-          g,
-          0,
-          2.5 + i * 1.1,
-          0,
-        )
-    } else if (this.world === 'sea') {
-      for (let i = 0; i < 9; i++) {
-        const angle = (i * Math.PI * 2) / 9,
-          positions: number[] = [],
-          indices: number[] = []
-        for (let j = 0; j <= 12; j++) {
-          const t = j / 12,
-            r = 0.1 + t * 3.2,
-            width = Math.sin(t * Math.PI) * 0.36 * (j % 2 ? 0.7 : 1),
-            y = 3.25 + Math.sin(t * Math.PI) * 0.45 - t * t * 0.8
-          for (const side of [-1, 1])
-            positions.push(
-              Math.cos(angle) * r + Math.sin(angle) * width * side,
-              y,
-              Math.sin(angle) * r - Math.cos(angle) * width * side,
-            )
-          if (j < 12) {
-            const n = j * 2
-            indices.push(n, n + 1, n + 2, n + 1, n + 3, n + 2)
-          }
-        }
-        const geo = new T.BufferGeometry()
-        geo.setAttribute('position', new T.Float32BufferAttribute(positions, 3))
-        geo.setIndex(indices)
-        geo.computeVertexNormals()
-        const mat = new T.MeshStandardMaterial({
-          color: ['#45634c', '#63764d', '#7c874f'][i % 3],
-          side: T.DoubleSide,
-          roughness: 0.83,
-        })
-        const frond = new T.Mesh(geo, mat)
-        frond.castShadow = true
-        g.add(frond)
-      }
-    } else {
+    {
       const leaves = new T.InstancedMesh(new T.SphereGeometry(1, 6, 4), this.mat('#708c69'), 360),
         dummy = new T.Object3D()
       const lines: number[] = []
@@ -388,7 +369,7 @@ export class Race {
   }
   private makeChunk(i: number) {
     const g = new T.Group()
-    this.box(
+    const terrain = this.box(
       g,
       this.world === 'space' ? '#151c35' : this.world === 'fuji' ? '#9aaf9d' : this.world === 'sea' ? '#8ba878' : '#90ad81',
       this.world === 'sea' ? 34 : 0,
@@ -408,11 +389,39 @@ export class Race {
       0.08,
       32.1,
     )
+    if (this.world !== 'jiangnan') {
+      terrain.material = terrainMaterial(terrain.material.color.getStyle(), this.world === 'space')
+      road.material = terrainMaterial(road.material.color.getStyle())
+    }
     if (this.world === 'fuji' || this.world === 'space') {
+      if (this.world === 'fuji') {
+        for (const side of [-1, 1]) {
+          const lantern = stoneLantern(); lantern.position.set(side * 5.2, .05, -8); g.add(lantern)
+        }
+        if (i % 4 === 0) { const pavilion = lakesidePavilion(); pavilion.position.set(18, .02, -18); pavilion.rotation.y = -.5; g.add(pavilion) }
+        const plants = groundPlants(110, 35, 31, x => Math.abs(x) > 5.5, i + 14)
+        plants.position.z = -16; g.add(plants)
+      } else {
+        if (i % 4 === 0) { const station = observatory(); station.position.set(24, .02, -18); g.add(station) }
+        road.material.metalness = .45; road.material.roughness = .55
+        for (let j = 0; j < 11; j++) {
+          this.box(g, '#536184', 0, .07, -j * 3, 7.7, .04, .05)
+          for (const side of [-1, 1]) {
+            const crystal = this.mesh(new T.ConeGeometry(.35, 2.1 + j % 3 * .4, 5), '#86c9e7', g, side * (9 + j % 3 * 2), .9, -j * 3)
+            crystal.rotation.z = side * .25; crystal.material.emissive.set('#3586b5'); crystal.material.emissiveIntensity = .55
+          }
+        }
+        for (const side of [-1, 1]) {
+          const rim = this.mesh(new T.TorusGeometry(2.2, .25, 6, 24), '#53617e', g, side * 20, .16, -16)
+          rim.rotation.x = Math.PI / 2
+          this.mesh(new T.CylinderGeometry(2.1, 1.8, .12, 24), '#202a44', g, side * 20, .08, -16)
+        }
+      }
       for (let j = 0; j < 8; j++) {
         const side = j % 2 ? 1 : -1, z = -j * 4
         if (this.world === 'fuji') {
           const tree = cherryTree(); tree.position.set(side * (7 + j % 3), 0, z); g.add(tree)
+          tree.rotation.y = j * 1.7 + i; tree.scale.setScalar(.85 + j % 3 * .12)
         } else {
           const rock = this.mesh(new T.DodecahedronGeometry(1 + j % 3 * .4), '#7583a0', g, side * (11 + j % 3 * 4), 1 + j % 3, z)
           rock.rotation.set(j, i, .3)
@@ -529,6 +538,8 @@ export class Race {
         g.add(boat)
       }
     } else if (this.world === 'sea') {
+      if (i % 4 === 1) { const shelter = shoreShelter(); shelter.position.set(18, .05, -18); shelter.rotation.y = -.4; g.add(shelter) }
+      const plants = groundPlants(100, 32, 31, x => x > 5.5, i + 91, true); plants.position.z = -16; g.add(plants)
       const oceanMaterial = new T.MeshStandardMaterial({
         color: '#8ec4ca',
         roughness: 0.35,
@@ -563,18 +574,29 @@ export class Race {
       this.tree(g, 17, -10, 1.1)
       for (let j = 0; j < 4; j++) this.box(g, '#e7d0a3', 0, 0.065, -j * 8, 0.12, 0.02, 3)
       if (i % 3 === 0) {
-        this.mesh(new T.CylinderGeometry(0.9, 1.4, 9, 20), '#f3e4c9', g, -20, 4.5, -12)
-        this.mesh(new T.CylinderGeometry(1.1, 1.2, 0.9, 20), '#cf7064', g, -20, 5.7, -12)
-        this.mesh(new T.ConeGeometry(1.8, 2, 20), '#c76559', g, -20, 10, -12)
+        const tower = coastalLighthouse(); tower.position.set(-13, 0, -12); g.add(tower)
       }
-      for (let j = 0; j < 6; j++)
-        this.box(g, '#b9d8d8', -18 - j * 10, 0.005, -j * 5, 7, 0.025, 0.16)
+      this.box(g, '#ddcfac', -6.3, -.015, -16, 3, .12, 32.1)
+      for (let j = 0; j < 7; j++) {
+        const rock = this.mesh(new T.IcosahedronGeometry(.45 + j % 3 * .18, 1), '#9faeaa', g, -7.2 - Math.sin(j) * .4, .13, -j * 4.7)
+        rock.scale.set(1.6, .65, 1)
+      }
     } else {
+      if (i % 4 === 0) { const lookout = forestLookout(); lookout.position.set(-13, .05, -18); lookout.rotation.y = .5; g.add(lookout) }
+      const plants = groundPlants(170, 45, 31, x => Math.abs(x) > 5.3 && Math.abs(x + 24) > 5, i + 73); plants.position.z = -16; g.add(plants)
       for (let j = 0; j < 12; j++) {
         const side = j % 2 ? 1 : -1
         this.tree(g, side * (6 + (j % 3) * 5), -j * 2.7, 0.8 + (j % 4) * 0.18)
       }
       this.box(g, '#72ada8', -24, 0.01, -16, 8, 0.06, 32.1)
+      for (let j = 0; j < 8; j++) {
+        const stone = this.mesh(new T.IcosahedronGeometry(.5 + j % 3 * .2, 1), '#8e9e8d', g, -19 + Math.sin(j) * .4, .16, -j * 4)
+        stone.scale.set(1.6, .7, .9)
+      }
+      if (i % 2 === 0) {
+        const log = this.mesh(new T.CylinderGeometry(.3, .4, 4, 10), '#78634e', g, 9, .42, -20)
+        log.rotation.z = Math.PI / 2; log.rotation.y = .3
+      }
       if (i % 3 === 0) this.house(g, 14, -14)
     }
     for (const side of [-1, 1]) {
@@ -658,6 +680,7 @@ export class Race {
     addCharacterOutfits(rider.group, this.outfits)
   }
   start() {
+    this.overviewControls.enabled = false
     if (this.miniature) this.miniature.group.visible = false
     this.camera.position.set(1.15, 2.6, 5.7)
     this.cameraLook.set(0, 1.45, -5)
@@ -673,10 +696,16 @@ export class Race {
     this.host.querySelector('canvas')?.focus()
   }
   private showRoad(visible: boolean) {
+    this.roadLandmarks.visible = visible
+    if (this.petals) this.petals.mesh.visible = visible
     for (const object of [...this.chunks, ...this.tokens.map(t => t.mesh), ...this.scenic.map(p => p.group), this.bike, this.effects]) object.visible = visible
   }
   enter(): Promise<boolean> {
     if (this.entered || this.running || this.completed) return Promise.resolve(false)
+    this.overviewControls.update()
+    this.overviewPosition.copy(this.camera.position)
+    this.overviewLook.copy(this.overviewControls.target)
+    this.overviewControls.enabled = false
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.start(); return Promise.resolve(true) }
     this.enteringAt = performance.now()
     return new Promise(resolve => { this.entered = resolve })
@@ -726,6 +755,7 @@ export class Race {
   togglePause() {
     if (this.running) {
       this.paused = !this.paused
+      if (this.paused) this.bike.visible = true
       this.onStatus(this.status())
     }
   }
@@ -805,8 +835,13 @@ export class Race {
         this.camera.fov = 46
       } else {
         this.scene.fog = null
-        this.camera.position.lerpVectors(this.overviewPosition, this.entryPosition, motion.flight)
-        this.cameraLook.lerpVectors(this.overviewLook, this.entryLook, motion.flight)
+        if (this.entered) {
+          this.camera.position.lerpVectors(this.overviewPosition, this.entryPosition, motion.flight)
+          this.cameraLook.lerpVectors(this.overviewLook, this.entryLook, motion.flight)
+        } else {
+          this.overviewControls.update()
+          this.cameraLook.copy(this.overviewControls.target)
+        }
         this.camera.fov = 39 + motion.flight * 7
         this.miniature.update(now / 1000)
       }
@@ -982,9 +1017,11 @@ export class Race {
       this.at = now
     }
     this.waveUniform.value = now / 1000
+    if (this.running && !this.paused) this.petals?.update(this.elapsed, this.distance)
     this.renderer.render(this.scene, this.camera)
   }
   dispose() {
+    this.overviewControls.dispose()
     this.entered?.(false); this.entered = undefined
     cancelAnimationFrame(this.frame)
     this.resize.disconnect()

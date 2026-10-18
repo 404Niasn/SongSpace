@@ -101,7 +101,16 @@ export function buildRaceCoin() {
 
 export function buildRaceObstacle(world: WorldId, moving: boolean, variant = 0) {
   const { group, mesh, box } = builder()
-  const wood = world === 'jiangnan' ? '#998665' : world === 'sea' ? '#a78964' : '#937255'
+  const wood = world === 'space' ? '#4b6079' : world === 'jiangnan' ? '#998665' : world === 'sea' ? '#a78964' : '#937255'
+  // Obstacle rows often occur every three steps; divide the route index so all styles appear.
+  const style = Math.floor(variant / 3) % 3
+  const names = {
+    forest: ['原木堆', '林地石墩', '育苗木箱'], sea: ['码头货箱', '浮标绳桶', '渔笼'],
+    jiangnan: ['瓷器竹筐', '茶叶木箱', '荷叶陶缸'], fuji: ['樱花竹束', '石灯笼运输架', '祭典灯笼箱'],
+    space: ['陨石碎块', '轨道补给箱', '巡检机器人'],
+  }
+  group.name = names[world][style]!
+  group.userData.obstacleKind = `${world}:${style}`
   const wheels: T.Mesh[] = []
   const floor = moving ? .35 : .06
   if (moving) {
@@ -121,7 +130,9 @@ export function buildRaceObstacle(world: WorldId, moving: boolean, variant = 0) 
     }
     for (const x of [-.35, .35]) box(.045, .045, .55, wood, x, .4, .55).rotation.x = -.24
   }
-  if (world === 'forest') {
+  if (world === 'fuji' || world === 'space' || style !== 0) {
+    themedBody({ group, mesh, box }, world, style, floor)
+  } else if (world === 'forest') {
     for (const [y, z] of [[floor + .18, -.18], [floor + .18, .2], [floor + .46, .02]]) {
       const log = new T.CylinderGeometry(.165, .19, 1.13, 12)
       log.rotateZ(Math.PI / 2)
@@ -178,8 +189,141 @@ export function buildRaceObstacle(world: WorldId, moving: boolean, variant = 0) 
       mesh(band, '#658a93', x, floor + .42, 0)
     }
   }
+  // Keep rotating wheels separate; batch static detail by material for the endless track.
+  const batches = new Map<T.Material, T.BufferGeometry[]>()
+  for (const object of [...group.children]) {
+    if (!(object instanceof T.Mesh) || wheels.includes(object)) continue
+    object.updateMatrix()
+    const geometry = (object.geometry.index ? object.geometry.toNonIndexed() : object.geometry.clone()).applyMatrix4(object.matrix)
+    const material = object.material as T.Material, geometries = batches.get(material) || []
+    geometries.push(geometry); batches.set(material, geometries)
+    object.geometry.dispose(); group.remove(object)
+  }
+  for (const [material, geometries] of batches) {
+    const object = new T.Mesh(mergeGeometries(geometries)!, material)
+    object.castShadow = true; object.receiveShadow = true; group.add(object)
+    geometries.forEach(geometry => geometry.dispose())
+  }
   group.userData.wheels = wheels
   return group
+}
+
+function themedBody(b: ReturnType<typeof builder>, world: WorldId, style: number, floor: number) {
+  const { mesh, box } = b
+  const cylinder = (top: number, bottom: number, height: number, color: string, x: number, y: number, z = 0, segments = 16) => mesh(new T.CylinderGeometry(top, bottom, height, segments), color, x, floor + y, z)
+  const ring = (radius: number, color: string, y: number, x = 0, z = 0, tube = .016) => {
+    const geometry = new T.TorusGeometry(radius, tube, 6, 24); geometry.rotateX(Math.PI / 2)
+    return mesh(geometry, color, x, floor + y, z)
+  }
+  const crate = (color: string, trim: string) => {
+    box(1.02, .43, .66, color, 0, floor + .215)
+    for (const z of [-.34, .34]) {
+      for (const x of [-.43, .43]) box(.07, .46, .045, trim, x, floor + .24, z)
+      for (const y of [.08, .24, .4]) box(.85, .014, .025, trim, 0, floor + y, z)
+    }
+  }
+  if (world === 'forest' && style === 1) {
+    const geometry = new T.IcosahedronGeometry(.48, 1)
+    const rock = mesh(geometry, '#829080', 0, floor + .32); rock.scale.set(1.18, .75, .85)
+    for (let i = 0; i < 6; i++) {
+      const moss = mesh(new T.SphereGeometry(.11, 8, 6), ['#93a467', '#acb980'][i % 2]!, Math.sin(i * 2.4) * .25, floor + .58, Math.cos(i * 2.4) * .22); moss.scale.y = .35
+    }
+    for (const x of [-.35, .32]) {
+      cylinder(.025, .035, .15, '#e1d5bc', x, .12, .22, 6)
+      const cap = mesh(new T.SphereGeometry(.075, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), '#ba8667', x, floor + .2, .22)
+      cap.scale.y = .7
+    }
+  } else if (world === 'forest') {
+    crate('#8a694a', '#bca27a')
+    for (const x of [-.24, .24]) {
+      cylinder(.095, .07, .16, '#bb9271', x, .49)
+      cylinder(.014, .02, .2, '#6d8050', x, .65, 0, 6)
+      for (let i = 0; i < 3; i++) { const leaf = mesh(new T.SphereGeometry(.07, 8, 6), '#88a563', x + Math.sin(i * 2.4) * .05, floor + .69, Math.cos(i * 2.4) * .05); leaf.scale.set(1, .4, .7) }
+    }
+  } else if (world === 'sea' && style === 1) {
+    cylinder(.26, .3, .43, '#7d9d9f', -.12, .215)
+    for (const y of [.07, .36]) ring(.29, '#c5d5cd', y, -.12)
+    for (let i = 0; i < 4; i++) ring(.16 + i * .018, '#ddc399', .46, -.12, 0, .018)
+    const buoy = mesh(new T.SphereGeometry(.18, 16, 12), '#e48e62', .31, floor + .34, .08); buoy.scale.y = 1.35
+    cylinder(.05, .05, .12, '#f4dfbe', .31, .6, .08)
+    ring(.04, '#687e85', .69, .31, .08, .008)
+  } else if (world === 'sea') {
+    box(1.05, .08, .66, '#a48966', 0, floor + .04)
+    for (let i = 0; i < 6; i++) {
+      const hoop = new T.TorusGeometry(.28, .016, 5, 18, Math.PI); hoop.rotateY(Math.PI / 2)
+      mesh(hoop, '#a6b2a1', -.46 + i * .185, floor + .1, 0)
+      for (const z of [-.32, .32]) box(.025, .29, .025, '#869b91', -.46 + i * .185, floor + .2, z)
+    }
+    for (const z of [-.28, -.14, 0, .14, .28]) box(.96, .02, .02, '#a6b2a1', 0, floor + .36 - Math.abs(z) * .4, z)
+    const float = mesh(new T.SphereGeometry(.1, 12, 8), '#de926c', .24, floor + .47, .05); float.scale.y = 1.25
+  } else if (world === 'jiangnan' && style === 1) {
+    crate('#85694e', '#bda37b')
+    for (const x of [-.25, .25]) {
+      cylinder(.12, .12, .19, '#79978e', x, .53)
+      cylinder(.13, .13, .035, '#b8c6aa', x, .64)
+      cylinder(.035, .035, .025, '#e0dac0', x, .67)
+    }
+    box(.22, .2, .028, '#d5c6a0', 0, floor + .25, .366)
+    for (let i = 0; i < 3; i++) box(.13 - i * .02, .014, .008, '#7b8862', 0, floor + .21 + i * .035, .387)
+  } else if (world === 'jiangnan') {
+    const profile = [[0,0],[.25,0],[.31,.14],[.32,.35],[.26,.5],[.24,.54]]
+    const jar = mesh(new T.LatheGeometry(profile.map(([r,y]) => new T.Vector2(r!,y!)), 24), '#819f98', 0, floor)
+    jar.material.roughness = .3; ring(.245, '#c3c9ac', .54)
+    for (let i = 0; i < 3; i++) {
+      const leaf = mesh(new T.SphereGeometry(.18, 12, 8), ['#819d73', '#a1b887'][i % 2]!, Math.sin(i * 2.4) * .19, floor + .57 + i * .03, Math.cos(i * 2.4) * .14)
+      leaf.scale.set(1, .12, .8); leaf.rotation.z = Math.sin(i) * .2
+    }
+  } else if (world === 'fuji' && style === 0) {
+    for (let i = 0; i < 5; i++) {
+      const bamboo = new T.CylinderGeometry(.065, .08, 1.05, 12); bamboo.rotateZ(Math.PI / 2)
+      const y = .12 + Math.floor(i / 3) * .14, z = (i % 3 - 1) * .15
+      mesh(bamboo, ['#a7b67c', '#c2c69a'][i % 2]!, 0, floor + y, z)
+      for (const x of [-.53, .53]) { const cut = new T.CylinderGeometry(.055, .055, .01, 12); cut.rotateZ(Math.PI / 2); mesh(cut, '#e9d8ae', x, floor + y, z) }
+    }
+    for (const x of [-.32, .32]) {
+      for (const y of [.06, .32]) box(.035, .025, .5, '#b99072', x, floor + y)
+      for (const z of [-.24, .24]) box(.035, .28, .025, '#b99072', x, floor + .19, z)
+    }
+    const branch = new T.CylinderGeometry(.012, .018, .8, 6); branch.rotateZ(1.2); mesh(branch, '#86656a', 0, floor + .45, .08)
+    for (let i = 0; i < 7; i++) { const bloom = mesh(new T.IcosahedronGeometry(.07, 1), i % 2 ? '#f8d6e2' : '#eba9c5', -.3 + i * .1, floor + .44 + Math.sin(i) * .07, .08); bloom.scale.y = .65 }
+  } else if (world === 'fuji' && style === 1) {
+    box(.95, .1, .63, '#ad8c6f', 0, floor + .05)
+    cylinder(.25, .32, .12, '#9caa9d', 0, .15, 0, 8)
+    cylinder(.1, .14, .22, '#b6beac', 0, .32, 0, 8)
+    box(.42, .09, .42, '#bfc5b5', 0, floor + .46)
+    for (const x of [-.14, .14]) for (const z of [-.14, .14]) box(.055, .17, .055, '#9ca993', x, floor + .58, z)
+    const roof = new T.ConeGeometry(.38, .16, 4); roof.rotateY(Math.PI / 4); mesh(roof, '#a5b29d', 0, floor + .69)
+    for (const x of [-.43, .43]) box(.06, .37, .63, '#bc9a77', x, floor + .23)
+    const light = mesh(new T.SphereGeometry(.065, 8, 6), '#edcb8e', 0, floor + .59); light.material.emissive.set('#493316')
+  } else if (world === 'fuji') {
+    crate('#84676b', '#c6a493')
+    for (const x of [-.24, .24]) {
+      const lantern = mesh(new T.SphereGeometry(.16, 16, 12), '#df9baa', x, floor + .58); lantern.scale.set(.8, 1, .8)
+      for (const y of [.43, .72]) cylinder(.08, .08, .025, '#8e6870', x, y)
+      for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; box(.012, .22, .012, '#ecc8c2', x + Math.sin(a) * .126, floor + .58, Math.cos(a) * .126) }
+    }
+  } else if (world === 'space' && style === 0) {
+    const rock = mesh(new T.IcosahedronGeometry(.46, 1), '#7787a0', -.08, floor + .3); rock.scale.set(1.2, .8, .85)
+    for (let i = 0; i < 3; i++) { const crystal = mesh(new T.ConeGeometry(.075, .28 + i * .05, 5), '#8de4eb', .18 + i * .09, floor + .42 + i * .02, -.09 + i * .07); crystal.rotation.z = -.2 + i * .15; crystal.material.emissive.set('#2b617a'); crystal.material.emissiveIntensity = .7 }
+  } else if (world === 'space' && style === 1) {
+    crate('#506983', '#98aebd')
+    for (const x of [-.38, .38]) box(.065, .035, .65, '#9ce7ed', x, floor + .46).material.emissive.set('#316e87')
+    const latch = box(.18, .13, .035, '#bdc9c7', 0, floor + .26, .37); latch.material.metalness = .65
+    box(.13, .045, .018, '#e4b97c', 0, floor + .33, .393)
+  } else {
+    box(.68, .22, .52, '#697f98', 0, floor + .24)
+    cylinder(.18, .24, .1, '#b0bfce', 0, .4)
+    const dome = mesh(new T.SphereGeometry(.2, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), '#a8c4d7', 0, floor + .46)
+    dome.material.metalness = .45; dome.material.roughness = .35
+    for (const x of [-.34, .34]) {
+      const tread = box(.17, .2, .64, '#344755', x, floor + .1)
+      for (let j = 0; j < 7; j++) box(.18, .015, .03, '#68818e', x, floor + .2, -.27 + j * .09)
+      void tread
+    }
+    const eye = mesh(new T.SphereGeometry(.065, 12, 8), '#95e7f0', 0, floor + .44, .225); eye.material.emissive.set('#429ab3')
+    cylinder(.014, .018, .16, '#8caabb', .15, .69, 0, 6)
+    mesh(new T.SphereGeometry(.02, 8, 6), '#e8bc87', .15, floor + .75)
+  }
 }
 
 export function freezeRaceObstacle(group: T.Object3D, frozen: boolean) {
@@ -188,8 +332,9 @@ export function freezeRaceObstacle(group: T.Object3D, frozen: boolean) {
   group.traverse(object => {
     if (!(object instanceof T.Mesh)) return
     const material = object.material as T.MeshStandardMaterial
+    material.userData.baseEmissive ??= material.emissive.getHex()
     material.color.set(frozen ? '#bce5eb' : material.userData.baseColor)
-    material.emissive.set(frozen ? '#183a42' : '#000000')
+    material.emissive.set(frozen ? '#183a42' : material.userData.baseEmissive)
   })
 }
 

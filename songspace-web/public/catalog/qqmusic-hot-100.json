@@ -1977,10 +1977,14 @@
           "name": "陈奕迅"
         }
       ],
-      "album": "",
-      "duration_seconds": 0,
+      "album": "Special Thanks To…",
+      "duration_seconds": 237,
       "song_url": "https://y.qq.com/n/ryqq/songDetail/004IsqcS2BilGv",
-      "cover_path": "/art/outfits/travel-backpack.svg"
+      "cover_path": "/covers/qqmusic/004E0Y0A0R8FYZ.jpg",
+      "album_mid": "004E0Y0A0R8FYZ",
+      "qqmusic_song_id": 8769,
+      "qqmusic_song_mid": "004IsqcS2BilGv",
+      "cover_url": "https://y.gtimg.cn/music/photo_new/T002R300x300M000004E0Y0A0R8FYZ.jpg"
     },
     {
       "id": "qq_004CU50m2JjBjr",

@@ -31,13 +31,6 @@ function remove(slot: OutfitSlot) {
         <div v-for="(label, slot) in OUTFIT_SLOTS" :key="slot">
           <span>{{ label }}</span
           ><b>{{ equippedOutfits.find((outfit) => outfit.slot === slot)?.name || '未穿戴' }}</b>
-          <button
-            v-if="equippedOutfits.some((outfit) => outfit.slot === slot)"
-            class="text-button"
-            @click="remove(slot)"
-          >
-            卸下
-          </button>
         </div>
       </div>
     </aside>
@@ -71,8 +64,8 @@ function remove(slot: OutfitSlot) {
 .inventory-detail .detail-lyric{white-space:normal}
 .character-wardrobe {
   display: grid;
-  grid-template-columns: 280px minmax(0, 620px);
-  justify-content: center;
+  grid-template-columns: minmax(300px, .85fr) minmax(0, 2fr);
+  width: 100%;
   gap: 20px;
   margin: 14px auto 0;
   color: #35463f;
@@ -82,7 +75,7 @@ function remove(slot: OutfitSlot) {
   border: 1px solid #dce5de;
   border-radius: 12px;
   padding: 16px;
-  --character-stage-height: 300px;
+  --character-stage-height: clamp(340px, 29vw, 410px);
 }
 .outfit-profile-heading {
   display: flex;
@@ -96,36 +89,43 @@ function remove(slot: OutfitSlot) {
 }
 .outfit-profile-heading span {
   font-size: 11px;
-  color: #758378;
+  color: #4b6555;
 }
-.outfit-slots { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px; }
+.outfit-slots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  margin-top: 10px;
+}
 .outfit-slots > div {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  align-items: center;
-  min-height: 60px;
-  border-top: 1px solid #dbe3ed;
+  display: grid;
+  grid-template-rows: 16px 18px;
+  align-content: start;
+  justify-items: center;
+  gap: 2px;
+  padding-top: 8px;
+  border-top: 1px solid #dce5de;
   font-size: 11px;
+  line-height: 16px;
 }
-.outfit-slots span {
-  color: #758378;
-}
+.outfit-slots span { color: #47604f; }
 .outfit-slots b {
-  font-weight: 550;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #263e32;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
 }
-.outfit-slots button {
-  margin-left: 0;
-  font-size: 11px;
-}
-.outfit-inventory{min-width:0;background:#fcfdfb;border:1px solid #dce5de;border-radius:12px;padding:16px;align-self:start}
-.inventory-heading{display:flex;justify-content:space-between;align-items:start;gap:12px}.inventory-heading h2{font-size:18px;margin:0}.inventory-heading p{font-size:12px;line-height:1.8;color:#758378;margin:8px 0 0}.inventory-heading>span{font-size:11px;color:#758378;white-space:nowrap;padding-top:4px}
-.inventory-tabs{display:flex;gap:6px;margin:8px 0}.inventory-tabs button{font-size:12px;padding:6px 14px;border:1px solid transparent;border-radius:7px;background:transparent;color:#758378;cursor:pointer}.inventory-tabs button.active{background:#e4eeea;color:#365d51;border-color:#c5d8ce}
+.outfit-inventory{min-width:0;background:#fcfdfb;border:1px solid #dce5de;border-radius:12px;padding:24px;align-self:stretch}
+.inventory-heading{display:flex;justify-content:space-between;align-items:start;gap:12px}.inventory-heading h2{font-size:18px;margin:0}.inventory-heading p{font-size:12px;line-height:1.8;color:#4b6555;margin:8px 0 0}.inventory-heading>span{font-size:11px;color:#4b6555;white-space:nowrap;padding-top:4px}
+.inventory-tabs{display:flex;gap:6px;margin:8px 0}.inventory-tabs button{font-size:12px;padding:6px 14px;border:1px solid transparent;border-radius:7px;background:transparent;color:#4b6555;cursor:pointer}.inventory-tabs button.active{background:#e4eeea;color:#365d51;border-color:#c5d8ce}
 .inventory-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
-.inventory-item,.inventory-empty-slot{height:76px;border:1px solid #dce4eb;border-radius:9px;background:#fff;min-width:0}.inventory-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 4px;cursor:pointer}.inventory-item img{width:36px;height:36px;object-fit:contain}.inventory-item.locked img{filter:grayscale(.8);opacity:.65}.inventory-item.selected{border-color:#7b9f90;box-shadow:0 0 0 2px #c7dcd2;background:#f0f7f3}.inventory-item:hover{border-color:#8fa99e}.inventory-item:focus-visible,.inventory-tabs button:focus-visible{outline:2px solid #668c80;outline-offset:3px}.item-name{font-size:10px;color:#405367;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.item-state{position:absolute;right:5px;top:3px;font-size:8px;color:#82909c}.equipped .item-state{color:#3c7860}.inventory-empty-slot{display:grid;place-items:center;background:#f3f6f3;border-style:dashed;border-color:#dfe5eb}.inventory-empty-slot span{font-size:17px;color:#d4dce3;font-weight:300}.inventory-empty{font-size:12px;color:#758378;text-align:center;margin:16px 0}
-.inventory-detail{display:flex;align-items:center;gap:16px;padding-top:20px;margin-top:22px;border-top:1px solid #dce4eb}.inventory-detail>img{width:68px;height:68px;object-fit:contain;flex-shrink:0}.inventory-detail>div{flex:1;min-width:0}.detail-slot{font-size:10px;color:#637a70}.inventory-detail h3{font-size:16px;margin:4px 0 6px}.inventory-detail p{font-size:11px;color:#758378;line-height:1.7;margin:0}.inventory-detail .detail-source{margin-top:5px}.inventory-detail>button{font-size:12px;padding:9px 16px;flex-shrink:0}.inventory-detail>button:disabled{background:#edf1f6;color:#67758b;border-color:#dce3ed;box-shadow:none;opacity:1}.outfit-footnote{font-size:11px;color:#758378;line-height:1.8;margin:18px 0 0}
+.inventory-item,.inventory-empty-slot{height:108px;border:1px solid #dce4eb;border-radius:9px;background:#fff;min-width:0}.inventory-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 4px;cursor:pointer}.inventory-item img{width:52px;height:52px;object-fit:contain}.inventory-item.locked img{filter:grayscale(.8);opacity:.65}.inventory-item.selected{border-color:#7b9f90;box-shadow:0 0 0 2px #c7dcd2;background:#f0f7f3}.inventory-item:hover{border-color:#8fa99e}.inventory-item:focus-visible,.inventory-tabs button:focus-visible{outline:2px solid #668c80;outline-offset:3px}.item-name{font-size:12px;color:#2e463a;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.item-state{position:absolute;right:5px;top:3px;font-size:10px;color:#577260}.equipped .item-state{color:#3c7860}.inventory-empty-slot{display:grid;place-items:center;background:#f3f6f3;border-style:dashed;border-color:#dfe5eb}.inventory-empty-slot span{font-size:17px;color:#d4dce3;font-weight:300}.inventory-empty{font-size:12px;color:#4b6555;text-align:center;margin:16px 0}
+.inventory-detail{display:flex;align-items:center;gap:16px;padding-top:20px;margin-top:22px;border-top:1px solid #dce4eb}.inventory-detail>img{width:68px;height:68px;object-fit:contain;flex-shrink:0}.inventory-detail>div{flex:1;min-width:0}.detail-slot{font-size:10px;color:#416a54}.inventory-detail h3{font-size:16px;margin:4px 0 6px}.inventory-detail p{font-size:11px;color:#4b6555;line-height:1.7;margin:0}.inventory-detail .detail-source{margin-top:5px}.inventory-detail>button{font-size:12px;padding:9px 16px;flex-shrink:0}.inventory-detail>button:disabled{background:#edf1f6;color:#67758b;border-color:#dce3ed;box-shadow:none;opacity:1}.outfit-footnote{font-size:11px;color:#4b6555;line-height:1.8;margin:18px 0 0}
 @media(min-width:701px){.inventory-detail{gap:12px;padding-top:8px;margin-top:8px}.inventory-detail>img{width:48px;height:48px}.outfit-footnote{margin-top:12px}}
-@media(max-width:850px){.character-wardrobe{grid-template-columns:300px minmax(0,1fr);gap:16px}.outfit-inventory{padding:18px}.inventory-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.inventory-tabs{gap:0}.inventory-tabs button{padding:8px 12px}.inventory-heading{display:block}.inventory-heading>span{display:block;margin-top:8px}.inventory-detail{flex-wrap:wrap}.inventory-detail>button{margin-left:auto}}
+@media(max-width:850px){.inventory-item,.inventory-empty-slot{height:86px}.inventory-item img{width:40px;height:40px}.outfit-profile{--character-stage-height:330px}.character-wardrobe{grid-template-columns:300px minmax(0,1fr);gap:16px}.outfit-inventory{padding:18px}.inventory-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.inventory-tabs{gap:0}.inventory-tabs button{padding:8px 12px}.inventory-heading{display:block}.inventory-heading>span{display:block;margin-top:8px}.inventory-detail{flex-wrap:wrap}.inventory-detail>button{margin-left:auto}}
 @media(max-width:700px){.character-wardrobe{grid-template-columns:1fr}.outfit-profile{padding:20px}.inventory-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.inventory-heading{display:flex}.inventory-heading>span{margin-top:0}.inventory-detail>img{width:54px;height:54px}}
 </style>
