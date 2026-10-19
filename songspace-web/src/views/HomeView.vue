@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { PhHouse, PhCompass, PhCards, PhVinylRecord, PhHeadphones, PhTrophy, PhCube, PhMusicNotes, PhUserCircle, PhCloudSlash, PhX, PhEye, PhEyeSlash, PhCopy, PhCheck, PhSignOut, PhQuestion, PhGameController } from '@phosphor-icons/vue'
 import { connectSave, cloud, identity, logoutGame, retrySave, needsWelcome, dismissWelcome } from '@/game/cloud'
+import { copyText } from '@/game/clipboard'
 import WorldCanvas from '@/components/WorldCanvas.vue'
 import WeatherPicker from '@/components/WeatherPicker.vue'
 import MapMusic from '@/components/MapMusic.vue'
@@ -59,9 +60,11 @@ function openAccount() {
   accountNotice.value = ''
   nickname.value?.showModal()
 }
-async function copyGameId() {
-  try { await navigator.clipboard.writeText(identity.gameId); accountNotice.value = '账号 ID 已复制。' }
-  catch { showGameId.value = true; accountNotice.value = '请选中账号 ID 手动复制。' }
+async function copyGameId(event: MouseEvent) {
+  const dialog = (event.currentTarget as HTMLElement).closest('dialog')
+  const copied = await copyText(identity.gameId, dialog ?? document.body)
+  if (copied) accountNotice.value = '账号 ID 已复制。'
+  else { showGameId.value = true; accountNotice.value = '浏览器未允许复制，请长按或选中账号 ID 手动复制。' }
 }
 const page = ref<'home' | 'race' | 'packs' | 'warehouse' | 'world' | 'records' | 'daily' | 'achievements'>('home'),
   world = ref<WorldId>('sea')

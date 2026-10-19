@@ -1,5 +1,7 @@
 {
   "forest": { "title": "挪威的森林", "artist": "伍佰 & China Blue", "version": "Live", "song_url": "https://y.qq.com/n/ryqq/songDetail/000KNvtW2RZsdC", "audio_url": "audio/maps/forest.mp3" },
   "sea": { "title": "大海", "artist": "张雨生", "song_url": "https://y.qq.com/n/ryqq/songDetail/000bog5B2DYgHN", "audio_url": "audio/maps/sea.mp3" },
-  "jiangnan": { "title": "江南", "artist": "林俊杰", "song_url": "https://y.qq.com/n/ryqq/songDetail/004TXEXY2G2c7C", "audio_url": "audio/maps/jiangnan.mp3" }
+  "jiangnan": { "title": "江南", "artist": "林俊杰", "song_url": "https://y.qq.com/n/ryqq/songDetail/004TXEXY2G2c7C", "audio_url": "audio/maps/jiangnan.mp3" },
+  "fuji": { "title": "富士山下", "artist": "陈奕迅", "song_url": "https://y.qq.com/n/ryqq/songDetail/003aAPj81VWrbL", "audio_url": "audio/maps/fuji.mp3" },
+  "space": { "title": "光年之外", "artist": "G.E.M.邓紫棋", "song_url": "https://y.qq.com/n/ryqq/songDetail/002E3MtF0IAMMY", "audio_url": "audio/maps/space.mp3" }
 }

@@ -24,6 +24,7 @@ npm run build
 | `src/views/LoginView.vue` | 昵称注册、账号 ID 登录与存档恢复 |
 | `src/components/` | 卡包、仓库、猜歌、成就、人物 / 载具预览与世界画布 |
 | `src/game/save.ts` | 本机状态、卡牌分类、经济、保底、签到及成就规则 |
+| `src/game/clipboard.ts` | 账号 ID 复制与 HTTP / 弹窗内的兼容回退 |
 | `src/game/cloud.ts` | 账号连接、云端同步、冲突与退出处理 |
 | `src/game/race.ts`、`skills.ts` | 三车道探索、控制、计分、道具与回溯 |
 | `src/game/vehicles.ts`、`outfits.ts` | 歌曲专属载具与装扮映射 |
@@ -50,14 +51,20 @@ node --experimental-strip-types tests/vehicles.mjs
 node --experimental-strip-types tests/outfits.mjs
 node --experimental-strip-types tests/race-difficulty.mjs
 node --experimental-strip-types tests/race-entry.mjs
+node --experimental-strip-types tests/clipboard.mjs
+node --experimental-strip-types tests/song-worlds.mjs
+node --experimental-strip-types tests/space-world.mjs
+node --experimental-transform-types tests/high-heels.mjs
 ```
+
+`high-heels.mjs` 的依赖包含 TypeScript 参数属性，需要 `--experimental-transform-types`，不能仅使用类型剥离。
 
 玩法测试使用测试存档或内存状态；运行前仍应阅读对应脚本的环境要求。场景预览以 `tests/*-preview.html` 为主，通过 Vite 开发服务器访问。
 
 ## 实现边界
 
-购买、抽卡和探索结算目前由客户端计算，服务端负责账号与存档。共享排行榜、反作弊、AI 歌曲分析和太空地图尚未实现。
+购买、抽卡和探索结算目前由客户端计算，服务端负责账号与存档。共享排行榜、反作弊与 AI 歌曲分析尚未实现；太空场景中的星球车目前仅为景物。
 
-当前 12 项成就、九类道具、歌曲专属载具与背包装扮等规则以源码为准。部分装饰使用通用意象模型，部分旧载具保留遗留分类逻辑。主题包仅保留旧存档兼容，不在商店出售。
+当前 12 项成就、九类道具、歌曲专属载具、背包 / 高跟鞋装扮与青花配饰等规则以源码为准。部分装饰使用通用意象模型，部分旧载具保留遗留分类逻辑。主题包仅保留旧存档兼容，不在商店出售。
 
 生产构建有 Three.js 包体超过 500 kB 的提示；低性能设备与真实移动设备性能尚未验证。开包支持跳过动画与减少动态效果偏好。
