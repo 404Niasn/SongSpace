@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import * as T from 'three'
-import { buildVehicle, VEHICLES } from '../src/game/vehicles.ts'
+import { buildVehicle, VEHICLES, AE86_DRIVER_EYE, AE86_DRIVER_LOOK } from '../src/game/vehicles.ts'
 for (const id of Object.keys(VEHICLES)) {
   const { group, wheels, radius } = buildVehicle(id)
   assert.equal(wheels.length, id === 'ae86' ? 4 : 2)
@@ -20,6 +20,14 @@ for (const id of Object.keys(VEHICLES)) {
   if (id === 'motorcycle') assert.ok(group.getObjectByName('rust-chip') && group.getObjectByName('engine'))
   if (id === 'ae86') assert.ok(group.getObjectByName('raised-pop-up-housing') && group.getObjectByName('steering-wheel'))
   if (id === 'ae86') {
+    const windshield = group.getObjectByName('windshield')
+    assert.ok(windshield.material.transparent && windshield.material.opacity < .25, 'Driver must see through the windshield')
+    assert.ok(AE86_DRIVER_EYE.x > 0 && AE86_DRIVER_EYE.y < 1.1 && AE86_DRIVER_EYE.z > -.15, 'Eye must be inside the right-hand-drive cabin')
+    group.updateMatrixWorld(true)
+    const ray = new T.Raycaster(AE86_DRIVER_EYE, AE86_DRIVER_LOOK.clone().sub(AE86_DRIVER_EYE).normalize(), .025, 8)
+    const opaqueHits = ray.intersectObject(group, true).filter(hit => !hit.object.material.transparent)
+    assert.equal(opaqueHits.length, 0, 'Forward sightline must clear the opaque dashboard, bonnet and roof')
+    assert.ok(group.getObjectByName('analog-gauge') && group.getObjectByName('gear-lever'))
     const roof = new T.Box3().setFromObject(group.getObjectByName('roof'))
     assert.ok(roof.max.y < 1.32 && roof.getSize(new T.Vector3()).x < 1.2, 'Roof remains low and tapered away from the body sides')
   }

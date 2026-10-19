@@ -1,12 +1,14 @@
 import * as T from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { upgradeLandscape } from './landscapeAssets.ts'
+import { weatheredSurface } from './surfaceDetail.ts'
 
 // Shared street architecture, used in the riding scene and the miniature.
 export function jiangnanHouse(seed = 0) {
   const g = new T.Group()
   const mats = new Map<string, T.MeshStandardMaterial>()
   function mesh(geo: T.BufferGeometry, color: string, x = 0, y = 0, z = 0) {
-    if (!mats.has(color)) mats.set(color, new T.MeshStandardMaterial({ color, roughness: 0.82 }))
+    if (!mats.has(color)) mats.set(color, weatheredSurface(color, color === '#57483d' || color === '#78654e' ? 'wood' : ['#e6dfcf', '#e8e4d9', '#d8d8cb'].includes(color) ? 'plaster' : 'stone'))
     const m = new T.Mesh(geo, mats.get(color))
     m.position.set(x, y, z)
     m.castShadow = true
@@ -40,6 +42,7 @@ export function jiangnanHouse(seed = 0) {
     -d / 2,
   )
   void gable
+  const roofStart = g.children.length
   for (const side of [-1, 1]) {
     const points: T.Vector3[] = []
     for (let j = 0; j <= 8; j++) {
@@ -82,6 +85,11 @@ export function jiangnanHouse(seed = 0) {
     box('#566762', side * (w / 2 + 0.46), h + 0.53, 0, 0.12, 0.18, d + 1.1)
   }
   box('#626f67', 0, h + 1.88, 0, 0.18, 0.19, d + 1.2)
+  const roofRoot = new T.Group()
+  roofRoot.name = 'curved-tiled-roof'
+  for (const child of g.children.slice(roofStart)) roofRoot.add(child)
+  g.add(roofRoot)
+  upgradeLandscape(roofRoot, 'jiangnan-roof', { scaleX: (w + 1) / 6.4, y: h + .3 })
   function window(x: number, y: number) {
     box(wood, x, y, d / 2 + 0.065, 1.35, 1.55, 0.12)
     box(seed % 2 ? '#d1bb81' : '#91aaa2', x, y, d / 2 + 0.14, 1.17, 1.36, 0.035)

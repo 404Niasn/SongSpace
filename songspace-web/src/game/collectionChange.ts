@@ -4,6 +4,7 @@ import { imageryFor, skillLevel } from './content.ts'
 export function collectionChange(card: GameCard, before: number) {
   const after = card.count
   if (card.kind === 'map') return before === 0 ? { title: '新的歌境已解锁', detail: `现在可以走进《${card.song.title}》的世界` } : { title: '已收入音乐收藏', detail: `《${card.song.title}》· 持有 ×${after}` }
+  if (card.outfit?.decoration) return { title: before === 0 ? '人物装饰已解锁' : '已收入音乐收藏', detail: before === 0 ? `${card.outfit.name} · 前往配饰页佩戴` : `持有 ×${after}` }
   if (card.kind === 'outfit') return { title: before === 0 ? '新的装扮已解锁' : '已收入音乐收藏', detail: before === 0 ? `${card.outfit?.name || card.song.title} · 前往衣橱试穿` : `持有 ×${after}` }
   if (card.kind === 'decoration' && imageryFor(card.song.title).weather) return { title: before === 0 ? '新的天气已解锁' : '天气歌曲已收藏', detail: before === 0 ? `${card.effect.split(' · ')[0]} · 可在歌境中启用` : `持有 ×${after} · 天气效果已解锁` }
   if (card.kind === 'decoration') return { title: before === 0 ? '新的装饰已收藏' : '装饰收藏已增加', detail: `${card.effect.split(' · ')[0]} · 新增 ${after - before} 件` }

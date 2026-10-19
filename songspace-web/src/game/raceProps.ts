@@ -303,13 +303,33 @@ function themedBody(b: ReturnType<typeof builder>, world: WorldId, style: number
       for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; box(.012, .22, .012, '#ecc8c2', x + Math.sin(a) * .126, floor + .58, Math.cos(a) * .126) }
     }
   } else if (world === 'space' && style === 0) {
-    const rock = mesh(new T.IcosahedronGeometry(.46, 1), '#7787a0', -.08, floor + .3); rock.scale.set(1.2, .8, .85)
-    for (let i = 0; i < 3; i++) { const crystal = mesh(new T.ConeGeometry(.075, .28 + i * .05, 5), '#8de4eb', .18 + i * .09, floor + .42 + i * .02, -.09 + i * .07); crystal.rotation.z = -.2 + i * .15; crystal.material.emissive.set('#2b617a'); crystal.material.emissiveIntensity = .7 }
+    const geometry = new T.IcosahedronGeometry(.46, 2), p = geometry.getAttribute('position')
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i), warp = 1 + .055 * Math.sin(x * 19 + y * 11) * Math.cos(z * 17)
+      p.setXYZ(i, x * warp, y * warp, z * warp)
+    }
+    geometry.computeVertexNormals()
+    const rock = mesh(geometry, '#7787a0', -.08, floor + .36); rock.scale.set(1.2, .8, .85)
+    for (let i = 0; i < 4; i++) {
+      const shard = mesh(new T.OctahedronGeometry(.09 + i * .012, 0), '#8de4eb', .12 + i * .06, floor + .47 + i * .012, -.09 + i * .055)
+      shard.scale.set(.5, 1.6, .7); shard.rotation.z = -.3 + i * .16; shard.material.emissive.set('#2b617a'); shard.material.emissiveIntensity = .45
+    }
+    for (let i = 0; i < 3; i++) box(.23, .018, .025, '#a5b0bd', -.18 + i * .12, floor + .66 - i * .035, .13 - i * .08).rotation.z = -.3
   } else if (world === 'space' && style === 1) {
-    crate('#506983', '#98aebd')
-    for (const x of [-.38, .38]) box(.065, .035, .65, '#9ce7ed', x, floor + .46).material.emissive.set('#316e87')
-    const latch = box(.18, .13, .035, '#bdc9c7', 0, floor + .26, .37); latch.material.metalness = .65
-    box(.13, .045, .018, '#e4b97c', 0, floor + .33, .393)
+    box(1.02, .43, .66, '#506983', 0, floor + .24)
+    box(1.08, .08, .72, '#98aebd', 0, floor + .49)
+    for (const x of [-.46, .46]) {
+      for (const z of [-.31, .31]) box(.1, .47, .1, '#98aebd', x, floor + .25, z)
+      box(.09, .08, .74, '#98aebd', x, floor + .05)
+      box(.065, .025, .48, '#9ce7ed', x * .78, floor + .54).material.emissive.set('#316e87')
+    }
+    box(.62, .24, .025, '#344755', 0, floor + .27, .347)
+    for (const x of [-.35, .35]) {
+      const grip = new T.TorusGeometry(.075, .012, 5, 16, Math.PI); grip.rotateZ(Math.PI)
+      mesh(grip, '#98aebd', x, floor + .28, .369)
+    }
+    for (let i = 0; i < 4; i++) box(.055, .075, .018, '#e4b97c', -.16 + i * .105, floor + .27, .372).rotation.z = -.4
+    const latch = box(.18, .065, .025, '#98aebd', 0, floor + .44, .367); latch.material.metalness = .65
   } else {
     box(.68, .22, .52, '#697f98', 0, floor + .24)
     cylinder(.18, .24, .1, '#b0bfce', 0, .4)
@@ -321,6 +341,12 @@ function themedBody(b: ReturnType<typeof builder>, world: WorldId, style: number
       void tread
     }
     const eye = mesh(new T.SphereGeometry(.065, 12, 8), '#95e7f0', 0, floor + .44, .225); eye.material.emissive.set('#429ab3')
+    for (const x of [-.11, .11]) {
+      const lens = new T.CylinderGeometry(.045, .055, .04, 16); lens.rotateX(Math.PI / 2)
+      mesh(lens, '#344755', x, floor + .45, .205)
+      const rim = new T.TorusGeometry(.055, .008, 5, 20); mesh(rim, '#b0bfce', x, floor + .45, .231)
+    }
+    for (let i = 0; i < 4; i++) box(.035, .13, .018, '#344755', -.09 + i * .06, floor + .25, -.275)
     cylinder(.014, .018, .16, '#8caabb', .15, .69, 0, 6)
     mesh(new T.SphereGeometry(.02, 8, 6), '#e8bc87', .15, floor + .75)
   }

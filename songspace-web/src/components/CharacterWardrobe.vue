@@ -51,7 +51,7 @@ function remove(slot: OutfitSlot) {
       <p v-if="!items.length" class="inventory-empty">这个部位暂时没有装扮。</p>
       <article v-if="selected" class="inventory-detail">
         <img :src="coverPath(selected.preview)" :alt="selected.name" />
-        <div><span class="detail-slot">{{ OUTFIT_SLOTS[selected.slot] }}装扮 · 穿戴积分 +{{ Math.round(selected.scoreBonus * 100) }}%</span><h3>{{ selected.name }}</h3><p v-if="selected.lyric" class="detail-lyric">{{ selected.lyric }}</p><p class="detail-source">——《{{ selected.songTitle }}》 · {{ selected.artist }}</p></div>
+        <div><span class="detail-slot">{{ OUTFIT_SLOTS[selected.slot] }}装扮 · {{ selected.scoreBonus ? '穿戴积分 +' + Math.round(selected.scoreBonus * 100) + '%' : '装饰信物' }}</span><h3>{{ selected.name }}</h3><p v-if="selected.lyric" class="detail-lyric">{{ selected.lyric }}</p><p class="detail-source">——《{{ selected.songTitle }}》 · {{ selected.artist }}</p></div>
         <button v-if="selected.equipped" class="lime-btn" @click="remove(selected.slot)">卸下</button>
         <button v-else class="lime-btn" :disabled="!selected.owned" @click="wear(selected.id)">{{ selected.owned ? '穿戴' : '未解锁' }}</button>
       </article>

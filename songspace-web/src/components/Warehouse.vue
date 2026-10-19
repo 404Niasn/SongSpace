@@ -29,6 +29,7 @@ function use(c: GameCard) {
   if (c.outfit && equipOutfit(c.outfit.id)) {
     section.value = 'outfits'
     emit('message', `已穿戴${c.outfit.name}，进入探索即可看到。`)
+    selected.value = null; persist(); return
   }
   if (c.kind === 'item' || c.kind === 'vehicle' || c.kind === 'map') emit('equip', c)
   else if (c.kind === 'decoration') emit('decorate', c)
@@ -125,7 +126,7 @@ function use(c: GameCard) {
               : '未获得 · 可以通过卡包收集'
           }}
         </p>
-        <button v-if="selected.count" class="lime-btn" :disabled="selected.kind === 'decoration' && !imageryFor(selected.song.title).weather && availableImagery(selected.id) < 1" @click="use(selected)">
+        <button v-if="selected.count" class="lime-btn" :disabled="!selected.outfit && selected.kind === 'decoration' && !imageryFor(selected.song.title).weather && availableImagery(selected.id) < 1" @click="use(selected)">
           {{
             selected.outfit ? '穿戴这件装扮' : selected.kind === 'map'
               ? `选择《${selected.song.title}》地图`

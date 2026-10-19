@@ -7,7 +7,7 @@ import {createApp,h} from 'vue'
 import CharacterWardrobe from '/src/components/CharacterWardrobe.vue'
 import {catalog, game} from '/src/game/save.ts'
 const response=await fetch('/catalog/qqmusic-hot-100.json');catalog.songs=(await response.json()).songs
-for(const title of ['你的背包','红色高跟鞋']){const song=catalog.songs.find(s=>s.title===title);game.owned[song.id]=1}
-game.equippedOutfits={back:'travel-backpack',feet:'red-high-heels'}
+for(const title of ['你的背包','红色高跟鞋','青花']){const song=catalog.songs.find(s=>s.title===title);game.owned[song.id]=1}
+game.equippedOutfits={back:'travel-backpack',feet:'red-high-heels',accessory:'qinghua-token'}
 createApp({render:()=>h(CharacterWardrobe)}).mount('#app')
 </script></body></html>

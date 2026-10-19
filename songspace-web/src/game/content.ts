@@ -1,6 +1,8 @@
 import { COMMENT_QUOTES } from './commentQuotes.ts'
 export type SkillId = 'shield' | 'magnet' | 'revive' | 'courage' | 'tea' | 'freeze' | 'double' | 'rewind' | 'friend'
-export type ImageryModel = 'garden' | 'pavilion' | 'fireworks' | 'lantern' | 'snow' | 'record'
+export type SongDecorationModel = 'camellia' | 'epiphyllum' | 'autumn-plane' | 'shade-tree' | 'rocking-chair' | 'campfire' | 'trail-lamp' | 'red-lantern' | 'farewell-pavilion' | 'watcher-statue' | 'seashell' | 'seagull' | 'butterfly' | 'outdoor-piano'
+export const SONG_DECORATION_MODELS: SongDecorationModel[] = ['camellia', 'epiphyllum', 'autumn-plane', 'shade-tree', 'rocking-chair', 'campfire', 'trail-lamp', 'red-lantern', 'farewell-pavilion', 'watcher-statue', 'seashell', 'seagull', 'butterfly', 'outdoor-piano']
+export type ImageryModel = 'garden' | 'pavilion' | 'fireworks' | 'lantern' | 'snow' | 'record' | 'qinghua' | SongDecorationModel
 export type WeatherId = 'clear' | 'sunset' | 'rain' | 'snow' | 'overcast'
 export const ITEMS: Record<string, { id: SkillId; name: string; description: string; prose: string }> = {
   心墙: { id: 'shield', name: '心墙护盾', description: '抵挡一次碰撞；护盾持续到触发', prose: COMMENT_QUOTES["心墙"]!.excerpt },
@@ -13,13 +15,27 @@ export const ITEMS: Record<string, { id: SkillId; name: string; description: str
   反方向的钟: { id: 'rewind', name: '倒转怀表', description: '回到 3 秒前，恢复当时生命、位置与金币', prose: COMMENT_QUOTES["反方向的钟"]!.excerpt },
   朋友: { id: 'friend', name: '友情助力', description: '伙伴助力加速 8 秒，速度增加 6 m/s', prose: COMMENT_QUOTES["朋友"]!.excerpt },
 }
-export interface ImageryContent { name: string; model: ImageryModel; value: number; prose: string; weather?: Exclude<WeatherId, 'clear'> }
+export interface ImageryContent { name: string; model: ImageryModel; value: number; prose: string; wearable?: boolean; weather?: Exclude<WeatherId, 'clear'> }
 const DECORATIONS: Record<string, ImageryContent> = {
+  '茶花开了，该回家了': { name: '山茶花', model: 'camellia', value: 20, prose: '' },
+  雨过后的风景: { name: '月白昙花', model: 'epiphyllum', value: 20, prose: '' },
+  冷夜: { name: '秋色梧桐', model: 'autumn-plane', value: 20, prose: '' },
+  如果可以: { name: '相遇大树', model: 'shade-tree', value: 20, prose: '' },
+  素颜: { name: '乘凉摇椅', model: 'rocking-chair', value: 20, prose: '' },
+  阿楚姑娘: { name: '守望篝火', model: 'campfire', value: 20, prose: '' },
+  如愿: { name: '山野引路灯', model: 'trail-lamp', value: 20, prose: '' },
+  天龙八部之宿敌: { name: '长安红灯笼', model: 'red-lantern', value: 20, prose: '' },
+  下完这场雨: { name: '送别长亭', model: 'farewell-pavilion', value: 20, prose: '' },
+  美人鱼: { name: '海边守望像', model: 'watcher-statue', value: 20, prose: '' },
+  会呼吸的痛: { name: '珠光贝壳', model: 'seashell', value: 20, prose: '' },
+  情歌: { name: '海鸥小景', model: 'seagull', value: 20, prose: '' },
+  同花顺: { name: '蝶影雕塑', model: 'butterfly', value: 20, prose: '' },
+  有何不可: { name: '花园钢琴', model: 'outdoor-piano', value: 20, prose: '' },
   樱花草: { name: '春信花园', model: 'garden', value: 20, prose: '把没说完的话，交给下一次花开。' },
   夏夜最后的烟火: { name: '并肩观景台', model: 'fireworks', value: 50, prose: '烟火会散场，但有人陪你看过的夜，会在心里亮很久。' },
   认真的雪: { name: '雪天天气', model: 'snow', weather: 'snow', value: 35, prose: '雪落下来的时候，城市安静了，记忆却有了声音。' },
   阴天: { name: '阴天天气', model: 'pavilion', weather: 'overcast', value: 35, prose: '云层遮住阳光，世界笼罩在柔和的灰蓝天光里。' },
-  青花: { name: '青花月灯', model: 'lantern', value: 30, prose: '把一段旧时光，藏进温润的蓝白之间。' },
+  青花: { name: '青花信物', model: 'qinghua', wearable: true, value: 0, prose: '把一段旧时光，藏进温润的蓝白之间。' },
   晴天: { name: '等风花园', model: 'garden', value: 25, prose: '青春里有些雨，下了很久；想起你时，仍像晴天。' },
   下一个天亮: { name: '天亮候亭', model: 'pavilion', value: 40, prose: '慢一点没关系，愿你等到的天亮，真的有光。' },
   我记得: { name: '记忆唱片亭', model: 'record', value: 40, prose: '有些相遇不需要记清日期，只要心里还留着回声。' },
@@ -51,6 +67,7 @@ export function itemDescription(title: string, level: number) {
 export function decorationMultiplier(value: number) { return 1 + Math.min(0.5, Math.max(0, value) / 1000) }
 let imageryAssets: Record<string, string> | undefined
 export function artPath(id: string) {
+  if (SONG_DECORATION_MODELS.includes(id as SongDecorationModel)) return `${import.meta.env?.BASE_URL ?? '/'}art/decorations/${id}.png`
   imageryAssets ??= import.meta.glob<string>('../assets/imagery/*.svg', { eager: true, query: '?url', import: 'default' })
   return imageryAssets[`../assets/imagery/${id}.svg`] || `${import.meta.env.BASE_URL}art/imagery/${id}.svg`
 }

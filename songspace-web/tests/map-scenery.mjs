@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import * as T from 'three'
 import { CherryPetals, pineTree, birchTree, palmTree, coastalLighthouse, groundPlants, landform, rockFormation } from '../src/worlds/scenery.ts'
 import { forestLookout, lakesidePavilion, shoreShelter, observatory, stoneLantern } from '../src/worlds/mapLandmarks.ts'
-import { fujiMountain } from '../src/worlds/songWorlds.ts'
+import { cherryTree, fujiMountain } from '../src/worlds/songWorlds.ts'
 
 const petals = new CherryPetals(150, 17, 65, true)
 const before = petals.mesh.instanceMatrix.array.slice()
@@ -24,7 +24,7 @@ for (const [time, distance] of [[0, 0], [100, 1300], [10000, 150000]]) {
   }
   assert.ok(visible > 5, 'Petals must remain visible near the riding corridor after a long ride')
 }
-for (const asset of [pineTree(3), birchTree(3), palmTree(3), coastalLighthouse(), forestLookout(), lakesidePavilion(), shoreShelter(), observatory(), stoneLantern(), landform(73), rockFormation(3)]) {
+for (const asset of [cherryTree(3), pineTree(3), birchTree(3), palmTree(3), coastalLighthouse(), forestLookout(), lakesidePavilion(), shoreShelter(), observatory(), stoneLantern(), landform(73), rockFormation(3)]) {
   let drawCalls = 0
   asset.traverse(o => {
     if (!o.isMesh) return

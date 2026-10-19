@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>歌曲户外装饰 · 实物预览</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;background:#eef1e9;color:#284539;font-family:system-ui,"Microsoft YaHei",sans-serif}header{padding:22px 30px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d4ddce}h1{font-size:22px;margin:0}header a{color:inherit;font-size:14px}main{display:grid;grid-template-columns:310px 1fr;height:calc(100vh - 75px)}nav{overflow:auto;padding:18px;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:9px}button{font:inherit;color:inherit;cursor:pointer;border:1px solid #d3dcce;border-radius:12px;background:#f8faf4;padding:7px;text-align:center;min-width:0}button[aria-pressed=true]{border-color:#537b63;background:#e1ebdb;box-shadow:inset 0 0 0 1px #537b63}button img{width:100%;height:94px;object-fit:contain}button b{font-size:12px;display:block}button small{font-size:10px;display:block;line-height:1.5;margin-top:3px}section{position:relative;min-width:0}#stage{width:100%;height:100%;touch-action:none}#stage canvas{display:block;width:100%;height:100%}.caption{position:absolute;left:30px;top:24px;pointer-events:none}.caption h2{font-size:27px;margin:0 0 8px}.caption p{margin:0;line-height:1.7;font-size:14px}.help{position:absolute;left:30px;bottom:22px;font-size:13px;pointer-events:none} @media(max-width:700px){header{padding:16px}h1{font-size:18px}main{grid-template-columns:1fr;height:auto;display:flex;flex-direction:column-reverse}nav{display:flex;height:190px;overflow:auto;padding:12px}button{min-width:128px}section{height:65vh}.caption{left:18px;top:18px}.caption h2{font-size:21px}}
+</style>
+<header><h1>14 件歌曲户外装饰</h1><a href="/">返回游戏</a></header>
+<main><nav aria-label="选择装饰"></nav><section><div id="stage"></div><div class="caption"><h2></h2><p id="song"></p><p id="detail"></p></div><p class="help">拖动旋转 · 滚轮缩放 · 与地图、骑行共用游戏模型 · 此预览不修改账号存档</p></section></main>
+<script type="module">
+import * as T from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { buildImagery } from '/src/worlds/imageryModels.ts'
+import { SONG_DECORATION_MODELS, imageryFor, artPath } from '/src/game/content.ts'
+const catalog = await (await fetch('/catalog/qqmusic-hot-100.json')).json()
+const songs = SONG_DECORATION_MODELS.map(model => catalog.songs.find(s => imageryFor(s.title).model === model))
+const scene = new T.Scene(); scene.background = new T.Color('#eef1e9')
+const camera = new T.PerspectiveCamera(36,1,.05,100)
+const renderer = new T.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.toneMapping=T.ACESFilmicToneMapping
+document.querySelector('#stage').append(renderer.domElement)
+scene.add(new T.HemisphereLight('#fff7df','#7a8d74',2.2))
+const sun=new T.DirectionalLight('#fff1d6',3);sun.position.set(-4,7,5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-7;sun.shadow.camera.right=7;sun.shadow.camera.top=7;sun.shadow.camera.bottom=-7;sun.shadow.normalBias=.025;scene.add(sun)
+const ground=new T.Mesh(new T.CircleGeometry(9,96),new T.MeshStandardMaterial({color:'#dce5d2',roughness:.95}));ground.rotation.x=-Math.PI/2;ground.position.y=-.015;ground.receiveShadow=true;scene.add(ground)
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*.49;controls.minDistance=2;controls.maxDistance=18
+let active
+function select(index){
+ if(active){scene.remove(active);active.traverse(o=>{o.geometry?.dispose();o.material?.dispose()})}
+ const song=songs[index],content=imageryFor(song.title);active=buildImagery(content.model);scene.add(active)
+ const size=new T.Box3().setFromObject(active).getSize(new T.Vector3()),length=Math.max(size.x,size.y,size.z)
+ controls.target.set(0,size.y*.48,0);const front=['rocking-chair','camellia','epiphyllum','autumn-plane','shade-tree'].includes(content.model)?1:-1;camera.position.set(length*.95,size.y*.7+length*.55,length*1.5*front);controls.update()
+ document.querySelector('h2').textContent=content.name;document.querySelector('#song').textContent=`《${song.title}》 · ${song.artists.map(a=>a.name).join(' / ')}`;document.querySelector('#detail').textContent=`${size.x.toFixed(1)} × ${size.z.toFixed(1)} 米 · 高 ${size.y.toFixed(1)} 米`
+ document.querySelectorAll('nav button').forEach((button,i)=>button.setAttribute('aria-pressed',String(index===i)))
+}
+songs.forEach((song,index)=>{const content=imageryFor(song.title),button=document.createElement('button');const img=new Image();img.src=artPath(content.model);img.alt='';const label=document.createElement('b');label.textContent=content.name;const caption=document.createElement('small');caption.textContent=song.title;button.append(img,label,caption);button.onclick=()=>select(index);document.querySelector('nav').append(button)})
+const resize=()=>{const host=document.querySelector('#stage');renderer.setSize(host.clientWidth,host.clientHeight);camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix()};new ResizeObserver(resize).observe(document.querySelector('#stage'));resize();select(0)
+renderer.setAnimationLoop(()=>{if(document.hidden)return;controls.update();renderer.render(scene,camera)})
+</script></html>

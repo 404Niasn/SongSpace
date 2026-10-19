@@ -1,8 +1,9 @@
 import * as THREE from 'three'
-import { buildSongWorld } from './songWorlds'
-import { jiangnanHouse } from './jiangnan'
+import { buildSongWorld } from './songWorlds.ts'
+import { miniatureDetails } from './miniatureDetails.ts'
+import { jiangnanHouse } from './jiangnan.ts'
 import type { DecorationKind, WorldId, WorldModel } from './types'
-import { pineTree, palmTree, birchTree, groundPlants, landform, rockFormation } from './scenery.ts'
+import { pineTree, palmTree, birchTree, forestUnderstory, groundPlants, landform, rockFormation } from './scenery.ts'
 import { forestLookout, shoreShelter } from './mapLandmarks.ts'
 
 const RADIUS = 43
@@ -116,9 +117,10 @@ export function buildWorld(id: WorldId): WorldModel {
         const cx = triangle.reduce((sum, p) => sum + p[0]!, 0) / 3
         const cz = triangle.reduce((sum, p) => sum + p[1]!, 0) / 3
         if (Math.abs(cx) > 42.8 || Math.abs(cz) > 37.8 || isWater(cx, cz)) continue
+        const wetSand = id === 'sea' && cx < coast(cz) + 1.6
         const color = (id === 'sea' && cx < coast(cz) + 7 ? sandColor : landColor)
           .clone()
-          .multiplyScalar(0.96 + rng() * 0.08)
+          .multiplyScalar((wetSand ? .78 : .96) + rng() * .08)
         for (const p of triangle) {
           positions.push(p[0]!, 0.035, p[1]!)
           colors.push(color.r, color.g, color.b)
@@ -152,7 +154,11 @@ export function buildWorld(id: WorldId): WorldModel {
       float edge; if(kind<0.5){edge=(-8.0+sin(p.y*0.11)*2.0)-p.x;} else if(kind<1.5){edge=2.2-abs(p.x-(-7.0+sin(p.y/9.0)*4.0));}else{edge=5.8-abs(p.x);}
       if(edge<0.0) discard; float wave=sin(p.x*1.5+p.y*0.8-time*1.1);
       float shine=pow(max(0.0,sin(p.x*2.0-p.y*1.5+time*0.7)),18.0)*0.035;
+      float shallow=exp(-edge*.18);
       float foam=(1.0-smoothstep(0.0,1.2,edge))*0.35;
+      if(kind<.5){float pulse=pow(max(0.,sin(edge*5.-time*1.3+sin(p.y*.8)*.3)),8.);
+      foam=shallow*.35+pulse*exp(-edge*.8)*.5;}
+
       gl_FragColor=vec4(mix(deep,light,foam+wave*0.025+shine),1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
@@ -393,6 +399,7 @@ export function buildWorld(id: WorldId): WorldModel {
   }
 
   if (id === 'forest') {
+    group.add(forestUnderstory(73, 76, 66, 4, (x, z) => !isWater(x, z)))
     const lookout = forestLookout(); lookout.position.set(-27, .08, 13); lookout.rotation.y = -.3; group.add(lookout)
     colliders.push({ x: -27, z: 13, radius: 6.5 })
     house(10, -9, false, -0.35, 1.15)
@@ -565,6 +572,8 @@ export function buildWorld(id: WorldId): WorldModel {
     colliders.push({ x: -20, z: 4, radius: 2.6 })
   }
 
+  const details = miniatureDetails(id, (x,z) => !isWater(x,z) && Math.abs(x-routeCenter)>7 && colliders.every(c=>Math.hypot(c.x-x,c.z-z)>c.radius+4))
+  group.add(details); colliders.push(...details.userData.colliders)
   return {
     group,
     ground,
@@ -625,6 +634,7 @@ export function disposeObject(root: THREE.Object3D) {
   const materials = new Set<THREE.Material>()
   const textures = new Set<THREE.Texture>()
   root.traverse((object) => {
+    object.userData.assetDisposed = true
     if (
       object instanceof THREE.Mesh ||
       object instanceof THREE.Points ||

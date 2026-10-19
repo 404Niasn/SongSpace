@@ -168,7 +168,7 @@ export function isWorldUnlocked(world: WorldId): boolean {
 export function kindFor(song: Song): CardKind {
   if (song.card_kind === 'vehicle') return 'vehicle'
   if (['江南', '富士山下', '光年之外'].includes(song.title)) return 'map'
-  if (outfitForSong(song)) return 'outfit'
+  if (outfitForSong(song) && !outfitForSong(song)!.decoration) return 'outfit'
   if (ITEMS[song.title]) return 'item'
   return 'decoration'
 }
@@ -185,7 +185,7 @@ export function cardFor(song: Song, rarity?: GameCard['rarity']): GameCard {
     kind,
     rarity: rarity || (kind === 'map' ? 'rainbow' : kind === 'item' ? 'gold' : 'normal'),
     effect: outfit
-      ? outfit.name + ' · 穿戴积分 +' + Math.round(outfit.scoreBonus * 100) + '% · ' + OUTFIT_SLOTS[outfit.slot]
+      ? outfit.decoration ? outfit.name + ' · 人物装饰 · 腰侧玉佩' : outfit.name + ' · 穿戴积分 +' + Math.round(outfit.scoreBonus * 100) + '% · ' + OUTFIT_SLOTS[outfit.slot]
       : kind === 'map'
         ? `《${song.title}》地图 · ${song.title === '光年之外' ? '星球与太空栈道' : song.title === '富士山下' ? '雪山与樱花湖畔' : '烟雨与青石板街'}`
         : kind === 'vehicle'
@@ -199,7 +199,7 @@ export function cardFor(song: Song, rarity?: GameCard['rarity']): GameCard {
             : decoration.name + ' · 装饰值 +' + decoration.value,
     count: game.owned[song.id] || 0,
     prose: LYRIC_EXCERPTS[song.id] || song.vehicle_lyric || '',
-    art: kind === 'item' ? content!.id : kind === 'decoration' ? decoration.weather || decoration.model : '',
+    art: kind === 'item' ? content!.id : kind === 'decoration' && !decoration.wearable ? decoration.weather || decoration.model : '',
     commentQuote: kind === 'item' ? COMMENT_QUOTES[song.title] : undefined,
     outfit,
   }

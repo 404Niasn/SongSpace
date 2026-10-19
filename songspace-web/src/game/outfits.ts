@@ -1,5 +1,5 @@
 export type OutfitSlot = 'back' | 'head' | 'accessory' | 'feet'
-export type OutfitId = 'travel-backpack' | 'red-high-heels'
+export type OutfitId = 'travel-backpack' | 'red-high-heels' | 'qinghua-token'
 export interface OutfitDefinition {
   id: OutfitId
   name: string
@@ -9,6 +9,7 @@ export interface OutfitDefinition {
   description: string
   scoreBonus: number
   preview: string
+  decoration?: boolean
 }
 export const OUTFIT_SLOTS: Record<OutfitSlot, string> = {
   back: '背部',
@@ -18,6 +19,7 @@ export const OUTFIT_SLOTS: Record<OutfitSlot, string> = {
 }
 // Add song mappings here; models live in worlds/outfitModels.ts.
 export const OUTFITS: OutfitDefinition[] = [
+
   {
     id: 'travel-backpack',
     name: '旅途背包',
@@ -34,6 +36,9 @@ export const OUTFITS: OutfitDefinition[] = [
     description: '红色尖头高跟鞋，随人物双脚踩踏。',
     scoreBonus: .10, preview: 'art/outfits/red-high-heels.svg',
   },
+  { id: 'qinghua-token', name: '青花信物', slot: 'accessory', songTitle: '青花', artist: '周传雄',
+    description: '腰侧佩戴的青花玉佩，瓷釉纹样、编绳与流苏随人物出行。', scoreBonus: 0,
+    preview: 'art/outfits/qinghua-token.svg', decoration: true },
 ]
 export function outfitForSong(song: { title: string; artists: { name: string }[] }) {
   return OUTFITS.find(

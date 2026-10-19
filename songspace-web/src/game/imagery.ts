@@ -15,7 +15,7 @@ export function validPlacements(world: WorldId) {
   const valid: Record<WorldId, PlacedImagery[]> = { forest: [], sea: [], jiangnan: [], fuji: [], space: [] }
   for (const id of ids) for (const p of imagery[id]) {
     const song = catalog.songs.find(s => s.id === p.songId)
-    if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || (seen[p.songId] || 0) >= (game.owned[p.songId] || 0)) continue
+    if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || imageryFor(song.title).wearable || (seen[p.songId] || 0) >= (game.owned[p.songId] || 0)) continue
     seen[p.songId] = (seen[p.songId] || 0) + 1
     valid[id].push(p)
   }
@@ -26,7 +26,7 @@ function save() {
 }
 export function placeImagery(world: WorldId, p: PlacedImagery) {
   const song = catalog.songs.find(s => s.id === p.songId)
-  if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || availableImagery(p.songId) < 1 || imagery[world].length >= 50 || ![p.x, p.z, p.rotation].every(Number.isFinite)) return false
+  if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || imageryFor(song.title).wearable || availableImagery(p.songId) < 1 || imagery[world].length >= 50 || ![p.x, p.z, p.rotation].every(Number.isFinite)) return false
   imagery[world].push({ ...p })
   if (!save()) { imagery[world].pop(); return false }
   return true

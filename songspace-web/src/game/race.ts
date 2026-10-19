@@ -1,8 +1,10 @@
+import { orbitalHabitat, solarArray, relayAntenna, lunarRover, orbitalWalkway, navigationGate, deepSpaceStars } from '@/worlds/spaceScenery'
 import * as T from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { cherryTree, fujiMountain, ringPlanet } from '@/worlds/songWorlds'
-import { CherryPetals, pineTree, birchTree, palmTree, groundPlants, terrainMaterial, coastalLighthouse } from '@/worlds/scenery'
-import { forestLookout, shoreShelter, lakesidePavilion, observatory, stoneLantern } from '@/worlds/mapLandmarks'
+import { cherryTree, fallenSakura, fujiMountain, ringPlanet } from '@/worlds/songWorlds'
+import { rockFormation } from '@/worlds/scenery'
+import { CherryPetals, pineTree, birchTree, palmTree, forestUnderstory, groundPlants, terrainMaterial, coastalLighthouse } from '@/worlds/scenery'
+import { forestLookout, shoreShelter, lakesidePavilion, stoneLantern } from '@/worlds/mapLandmarks'
 import { jiangnanHouse, canalBoat } from '@/worlds/jiangnan'
 import { atmosphere } from '@/worlds/atmosphere'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
@@ -13,12 +15,12 @@ import { catalog } from './save'
 import { imageryFor, type WeatherId } from './content'
 import { WeatherLayer } from '@/worlds/weather'
 import { validPlacements } from './imagery'
-import { buildImagery, buildSkillEffect } from '@/worlds/imageryModels'
+import { buildImagery, buildSkillEffect, updateSkillEffect } from '@/worlds/imageryModels'
 import { addCharacterOutfits } from '@/worlds/outfitModels'
 import type { OutfitDefinition } from './outfits'
 import { buildRaceCoin, buildRaceObstacle, freezeRaceObstacle, raceRow } from './raceProps.ts'
 import { buildRider, poseRider, type RiderLeg } from './rider.ts'
-import { VEHICLES, type VehicleModel } from './vehicles'
+import { AE86_DRIVER_EYE, AE86_DRIVER_LOOK, VEHICLES, type VehicleModel } from './vehicles'
 import { buildMountedVehicle } from './vehicleRider'
 import { raceDifficulty } from './raceDifficulty'
 import { ENTRY_DURATION, raceEntryMotion } from './raceEntry'
@@ -132,8 +134,8 @@ export class Race {
     this.renderer.domElement.setAttribute('aria-label', '第三人称探索闯关场景')
     host.append(this.renderer.domElement)
     const sun = new T.DirectionalLight(
-      muted ? '#d0dfeb' : this.weather === 'sunset' ? '#ffb978' : this.evening ? '#aecbe6' : '#ffefd5',
-      muted ? .65 : this.evening ? 1.4 : 2.4,
+      muted ? '#d0dfeb' : world === 'space' ? '#bed8f3' : this.weather === 'sunset' ? '#ffb978' : this.evening ? '#aecbe6' : '#ffefd5',
+      muted ? .65 : world === 'space' ? 2.2 : this.evening ? 1.4 : 2.4,
     )
     sun.position.set(-25, this.weather === 'sunset' ? 12 : 40, 25)
     sun.castShadow = !muted
@@ -150,8 +152,8 @@ export class Race {
     this.scene.add(
       sun,
       new T.HemisphereLight(
-        muted ? '#d8e3ec' : this.evening ? '#8aaacb' : '#eff8ff',
-        '#859976',
+        muted ? '#d8e3ec' : world === 'space' ? '#8da8ca' : this.evening ? '#8aaacb' : '#eff8ff',
+        world === 'space' ? '#202b44' : '#859976',
         muted ? 1.7 : 1.5,
       ),
     )
@@ -162,18 +164,21 @@ export class Race {
       this.scene.add(chunk)
     }
     if (world === 'space' || (this.evening && this.weather === 'clear')) {
-      const vertices: number[] = []
-      for (let i = 0; i < 120; i++)
-        vertices.push(
-          Math.sin(i * 31) * 130,
-          45 + Math.sin(i * 9) * 28,
-          -110 - Math.cos(i * 7) * 75,
+      if (world === 'space') this.scene.add(deepSpaceStars())
+      else {
+        const vertices: number[] = []
+        for (let i = 0; i < 120; i++)
+          vertices.push(
+            Math.sin(i * 31) * 130,
+            45 + Math.sin(i * 9) * 28,
+            -110 - Math.cos(i * 7) * 75,
+          )
+        const stars = new T.BufferGeometry()
+        stars.setAttribute('position', new T.Float32BufferAttribute(vertices, 3))
+        this.scene.add(
+          new T.Points(stars, new T.PointsMaterial({ color: '#e5eacc', size: 0.22, fog: false })),
         )
-      const stars = new T.BufferGeometry()
-      stars.setAttribute('position', new T.Float32BufferAttribute(vertices, 3))
-      this.scene.add(
-        new T.Points(stars, new T.PointsMaterial({ color: '#e5eacc', size: 0.22, fog: false })),
-      )
+      }
     }
     if (world === 'fuji' || world === 'space') {
       const landmark = world === 'fuji' ? fujiMountain() : ringPlanet()
@@ -192,7 +197,9 @@ export class Race {
     for (const [i, p] of validPlacements(world).entries()) {
       const song = catalog.songs.find(s => s.id === p.songId)!
       const group = buildImagery(imageryFor(song.title).model)
-      group.position.set((p.x < 0 ? -1 : 1) * (5.7 + Math.min(1.4, Math.abs(p.x) / 20)), 0, -20 - i * 9)
+      // The widest tree crown / pavilion must remain outside the playable road.
+      const radius = group.userData.radius ?? 2.9
+      group.position.set((p.x < 0 ? -1 : 1) * (3.5 + radius + Math.min(1.4, Math.abs(p.x) / 20)), 0, -20 - i * 9)
       group.rotation.y = p.rotation
       this.scenic.push({ group, distance: 20 + i * 9 })
       this.scene.add(group)
@@ -371,7 +378,7 @@ export class Race {
     const g = new T.Group()
     const terrain = this.box(
       g,
-      this.world === 'space' ? '#151c35' : this.world === 'fuji' ? '#9aaf9d' : this.world === 'sea' ? '#8ba878' : '#90ad81',
+      this.world === 'space' ? '#697283' : this.world === 'fuji' ? '#9aaf9d' : this.world === 'sea' ? '#8ba878' : '#90ad81',
       this.world === 'sea' ? 34 : 0,
       -0.25,
       -16,
@@ -402,42 +409,34 @@ export class Race {
         const plants = groundPlants(110, 35, 31, x => Math.abs(x) > 5.5, i + 14)
         plants.position.z = -16; g.add(plants)
       } else {
-        if (i % 4 === 0) { const station = observatory(); station.position.set(24, .02, -18); g.add(station) }
-        road.material.metalness = .45; road.material.roughness = .55
-        for (let j = 0; j < 11; j++) {
-          this.box(g, '#536184', 0, .07, -j * 3, 7.7, .04, .05)
-          for (const side of [-1, 1]) {
-            const crystal = this.mesh(new T.ConeGeometry(.35, 2.1 + j % 3 * .4, 5), '#86c9e7', g, side * (9 + j % 3 * 2), .9, -j * 3)
-            crystal.rotation.z = side * .25; crystal.material.emissive.set('#3586b5'); crystal.material.emissiveIntensity = .55
-          }
-        }
-        for (const side of [-1, 1]) {
-          const rim = this.mesh(new T.TorusGeometry(2.2, .25, 6, 24), '#53617e', g, side * 20, .16, -16)
-          rim.rotation.x = Math.PI / 2
-          this.mesh(new T.CylinderGeometry(2.1, 1.8, .12, 24), '#202a44', g, side * 20, .08, -16)
-        }
+        const walkway = orbitalWalkway(8, 32); walkway.position.z = -16; g.add(walkway)
+        road.material.metalness = .5; road.material.roughness = .5
+        const asset = i % 4 === 0 ? orbitalHabitat() : i % 4 === 1 ? relayAntenna() : i % 4 === 2 ? solarArray() : lunarRover()
+        asset.position.set(i % 2 ? -13 : 15, .02, -17); asset.rotation.y = (i % 3 - 1) * .35; g.add(asset)
+
       }
       for (let j = 0; j < 8; j++) {
         const side = j % 2 ? 1 : -1, z = -j * 4
         if (this.world === 'fuji') {
-          const tree = cherryTree(); tree.position.set(side * (7 + j % 3), 0, z); g.add(tree)
+          const tree = cherryTree(j + i * 7); tree.position.set(side * (7 + j % 3), 0, z); g.add(tree)
           tree.rotation.y = j * 1.7 + i; tree.scale.setScalar(.85 + j % 3 * .12)
         } else {
-          const rock = this.mesh(new T.DodecahedronGeometry(1 + j % 3 * .4), '#7583a0', g, side * (11 + j % 3 * 4), 1 + j % 3, z)
-          rock.rotation.set(j, i, .3)
-          const light = this.box(g, '#89e0ff', side * 4, .18, z, .12, .12, 2)
-          ;(light.material as T.MeshStandardMaterial).emissive.set('#53cfff')
+          const rock = rockFormation(i * 11 + j, true), scale = .65 + (j % 3) * .45
+          rock.position.set(side * (9 + j % 3 * 4), scale * .42, z + Math.sin(j * 3 + i) * 1.2)
+          rock.scale.setScalar(scale); rock.rotation.y = j * 2.399 + i; g.add(rock)
+
         }
       }
       if (this.world === 'fuji') {
+        const fallen = fallenSakura(14, 32, i)
+        fallen.position.z = -16; g.add(fallen)
         this.box(g, '#80b7c7', -25, .01, -16, 22, .05, 32)
         if (i % 3 === 0) {
           for (const x of [-4.7, 4.7]) this.box(g, '#b55054', x, 3, -16, .45, 6, .45)
           this.box(g, '#514556', 0, 6, -16, 11, .5, .8)
         }
-      } else if (i % 2 === 0) {
-        const arch = this.mesh(new T.TorusGeometry(6, .12, 8, 48, Math.PI), '#96c7ec', g, 0, .1, -16)
-        ;(arch.material as T.MeshStandardMaterial).emissive.set('#487db7')
+      } else if (i % 3 === 0) {
+        const gate = navigationGate(); gate.position.z = -16; g.add(gate)
       }
     } else if (this.world === 'jiangnan') {
       if (!this.stoneMaterial) {
@@ -547,15 +546,15 @@ export class Race {
       })
       oceanMaterial.onBeforeCompile = (shader) => {
         shader.uniforms.uTime = this.waveUniform
-        shader.vertexShader = 'uniform float uTime; varying float vWave;\n' + shader.vertexShader
+        shader.vertexShader = 'uniform float uTime; varying float vWave; varying vec2 vCoast;\n' + shader.vertexShader
         shader.vertexShader = shader.vertexShader.replace(
           '#include <begin_vertex>',
-          '#include <begin_vertex>\n vWave=sin(position.x*.25+uTime*.8)*cos(position.y*.42+uTime*.6); transformed.z+=vWave*.22;',
+          '#include <begin_vertex>\n vCoast=(modelMatrix*vec4(position,1.)).xz; vWave=sin(position.x*.25+uTime*.8)*cos(position.y*.42+uTime*.6); transformed.z+=vWave*.22;',
         )
-        shader.fragmentShader = 'varying float vWave;\n' + shader.fragmentShader
+        shader.fragmentShader = 'uniform float uTime; varying float vWave; varying vec2 vCoast;\n' + shader.fragmentShader
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <color_fragment>',
-          '#include <color_fragment>\n diffuseColor.rgb+=pow(max(0.,vWave),4.)*.18;',
+          '#include <color_fragment>\n float shore=max(0.,-7.8-vCoast.x); float foam=pow(max(0.,sin(shore*5.-uTime*1.3+sin(vCoast.y*.8)*.3)),8.)*exp(-shore*.75); diffuseColor.rgb=mix(vec3(.10,.32,.42),diffuseColor.rgb,exp(-shore*.16)) + pow(max(0.,vWave),8.)*.06 + foam*.24;',
         )
       }
       const water = new T.Mesh(new T.PlaneGeometry(116, 32.1, 48, 12), oceanMaterial)
@@ -577,11 +576,14 @@ export class Race {
         const tower = coastalLighthouse(); tower.position.set(-13, 0, -12); g.add(tower)
       }
       this.box(g, '#ddcfac', -6.3, -.015, -16, 3, .12, 32.1)
+      const wetSand = this.box(g, '#b4b19a', -7.25, .047, -16, 1.0, .012, 32.1)
+      wetSand.material.roughness = .45
       for (let j = 0; j < 7; j++) {
         const rock = this.mesh(new T.IcosahedronGeometry(.45 + j % 3 * .18, 1), '#9faeaa', g, -7.2 - Math.sin(j) * .4, .13, -j * 4.7)
         rock.scale.set(1.6, .65, 1)
       }
     } else {
+      const ferns = forestUnderstory(i + 73); ferns.position.z = -16; g.add(ferns)
       if (i % 4 === 0) { const lookout = forestLookout(); lookout.position.set(-13, .05, -18); lookout.rotation.y = .5; g.add(lookout) }
       const plants = groundPlants(170, 45, 31, x => Math.abs(x) > 5.3 && Math.abs(x + 24) > 5, i + 73); plants.position.z = -16; g.add(plants)
       for (let j = 0; j < 12; j++) {
@@ -966,6 +968,7 @@ export class Race {
         const fade = Math.min(1, age / .2) * fadeOut
         effect.group.scale.setScalar(effect.broken ? 1 + age * .65 : 1 + Math.sin(age * 3) * .025)
         effect.group.position.y = effect.broken ? -age * .25 : Math.sin(age * 2) * .045
+        updateSkillEffect(effect.group, id, age)
         effect.group.traverse(object => {
           if (!(object instanceof T.Mesh)) return
           const material = object.material as T.Material
@@ -1002,15 +1005,30 @@ export class Race {
     ]
     const pose = poses[this.cameraMode]!,
       bob = this.running && !this.paused ? Math.sin(this.distance * 1.8) * 0.018 : 0
-    this.camera.position.x = T.MathUtils.damp(this.camera.position.x, pose.x, 5, dt)
-    this.camera.position.y = T.MathUtils.damp(this.camera.position.y, pose.y + bob, 4, dt)
-    this.camera.position.z = T.MathUtils.damp(this.camera.position.z, pose.z, 4, dt)
-    this.cameraLook.lerp(pose.look, 1 - Math.exp(-dt * 5))
-    this.camera.lookAt(this.cameraLook)
-    const fov = T.MathUtils.damp(this.camera.fov, pose.f + (this.boost > 0 ? 5 : 0), 3, dt)
-    if (Math.abs(fov - this.camera.fov) > 0.01) {
-      this.camera.fov = fov
-      this.camera.updateProjectionMatrix()
+    const cockpit = this.cameraMode === 2 && this.vehicleModel === 'ae86'
+    const driver = this.bike.getObjectByName('rider')
+    if (driver && this.vehicleModel === 'ae86') driver.visible = !cockpit
+    const near = cockpit ? .025 : .1
+    if (this.camera.near !== near) { this.camera.near = near; this.camera.updateProjectionMatrix() }
+    if (cockpit) {
+      // Collision blinking must never remove the cockpit around the driver.
+      this.bike.visible = true
+      this.bike.updateWorldMatrix(true, false)
+      this.camera.position.copy(this.bike.localToWorld(AE86_DRIVER_EYE.clone()))
+      this.cameraLook.copy(this.bike.localToWorld(AE86_DRIVER_LOOK.clone()))
+      this.camera.lookAt(this.cameraLook)
+      if (this.camera.fov !== 74) { this.camera.fov = 74; this.camera.updateProjectionMatrix() }
+    } else {
+      this.camera.position.x = T.MathUtils.damp(this.camera.position.x, pose.x, 5, dt)
+      this.camera.position.y = T.MathUtils.damp(this.camera.position.y, pose.y + bob, 4, dt)
+      this.camera.position.z = T.MathUtils.damp(this.camera.position.z, pose.z, 4, dt)
+      this.cameraLook.lerp(pose.look, 1 - Math.exp(-dt * 5))
+      this.camera.lookAt(this.cameraLook)
+      const fov = T.MathUtils.damp(this.camera.fov, pose.f + (this.boost > 0 ? 5 : 0), 3, dt)
+      if (Math.abs(fov - this.camera.fov) > 0.01) {
+        this.camera.fov = fov
+        this.camera.updateProjectionMatrix()
+      }
     }
     if (now - this.at > 100) {
       this.onStatus(this.status())

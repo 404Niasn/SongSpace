@@ -1,5 +1,6 @@
 import * as T from 'three'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
+import { upgradeLandscape } from './landscapeAssets.ts'
 
 // Local merged geometry keeps detailed silhouettes inexpensive and world disposal simple.
 export function coloredGeometry(geometry: T.BufferGeometry, color: string) {
@@ -40,6 +41,7 @@ export function terrainMaterial(color: string, lunar = false) {
 export function pineTree(seed = 0) {
   const g = new T.Group()
   g.name = 'layered-pine'
+  if (upgradeLandscape(g, 'forest-pine', { rotation: seed })) return g
   const trunk = new T.Mesh(
     new T.CylinderGeometry(0.13, 0.32, 4.5, 9),
     new T.MeshStandardMaterial({ color: '#675b46', roughness: 1 }),
@@ -74,9 +76,43 @@ export function pineTree(seed = 0) {
   g.add(mergedMesh(layers))
   return g
 }
+
+export function forestUnderstory(seed = 0, width = 40, depth = 31, roadX = 0, accept: (x: number, z: number) => boolean = () => true) {
+  const parts: T.BufferGeometry[] = []
+  for (let i = 0; i < 70; i++) {
+    const x = Math.sin(i * 127.1 + seed) * width / 2
+    const z = Math.sin(i * 311.7 + seed) * depth / 2
+    if (Math.abs(x - roadX) < 5.2 || !accept(x, z)) continue
+    for (let j = 0; j < 7; j++) {
+      const a = j * 2.399 + i, reach = .45 + (i % 4) * .09
+      for (let k = 1; k < 5; k++) {
+        const t = k / 5, r = reach * t, y = .08 + Math.sin(t * Math.PI) * .35
+        for (const side of [-1, 1]) {
+          const geo = new T.BufferGeometry()
+          const across = side * (1 - t) * .18
+          geo.setAttribute('position', new T.Float32BufferAttribute([
+            x + Math.cos(a) * r, y, z + Math.sin(a) * r,
+            x + Math.cos(a) * (r + .07) - Math.sin(a) * across, y + .045, z + Math.sin(a) * (r + .07) + Math.cos(a) * across,
+            x + Math.cos(a) * (r + .14), y + .02, z + Math.sin(a) * (r + .14),
+          ], 3))
+          geo.computeVertexNormals(); parts.push(coloredGeometry(geo, ['#527752', '#759260', '#91a471'][(i + k) % 3]!))
+        }
+      }
+    }
+    const leafBase = new T.CircleGeometry(.12, 4)
+    const leaf = leafBase.toNonIndexed(); leafBase.dispose(); leaf.deleteAttribute('uv')
+    leaf.rotateX(-Math.PI / 2).rotateY(i).translate(x + .4, .075, z + .2)
+    parts.push(coloredGeometry(leaf, '#ac9065'))
+  }
+  const mesh = mergedMesh(parts)
+  mesh.name = 'ferns-and-leaf-litter'
+  mesh.material.side = T.DoubleSide
+  return mesh
+}
 export function palmTree(seed = 0) {
   const g = new T.Group()
   g.name = 'feather-palm'
+  if (upgradeLandscape(g, 'coastal-palm', { rotation: seed })) return g
   const curve = new T.QuadraticBezierCurve3(
     new T.Vector3(),
     new T.Vector3(0.1, 3, 0),

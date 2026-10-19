@@ -1,8 +1,12 @@
 import * as T from 'three'
-import type { ImageryModel, SkillId } from '../game/content'
+import { qinghuaDisplay } from './qinghua.ts'
+import { buildSongDecoration, SONG_DECORATION_MODELS } from './songDecorationModels.ts'
+import type { ImageryModel, SkillId, SongDecorationModel } from '../game/content'
 
 // Sculpted silhouettes, joinery, etched glass and planted detail share the world's materials.
 export function buildImagery(model: ImageryModel): T.Group {
+  if (SONG_DECORATION_MODELS.includes(model as SongDecorationModel)) return buildSongDecoration(model as SongDecorationModel)
+  if (model === 'qinghua') return qinghuaDisplay()
   const g = new T.Group()
   const add = (geo: T.BufferGeometry, color: string, x = 0, y = 0, z = 0, metal = 0) => {
     const m = new T.Mesh(geo, new T.MeshStandardMaterial({ color, roughness: metal ? 0.3 : 0.7, metalness: metal }))
@@ -96,7 +100,7 @@ export function buildSkillEffect(id: SkillId, broken = false): T.Group {
   const star = new T.Shape()
   for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5 + Math.PI / 2, r = i % 2 ? 0.2 : 0.48; if (i === 0) star.moveTo(Math.cos(a) * r, Math.sin(a) * r); else star.lineTo(Math.cos(a) * r, Math.sin(a) * r) }; star.closePath()
   const tube = (points: T.Vector3[], radius = 0.016) => { const mesh = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points), 24, radius, 6, false), mat.clone()); g.add(mesh); return mesh }
-  const ring = (r: number, y: number) => { const m = new T.Mesh(new T.TorusGeometry(r, 0.025, 8, 64), mat.clone()); m.rotation.x = Math.PI / 2; m.position.y = y; m.userData.orbit = true; g.add(m); return m }
+  const ring = (r: number, y: number) => { const m = new T.Mesh(new T.TorusGeometry(r, 0.015, 6, 48, Math.PI * 1.65), mat.clone()); m.rotation.x = Math.PI / 2; m.position.y = y; m.userData.orbit = true; g.add(m); return m }
   if (id === 'shield') {
     const shell = new T.Mesh(new T.SphereGeometry(1.6, 32, 20), new T.MeshBasicMaterial({ color, transparent: true, opacity: 0.08, side: T.FrontSide, depthWrite: false }))
     shell.scale.set(0.7, 1, 0.8); shell.position.y = 1.3; if (!broken) g.add(shell); else { shell.geometry.dispose(); (shell.material as T.Material).dispose() }
@@ -115,7 +119,7 @@ export function buildSkillEffect(id: SkillId, broken = false): T.Group {
     for (const side of [-1, 1]) {
       const wing = new T.Shape(); wing.moveTo(0, 0); wing.bezierCurveTo(side * 0.45, 0.65, side * 1.4, 0.85, side * 1.65, 0.65)
       for (let i = 0; i < 5; i++) wing.quadraticCurveTo(side * (1.5 - i * 0.23), 0.2 - i * 0.08, side * (1.32 - i * 0.23), 0.1 - i * 0.05)
-      wing.closePath(); jewel(wing, side * 0.12, 2.1, 0.75)
+      wing.closePath(); const feather = jewel(wing, side * 0.12, 2.1, 0.75); feather.userData.wing = side
       for (let i = 0; i < 4; i++) tube([new T.Vector3(side * (0.7 + i * 0.12), 1.7 - i * 0.15, -0.8), new T.Vector3(side * (0.9 + i * 0.12), 1.5 - i * 0.15, 0.5), new T.Vector3(side * (1 + i * 0.12), 1.6 - i * 0.15, 2.3)])
     }
     jewel(star, 0, 2.25, 0.5)
@@ -139,5 +143,38 @@ export function buildSkillEffect(id: SkillId, broken = false): T.Group {
     for (let j = 0; j < 3; j++) { const m = ring(0.9 + j * 0.12, 1 + j * 0.32); m.rotation.z = (j - 1) * 0.2 }
     for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; tube([new T.Vector3(Math.cos(a) * 1.5, 0.5, Math.sin(a) * 1.5), new T.Vector3(Math.cos(a + 0.5), 1.2, Math.sin(a + 0.5)), new T.Vector3(0, 1.5, 0)], 0.012) }
   }
+  if (!broken) {
+    const sparks = new T.InstancedMesh(new T.SphereGeometry(.027, 6, 4), mat.clone(), 24)
+    sparks.name = 'skill-particles'; sparks.frustumCulled = false; g.add(sparks)
+  }
+  if (broken) for (const child of g.children) child.userData.shardDirection = child.position.clone().sub(new T.Vector3(0, 1.3, 0)).normalize()
+  g.userData.broken = broken
   return g
+}
+
+
+const particlePose = new T.Object3D()
+/** Absolute game time makes pause and replay deterministic. */
+export function updateSkillEffect(group: T.Group, id: SkillId, age: number) {
+  group.traverse(object => {
+    if (object.userData.wing) object.rotation.y = object.userData.wing * (.12 + Math.sin(age * 7) * .2)
+    if (object.userData.shardDirection) {
+      object.userData.restPosition ??= object.position.clone()
+      object.position.copy(object.userData.restPosition).addScaledVector(object.userData.shardDirection, age * .65)
+      object.rotation.x = age * .7
+    }
+    if (!(object instanceof T.InstancedMesh) || object.name !== 'skill-particles') return
+    for (let i = 0; i < object.count; i++) {
+      const phase = (age * .7 + i / object.count) % 1, a = i * 2.399 + age * .6
+      if (id === 'magnet') {
+        const r = 1.6 * (1 - phase)
+        particlePose.position.set(Math.cos(a) * r, .6 + phase, Math.sin(a) * r)
+      } else if (id === 'courage' || id === 'friend' || id === 'rewind') {
+        particlePose.position.set(Math.sin(a) * .7, .5 + (i % 5) * .18, .4 + phase * 3.5)
+      } else particlePose.position.set(Math.cos(a) * 1.02, .25 + phase * 2.2, Math.sin(a) * 1.02)
+      particlePose.scale.setScalar(Math.sin(phase * Math.PI) * .9 + .15)
+      particlePose.updateMatrix(); object.setMatrixAt(i, particlePose.matrix)
+    }
+    object.instanceMatrix.needsUpdate = true
+  })
 }

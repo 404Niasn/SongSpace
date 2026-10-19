@@ -1,11 +1,15 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>歌曲地图 · 旋转与建模预览</title><style>body{margin:0;background:#fff;color:#345647;font:15px system-ui}header{display:flex;align-items:center;gap:20px;padding:18px 28px}h1{font-size:20px;margin:0 auto 0 0}button,select{font:inherit;border:1px solid #d8e0d7;border-radius:8px;padding:10px 20px;background:#fff;color:inherit}button{background:#345647;color:#fff}#scene{height:calc(100vh - 110px);margin:0 24px 24px;border-radius:14px;overflow:hidden}canvas{display:block;touch-action:none}</style></head>
-<body><header><h1>地图建模预览</h1><select id="map" aria-label="地图"><option value="forest">树林</option><option value="sea">大海</option><option value="fuji" selected>富士山下</option><option value="space">光年之外</option><option value="jiangnan">江南</option></select><span id="hint">拖动旋转 · 滚轮缩放</span><button id="enter">进入骑行</button></header><main id="scene"></main><script type="module">
+<body><header><h1>地图建模预览</h1><select id="map" aria-label="地图"><option value="forest">树林</option><option value="sea">大海</option><option value="fuji" selected>富士山下</option><option value="space">光年之外</option><option value="jiangnan">江南</option></select><select id="vehicle" aria-label="载具"><option value="">单车</option><option value="ae86">AE86</option></select><select id="camera" aria-label="视角"><option value="0">跟随</option><option value="1">侧后方</option><option value="2">第一视角</option></select><span id="hint">拖动旋转 · 滚轮缩放</span><button id="enter">进入骑行</button></header><main id="scene"></main><script type="module">
 import { Race } from '/src/game/race.ts'
 let race,entered=false,paused=false
 const button=document.querySelector('#enter'), hint=document.querySelector('#hint'), select=document.querySelector('#map')
-function render(){race?.dispose();entered=false;paused=false;button.disabled=false;button.textContent='进入骑行';hint.textContent='拖动旋转 · 滚轮缩放';race=new Race(document.querySelector('#scene'),select.value,()=>{},()=>{hint.textContent='骑行结束 · 切换地图重新预览'},'#58c6b4',13,false,[],[],undefined,'clear')}
+const initialMap=new URLSearchParams(location.search).get('map')
+if([...select.options].some(option=>option.value===initialMap))select.value=initialMap
+function render(){race?.dispose();entered=false;paused=false;button.disabled=false;button.textContent='进入骑行';hint.textContent='拖动旋转 · 滚轮缩放';race=new Race(document.querySelector('#scene'),select.value,()=>{},()=>{hint.textContent='骑行结束 · 切换地图重新预览'},'#58c6b4',13,false,[],[],document.querySelector('#vehicle').value||undefined,'clear');race.setCamera(Number(document.querySelector('#camera').value))}
 select.addEventListener('change',render)
+document.querySelector('#vehicle').addEventListener('change',render)
+document.querySelector('#camera').addEventListener('change',e=>race.setCamera(Number(e.target.value)))
 button.addEventListener('click',async()=>{if(!entered){button.disabled=true;const active=race;await active.enter();if(active!==race)return;entered=true;button.disabled=false;button.textContent='暂停骑行';hint.textContent='A / D 换道 · 空格跳跃'}else{race.togglePause();paused=!paused;button.textContent=paused?'继续骑行':'暂停骑行'}})
 addEventListener('beforeunload',()=>race.dispose());render()
 </script></body></html>

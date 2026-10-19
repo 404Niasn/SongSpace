@@ -1,0 +1,287 @@
+[
+  {
+    "id": "camellia",
+    "size": [
+      2.299999952316284,
+      1.7630078792572021,
+      1.6262247562408447
+    ],
+    "radius": 1.4084216998528445,
+    "triangles": 41614,
+    "batches": 4,
+    "bytes": 1410192,
+    "parts": {
+      "stone": 1,
+      "weathered-rock": 14,
+      "bark": 13,
+      "oval": 156,
+      "midrib": 156,
+      "petal": 339
+    }
+  },
+  {
+    "id": "epiphyllum",
+    "size": [
+      2.1383743286132812,
+      1.875759243965149,
+      2.0562570095062256
+    ],
+    "radius": 1.483310289387877,
+    "triangles": 13700,
+    "batches": 3,
+    "bytes": 608564,
+    "parts": {
+      "stone": 1,
+      "weathered-rock": 14,
+      "scalloped-cactus-stem": 13,
+      "midrib": 13,
+      "leaf": 3,
+      "petal": 99,
+      "stamen": 42,
+      "night-bloom-0": 1,
+      "night-bloom-1": 1,
+      "night-bloom-2": 1
+    }
+  },
+  {
+    "id": "autumn-plane",
+    "size": [
+      5.35189151763916,
+      5.025552272796631,
+      5.2223310470581055
+    ],
+    "radius": 3.738832852028992,
+    "triangles": 53320,
+    "batches": 3,
+    "bytes": 1911716,
+    "parts": {
+      "stone": 1,
+      "weathered-rock": 14,
+      "trunk": 1,
+      "bark": 94,
+      "palmate-leaf": 528,
+      "oval": 30,
+      "midrib": 30
+    }
+  },
+  {
+    "id": "shade-tree",
+    "size": [
+      5.150056838989258,
+      5.131805896759033,
+      5.1150007247924805
+    ],
+    "radius": 3.629267069927743,
+    "triangles": 37208,
+    "batches": 3,
+    "bytes": 1378060,
+    "parts": {
+      "stone": 1,
+      "weathered-rock": 14,
+      "trunk": 1,
+      "bark": 66,
+      "oval": 528,
+      "midrib": 528
+    }
+  },
+  {
+    "id": "rocking-chair",
+    "size": [
+      1.2208640575408936,
+      1.7977244853973389,
+      1.7696675062179565
+    ],
+    "radius": 1.0749688518230303,
+    "triangles": 12346,
+    "batches": 1,
+    "bytes": 317672,
+    "parts": {
+      "curved-rocker": 2,
+      "wood": 8,
+      "armrest": 2,
+      "woven-seat": 52,
+      "woven-back": 52
+    }
+  },
+  {
+    "id": "campfire",
+    "size": [
+      2.05806303024292,
+      1.5187703371047974,
+      1.9905292987823486
+    ],
+    "radius": 1.4315926730187272,
+    "triangles": 10208,
+    "batches": 4,
+    "bytes": 447848,
+    "parts": {
+      "stone": 1,
+      "weathered-rock": 11,
+      "bark": 6,
+      "cut-log-end": 6,
+      "sculpted-flame": 9,
+      "flame": 12
+    }
+  },
+  {
+    "id": "trail-lamp",
+    "size": [
+      1.3516294956207275,
+      2.9892008304595947,
+      0.8600000143051147
+    ],
+    "radius": 0.8010153428675291,
+    "triangles": 3636,
+    "batches": 4,
+    "bytes": 96432,
+    "parts": {
+      "stone": 1,
+      "metal": 9,
+      "lamp-hook": 1,
+      "glass": 1,
+      "flame": 1
+    }
+  },
+  {
+    "id": "red-lantern",
+    "size": [
+      1.5635838508605957,
+      2.9892008304595947,
+      0.9471676349639893
+    ],
+    "radius": 0.9140460857357421,
+    "triangles": 4224,
+    "batches": 5,
+    "bytes": 119900,
+    "parts": {
+      "stone": 1,
+      "wood": 1,
+      "lamp-hook": 1,
+      "metal": 3,
+      "red-lantern-body": 1,
+      "lantern-rib": 16,
+      "tassel": 13
+    }
+  },
+  {
+    "id": "farewell-pavilion",
+    "size": [
+      4.580280780792236,
+      3.314204216003418,
+      2.545543670654297
+    ],
+    "radius": 2.6200555628699407,
+    "triangles": 21616,
+    "batches": 2,
+    "bytes": 607120,
+    "parts": {
+      "stone": 10,
+      "wood": 50,
+      "individual-roof-tile": 300,
+      "roof-ridge": 1
+    }
+  },
+  {
+    "id": "watcher-statue",
+    "size": [
+      1.6111493110656738,
+      2.6357638835906982,
+      1.2714260816574097
+    ],
+    "radius": 1.0261976397929042,
+    "triangles": 11640,
+    "batches": 1,
+    "bytes": 307100,
+    "parts": {
+      "weathered-rock": 1,
+      "stone": 16,
+      "carved-trouser-fold": 8,
+      "sculpted-coat": 1,
+      "carved-finger": 8,
+      "raised-arm": 1,
+      "carved-brow": 2,
+      "coat-collar": 2,
+      "carved-mouth": 1,
+      "carved-hair": 8,
+      "carved-coat-fold": 9
+    }
+  },
+  {
+    "id": "seashell",
+    "size": [
+      2.886753559112549,
+      1.1994481086730957,
+      1.33294677734375
+    ],
+    "radius": 1.5898186392070053,
+    "triangles": 9276,
+    "batches": 2,
+    "bytes": 251864,
+    "parts": {
+      "weathered-rock": 1,
+      "scallop-outer": 1,
+      "pearl-inner": 1,
+      "shell-rib": 19,
+      "scalloped-rim": 1,
+      "porcelain": 1
+    }
+  },
+  {
+    "id": "seagull",
+    "size": [
+      1.5065293312072754,
+      1.7586456537246704,
+      1.4486510753631592
+    ],
+    "radius": 1.0450144214242545,
+    "triangles": 9308,
+    "batches": 3,
+    "bytes": 266756,
+    "parts": {
+      "weathered-rock": 2,
+      "metal": 10,
+      "porcelain": 17,
+      "gull-beak": 1
+    }
+  },
+  {
+    "id": "butterfly",
+    "size": [
+      1.7285447120666504,
+      1.6798157691955566,
+      0.820274829864502
+    ],
+    "radius": 0.9566500951396514,
+    "triangles": 8028,
+    "batches": 2,
+    "bytes": 224504,
+    "parts": {
+      "weathered-rock": 1,
+      "sculpture-stem": 1,
+      "metal": 1,
+      "butterfly-wing": 4,
+      "wing-vein": 36,
+      "wing-edge": 4,
+      "antenna": 2
+    }
+  },
+  {
+    "id": "outdoor-piano",
+    "size": [
+      2.3499999046325684,
+      1.8700000047683716,
+      1.6950000524520874
+    ],
+    "radius": 1.4487515944413711,
+    "triangles": 29560,
+    "batches": 3,
+    "bytes": 723456,
+    "parts": {
+      "wood": 19,
+      "metal": 14,
+      "porcelain": 61,
+      "piano-pedal": 3,
+      "wood-grain": 17
+    }
+  }
+]

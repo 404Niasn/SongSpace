@@ -1,6 +1,10 @@
 import * as T from 'three'
 import type { WorldModel } from './types'
-import { lakesidePavilion, observatory, stoneLantern } from './mapLandmarks.ts'
+import { miniatureDetails } from './miniatureDetails.ts'
+import { upgradeSakura } from './sakuraAsset.ts'
+import { atmosphere } from './atmosphere.ts'
+import { lunarGround, lunarHeight, orbitalHabitat, solarArray, relayAntenna, lunarRover, landingPad, orbitalWalkway, navigationGate, regolithScatter, craterMoon, deepSpaceStars } from './spaceScenery.ts'
+import { lakesidePavilion, stoneLantern } from './mapLandmarks.ts'
 import {
   CherryPetals,
   coloredGeometry,
@@ -33,37 +37,56 @@ function box(
 ) {
   return mesh(g, new T.BoxGeometry(w, h, d), color, x, y, z)
 }
-export function cherryTree() {
+export function cherryTree(seed = 0) {
   const g = new T.Group()
   g.name = 'branching-sakura'
+  if (upgradeSakura(g, seed)) return g
   const branches: T.BufferGeometry[] = [
     coloredGeometry(new T.CylinderGeometry(0.14, 0.32, 3.7, 9).translate(0, 1.85, 0), '#70565b'),
   ]
   const flowers: T.BufferGeometry[] = []
   for (let i = 0; i < 9; i++) {
-    const a = i * 2.4,
-      end = new T.Vector3(Math.sin(a) * 1.7, 3.2 + (i % 3) * 0.45, Math.cos(a) * 1.5)
+    const a = i * 2.4 + seed * .71,
+      end = new T.Vector3(Math.sin(a) * (1.7 + Math.sin(i + seed) * .45), 3.2 + (i % 3) * 0.45, Math.cos(a) * 1.8)
     const curve = new T.QuadraticBezierCurve3(
       new T.Vector3(0, 1.8, 0),
       new T.Vector3(end.x * 0.3, 2.8, end.z * 0.3),
       end,
     )
     branches.push(coloredGeometry(new T.TubeGeometry(curve, 5, 0.085, 6, false), '#806269'))
-    for (let j = 0; j < 6; j++) {
-      const bloom = new T.IcosahedronGeometry(0.48 + (j % 3) * 0.12, 1)
-      bloom.scale(1.1, 0.8, 1)
+    for (let k = 0; k < 3; k++) {
+      const tip = end.clone().add(new T.Vector3(Math.sin(a + k) * .9, .4, Math.cos(a + k) * .9))
+      const twig = new T.QuadraticBezierCurve3(end, end.clone().lerp(tip, .5), tip)
+      branches.push(coloredGeometry(new T.TubeGeometry(twig, 3, .025, 5, false), '#806269'))
+    }
+    for (let j = 0; j < 18; j++) {
+      const bloom = new T.IcosahedronGeometry(0.25 + (j % 3) * 0.055, 1)
+      bloom.scale(1.1, .85 + (j % 3) * .12, 1)
       bloom.translate(
-        end.x + Math.sin(j * 2.4 + i) * 0.75,
-        end.y + 0.1 + (j % 3) * 0.25,
-        end.z + Math.cos(j * 2.4 + i) * 0.75,
+        end.x + Math.sin(j * 2.4 + i) * (0.45 + (j % 4) * .18),
+        end.y + .1 + Math.sin(j * 7 + i) * .38,
+        end.z + Math.cos(j * 2.4 + i) * (0.45 + (j % 4) * .18),
       )
       flowers.push(
-        coloredGeometry(bloom, ['#edafc7', '#f9d3df', '#e49ebc', '#ffe5e9'][(i + j) % 4]!),
+        coloredGeometry(bloom, ['#dca0b4', '#f9d3df', '#edb9ca', '#ffe5e9'][(i + j) % 4]!),
       )
     }
   }
   g.add(mergedMesh(branches), mergedMesh(flowers, 0.82))
   return g
+}
+export function fallenSakura(width: number, depth: number, seed = 0) {
+  const petals = new T.InstancedMesh(new T.CircleGeometry(.09, 5), new T.MeshStandardMaterial({ color: '#f4c4d0', roughness: 1, side: T.DoubleSide }), 500)
+  petals.name = 'fallen-sakura'
+  const dummy = new T.Object3D()
+  for (let i = 0; i < 500; i++) {
+    const phase = i * 2.399 + seed
+    dummy.position.set(Math.sin(phase * 17.1) * width * .5, .095 + (i % 3) * .002, Math.sin(phase * 7.3) * depth * .5)
+    dummy.rotation.set(-Math.PI / 2, 0, phase); dummy.scale.set(.7 + (i % 4) * .2, .6, 1)
+    dummy.updateMatrix(); petals.setMatrixAt(i, dummy.matrix)
+  }
+  petals.receiveShadow = true
+  return petals
 }
 export function fujiMountain() {
   const g = new T.Group()
@@ -73,19 +96,19 @@ export function fujiMountain() {
     indices: number[] = []
   const color = new T.Color(),
     segments = 96,
-    levels = 28
+    levels = 64
   for (let j = 0; j <= levels; j++)
     for (let i = 0; i <= segments; i++) {
       const a = (i / segments) * Math.PI * 2,
         t = j / levels
-      const ridge = Math.sin(a * 13) * 0.045 + Math.sin(a * 21 + 0.5) * 0.025
+      const ridge = Math.sin(a * 13 + t * .7) * .07 + Math.sin(a * 21 + t * 1.8 + .5) * .03 + Math.sin(a * 37 - t * 2) * .015
       const r = 3.6 + 20.65 * Math.pow(1 - t, 1.4) * (1 + ridge * Math.sin(t * Math.PI))
       const y = t * 26 + (Math.sin(a * 5) * 0.28 + Math.sin(a * 9) * 0.17) * t
       positions.push(Math.cos(a) * r, y, Math.sin(a) * r)
-      const snowLine = 0.76 + Math.sin(a * 7) * 0.035 + Math.sin(a * 13) * 0.025
-      color
-        .set(t > snowLine ? '#f2f1f6' : t > 0.42 ? '#8b91ad' : '#778987')
-        .multiplyScalar(1 + ridge * 1.8)
+      const snowLine = .73 + Math.sin(a * 7) * .055 + Math.sin(a * 13) * .035 + Math.sin(a * 23) * .018
+      color.set('#82917e').lerp(new T.Color('#7d839c'), T.MathUtils.smoothstep(t, .1, .7))
+      color.lerp(new T.Color('#f6f0ed'), T.MathUtils.smoothstep(t, snowLine - .02, snowLine + .02))
+        .multiplyScalar(1 + ridge * 1.5 + Math.sin(a * 47 + t * 20) * .018)
       colors.push(color.r, color.g, color.b)
       if (j < levels && i < segments) {
         const k = j * (segments + 1) + i
@@ -137,81 +160,94 @@ export function fujiMountain() {
   return g
 }
 export function ringPlanet() {
-  const g = new T.Group()
-  g.name = 'banded-ring-planet'
-  const globe = new T.SphereGeometry(8, 48, 32),
-    positions = globe.getAttribute('position'),
-    colors: number[] = [],
-    c = new T.Color()
+  const group = new T.Group(); group.name = 'banded-ring-planet'
+  const globe = new T.SphereGeometry(8, 96, 64), positions = globe.getAttribute('position'), colors: number[] = [], color = new T.Color()
   for (let i = 0; i < positions.count; i++) {
-    const y = positions.getY(i),
-      stripe = Math.sin(y * 2.2 + Math.sin(positions.getX(i) * 0.45) * 0.3)
-    c.set('#a99cd8').lerp(new T.Color('#d7bfda'), (stripe + 1) * 0.32)
-    colors.push(c.r, c.g, c.b)
+    const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i)
+    const flow = y * 3.7 + Math.sin(x * .6 + z * .35) * .65 + Math.sin(z * 1.3 - x * .5) * .13
+    const storm = Math.exp(-((x - 3.1) ** 2 + (y + 1.6) ** 2 + (z - 6.5) ** 2) / 3)
+    color.set('#a98d76').lerp(new T.Color('#e0c8a1'), .45 + Math.sin(flow) * .26)
+    color.lerp(new T.Color('#836769'), Math.pow(Math.max(0, Math.sin(flow * .43 + 2)), 5) * .55)
+    color.lerp(new T.Color('#b16f4d'), storm * .6).multiplyScalar(.96 + Math.sin(flow * 4) * .035)
+    colors.push(color.r, color.g, color.b)
   }
   globe.setAttribute('color', new T.Float32BufferAttribute(colors, 3))
-  g.add(new T.Mesh(globe, new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.86 })))
-  const ring = new T.Mesh(
-    new T.RingGeometry(10, 14, 128, 12),
-    new T.MeshStandardMaterial({
-      color: '#cfbfde',
-      transparent: true,
-      opacity: 0.7,
-      side: T.DoubleSide,
-      roughness: 0.8,
-    }),
-  )
-  ring.rotation.x = 1.1
-  ring.rotation.y = 0.25
-  g.add(ring)
-  for (const radius of [10.3, 11.2, 12.8, 13.7]) {
-    const band = new T.Mesh(
-      new T.RingGeometry(radius, radius + 0.12, 128),
-      new T.MeshBasicMaterial({ color: '#f1d6e7', side: T.DoubleSide }),
-    )
-    band.rotation.copy(ring.rotation)
-    g.add(band)
+  const body = new T.Mesh(globe, new T.MeshStandardMaterial({ vertexColors: true, roughness: .92, emissive: '#080b16' })); body.name = 'gas-giant-cloud-bands'; group.add(body)
+  const tilt = new T.Euler(1.12, .18, -.18)
+  for (const [inner, outer] of [[9.7, 11.9], [12.22, 14.6]]) {
+    const geometry = new T.RingGeometry(inner, outer, 160, 26), p = geometry.getAttribute('position'), tint: number[] = []
+    for (let i = 0; i < p.count; i++) {
+      const radius = Math.hypot(p.getX(i), p.getY(i))
+      color.set('#b7a7a3').lerp(new T.Color('#e1d2b7'), .45 + .22 * Math.sin(radius * 38) + .14 * Math.sin(radius * 11)).multiplyScalar(.92 + Math.sin(radius * 91) * .08)
+      tint.push(color.r, color.g, color.b)
+    }
+    geometry.setAttribute('color', new T.Float32BufferAttribute(tint, 3))
+    const ring = new T.Mesh(geometry, new T.MeshStandardMaterial({ vertexColors: true, transparent: true, opacity: .82, side: T.DoubleSide, roughness: .85, depthWrite: false }))
+    ring.name = 'separated-ice-ring'; ring.rotation.copy(tilt); group.add(ring)
   }
-  return g
+  const glow = new T.Mesh(new T.SphereGeometry(8.16, 64, 40), new T.ShaderMaterial({
+    transparent: true, depthWrite: false, side: T.BackSide,
+    vertexShader: 'varying vec3 vNormal;varying vec3 vView;void main(){vec4 p=modelViewMatrix*vec4(position,1.);vNormal=normalize(normalMatrix*normal);vView=-p.xyz;gl_Position=projectionMatrix*p;}',
+    fragmentShader: 'varying vec3 vNormal;varying vec3 vView;void main(){float rim=pow(1.-abs(dot(normalize(vNormal),normalize(vView))),3.);gl_FragColor=vec4(.32,.52,.78,rim*.28);}',
+  }))
+  glow.name = 'planet-atmospheric-limb'; group.add(glow)
+  return group
 }
 export function buildSongWorld(id: 'fuji' | 'space'): WorldModel {
   const group = new T.Group()
   group.name = id
   const space = id === 'space'
   const colliders: WorldModel['colliders'] = []
-  const ground = box(group, space ? '#262c4b' : '#a9bdab', 0, -0.6, 0, 84, 1.2, 74)
-  ground.material.dispose()
-  ground.material = terrainMaterial(space ? '#262c4b' : '#a9bdab', space)
+  const ground = space ? lunarGround() : box(group, '#a9bdab', 0, -0.6, 0, 84, 1.2, 74)
+  if (space) group.add(ground)
+  else { ground.material.dispose(); ground.material = terrainMaterial('#a9bdab') }
   box(group, space ? '#111729' : '#778e87', 0, -2, 0, 82, 1.6, 72)
   // The animated surface is part of the model, so normal world disposal releases it.
   const water = new T.ShaderMaterial({
+    transparent: space, depthWrite: !space,
     uniforms: { time: { value: 0 }, color: { value: new T.Color(space ? '#668ee6' : '#7eb9c7') } },
     vertexShader:
       'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader: space
       ? `uniform float time;uniform vec3 color;varying vec2 vUv;
-      void main(){float r=length((vUv-.5)*2.);float rings=pow(max(0.,sin(r*45.-time*.6)),12.);
-      gl_FragColor=vec4(color*(.3+rings*.6+smoothstep(.8,1.,r)*.5),1.);
+      void main(){vec2 p=(vUv-.5)*2.;float r=length(p);float rings=pow(max(0.,sin(r*38.)),16.);
+      float scan=pow(max(0.,cos(atan(p.y,p.x)-time*.25)),36.);
+      gl_FragColor=vec4(color*.75,(rings*.1+scan*.06+smoothstep(.93,1.,r)*.14)*smoothstep(.15,.3,r));
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
       }`
       : `uniform float time;uniform vec3 color;varying vec2 vUv;
       void main(){float r=length((vUv-.5)*2.);float wave=sin(vUv.x*130.+vUv.y*35.+sin(vUv.y*40.)-time*.7);
-      float shine=pow(max(0.,wave),14.)*.06;float shore=smoothstep(.86,1.,r);
-      gl_FragColor=vec4(mix(color*.72,color,shore*.55+vUv.y*.25)+shine+shore*.045,1.);
+      float shine=pow(max(0.,wave),18.)*.025;float shore=smoothstep(.86,1.,r);
+      gl_FragColor=vec4(mix(color*.62,vec3(.52,.72,.66),shore*.7+vUv.y*.2)+shine+shore*.045,1.);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
       }`,
   })
-  const surface = new T.Mesh(new T.CircleGeometry(space ? 8 : 13, 64), water)
+  const lakeGeometry = new T.CircleGeometry(space ? 8 : 13, 96)
+  if (!space) {
+    const positions = lakeGeometry.getAttribute('position')
+    for (let i = 1; i < positions.count; i++) {
+      const a = Math.atan2(-positions.getY(i), positions.getX(i)), scale = 1 + .065 * Math.sin(a * 3) + .035 * Math.cos(a * 5)
+      positions.setXYZ(i, positions.getX(i) * scale, positions.getY(i) * scale, 0)
+    }
+    const bank = new T.Mesh(lakeGeometry.clone(), new T.MeshStandardMaterial({ color: '#b4b29b', roughness: 1 }))
+    bank.rotation.x = -Math.PI / 2; bank.position.set(-20, .012, 7); bank.scale.setScalar(1.07); bank.receiveShadow = true
+    group.add(bank)
+  }
+  const surface = new T.Mesh(lakeGeometry, water)
   surface.rotation.x = -Math.PI / 2
-  surface.position.set(-20, 0.025, 7)
+  surface.position.set(-20, space ? .253 : .025, 7)
+  if (space) surface.scale.setScalar(.58)
   group.add(surface)
-  box(group, space ? '#495677' : '#dcd0c4', 5, 0.04, 0, 7, 0.08, 72)
+  if (!space) box(group, '#dcd0c4', 5, 0.04, 0, 7, 0.08, 72)
+  let spaceDetails: T.Group | undefined
   const animated = new T.Group()
   group.add(animated)
   const petals = space ? undefined : new CherryPetals(140, 25, 66)
   if (!space) {
+    const fallen = fallenSakura(18, 65)
+    fallen.position.x = 5; group.add(fallen)
     const pavilion = lakesidePavilion()
     pavilion.position.set(24, 0.08, -12)
     pavilion.rotation.y = -0.35
@@ -230,7 +266,7 @@ export function buildSongWorld(id: 'fuji' | 'space'): WorldModel {
       rock.scale.setScalar(0.8 + (i % 3) * 0.3)
       group.add(rock)
       colliders.push({ x: rock.position.x, z: rock.position.z, radius: 1.4 })
-      const tree = cherryTree()
+      const tree = cherryTree(i)
       tree.position.set(rock.position.x + 1.5, 0, rock.position.z + 1.5)
       tree.scale.setScalar(0.65 + (i % 3) * 0.08)
       tree.rotation.y = i
@@ -245,8 +281,10 @@ export function buildSongWorld(id: 'fuji' | 'space'): WorldModel {
     for (let i = 0; i < 16; i++) {
       const x = i % 2 ? 13 : -2,
         z = 31 - Math.floor(i / 2) * 7
-      const tree = cherryTree()
-      tree.position.set(x, 0, z)
+      const tree = cherryTree(i)
+      tree.position.set(x + Math.sin(i * 4) * .7, 0, z)
+      tree.rotation.y = i * 2.4
+      tree.scale.setScalar(.88 + (i % 4) * .09)
       group.add(tree)
       colliders.push({ x, z, radius: 0.65 })
     }
@@ -274,10 +312,11 @@ export function buildSongWorld(id: 'fuji' | 'space'): WorldModel {
     // Stone banks and a timber promenade give the lake a visible shore.
     for (let i = 0; i < 34; i++) {
       const a = (i / 34) * Math.PI * 2,
-        x = -20 + Math.cos(a) * 13.3,
-        z = 7 + Math.sin(a) * 13.3
+        x = -20 + Math.cos(a) * 13.3 * (1 + .065 * Math.sin(a * 3) + .035 * Math.cos(a * 5)),
+        z = 7 + Math.sin(a) * 13.3 * (1 + .065 * Math.sin(a * 3) + .035 * Math.cos(a * 5))
       const stone = mesh(group, new T.IcosahedronGeometry(0.55, 1), '#abb8b2', x, 0.12, z)
-      stone.scale.set(1.4, 0.5, 0.9)
+      stone.scale.set(1.1 + (i % 4) * .35, .4 + (i % 3) * .12, .8)
+      stone.rotation.y = i * 2.4
     }
     for (let i = 0; i < 22; i++)
       box(group, i % 2 ? '#baa18b' : '#cbb49e', -20.5 + i * 0.8, 0.35, 15, 0.76, 0.13, 2.8)
@@ -286,85 +325,52 @@ export function buildSongWorld(id: 'fuji' | 'space'): WorldModel {
       for (let x = -20; x < -3; x += 3) box(group, '#847264', x, 0.65, z, 0.12, 1.2, 0.12)
     }
   } else {
-    const station = observatory()
-    station.position.set(24, 0, -12)
-    group.add(station)
-    colliders.push({ x: 24, z: -12, radius: 7 })
-    const planet = ringPlanet()
-    planet.position.set(-19, 19, -20)
-    group.add(planet)
-    const moon = mesh(group, new T.IcosahedronGeometry(4, 2), '#7f9da7', 25, 15, -26)
-    moon.rotation.z = 0.4
-    for (let i = 0; i < 24; i++) {
-      const x = Math.sin(i * 4.1) * 30,
-        z = Math.cos(i * 2.7) * 30
-      if (Math.abs(x - 5) < 7) continue
-      if (Math.hypot(x - 24, z + 12) < 8) continue
-      const rock = rockFormation(i, true)
-      rock.position.set(x, 0.5, z)
-      rock.scale.setScalar(1 + (i % 3) * 0.5)
-      group.add(rock)
-      rock.rotation.set(i, i * 0.7, 0)
-      colliders.push({ x, z, radius: 2.6 })
-      const crystal = mesh(group, new T.ConeGeometry(0.22, 1.8, 5), '#9de7ee', x + 0.6, 1.1, z)
-      crystal.material.emissive.set('#438dc3')
-      crystal.material.emissiveIntensity = 0.6
+    const station = orbitalHabitat(); station.position.set(24, 0, -12); group.add(station)
+    colliders.push({ x: 24, z: -12, radius: 7.8 })
+    const planet = ringPlanet(); planet.position.set(-22, 23, -25); group.add(planet)
+    const moon = craterMoon(); moon.position.set(27, 19, -29); moon.rotation.set(.2, -.7, .3); group.add(moon)
+    const pad = landingPad(); pad.position.set(-20, 0, 7); group.add(pad)
+    const walkway = orbitalWalkway(); walkway.position.x = 5; group.add(walkway)
+    group.add(regolithScatter(), atmosphere('space', false))
+    const layouts = [
+      { asset: solarArray(), x: 23, z: 4, radius: 3.8, rotation: -.18 },
+      { asset: solarArray(), x: -28, z: -7, radius: 3.8, rotation: .25 },
+      { asset: relayAntenna(), x: -33, z: 8, radius: 2, rotation: -.4 },
+      { asset: relayAntenna(), x: 33, z: -8, radius: 2, rotation: .7 },
+      { asset: lunarRover(), x: -12, z: 14, radius: 1.9, rotation: .5 },
+      { asset: lunarRover(), x: 18, z: -23, radius: 1.9, rotation: -.8 },
+    ]
+    spaceDetails = new T.Group(); spaceDetails.name = 'miniature-details-space'; spaceDetails.userData.colliders = layouts.map(({ x, z, radius }) => ({ x, z, radius }))
+    for (const { asset, x, z, radius, rotation } of layouts) {
+      asset.position.set(x, lunarHeight(x, z) + .08, z); asset.rotation.y = rotation; spaceDetails.add(asset); colliders.push({ x, z, radius })
     }
-    for (const x of [1.2, 8.8])
-      for (let i = 0; i < 18; i++) {
-        const light = box(group, '#80dfff', x, 0.18, 34 - i * 4, 0.12, 0.15, 2)
-        light.material.emissive.set('#5ccfff')
-        light.material.emissiveIntensity = 2
-      }
-    for (let i = 0; i < 24; i++) {
-      const panel = box(group, i % 2 ? '#465476' : '#3a4767', 5, 0.09, 34 - i * 3, 6.7, 0.08, 2.85)
-      panel.material.metalness = 0.45
-      panel.material.roughness = 0.5
-      for (const x of [2, 8]) box(group, '#9eb7cf', x, 0.14, 34 - i * 3, 0.08, 0.025, 0.5)
+    for (const z of [-24, 0, 24]) { const gate = navigationGate(); gate.position.set(5, 0, z); group.add(gate) }
+    for (let i = 0; i < 16; i++) {
+      const x = Math.sin(i * 4.1) * 35, z = Math.cos(i * 2.7) * 31
+      if (Math.abs(x - 5) < 7 || Math.hypot(x + 20, z - 7) < 10 || colliders.some(c => Math.hypot(c.x - x, c.z - z) < c.radius + 3)) continue
+      const rock = rockFormation(i + 11, true), scale = .7 + (i % 3) * .4
+      rock.position.set(x, lunarHeight(x, z) + .3, z); rock.scale.setScalar(scale); rock.rotation.y = i * .7; group.add(rock)
+      colliders.push({ x, z, radius: scale * 1.4 })
     }
-    for (const z of [-22, 0, 22]) {
-      const arch = mesh(
-        group,
-        new T.TorusGeometry(5.7, 0.18, 8, 64, Math.PI),
-        '#729ac4',
-        5,
-        0.12,
-        z,
-      )
-      arch.material.metalness = 0.6
-      arch.material.emissive.set('#284c75')
-      arch.material.emissiveIntensity = 0.5
-    }
-    // Depressed bowls with rough rims read as lunar craters rather than scattered boxes.
-    for (let i = 0; i < 9; i++) {
-      const x = i % 2 ? 20 + (i % 3) * 4 : -9 - (i % 3) * 6,
-        z = -29 + i * 7
-      const bowl = mesh(group, new T.CylinderGeometry(2.3, 1.8, 0.16, 24), '#1a223b', x, 0.08, z)
-      bowl.material.roughness = 1
-      const rim = mesh(group, new T.TorusGeometry(2.3, 0.25, 6, 32), '#515c7b', x, 0.13, z)
-      rim.rotation.x = Math.PI / 2
-      rim.scale.y = 0.6
-    }
-    const positions: number[] = []
-    for (let i = 0; i < 480; i++)
-      positions.push(
-        Math.sin(i * 12.7) * 110,
-        15 + (Math.sin(i * 7.9) + 1) * 45,
-        Math.cos(i * 3.1) * 110,
-      )
-    const stars = new T.BufferGeometry()
-    stars.setAttribute('position', new T.Float32BufferAttribute(positions, 3))
-    animated.add(
-      new T.Points(stars, new T.PointsMaterial({ color: '#d7e6ff', size: 0.22, fog: false })),
-    )
+    animated.add(deepSpaceStars())
   }
+  const details = spaceDetails ?? miniatureDetails(id, (x,z) => Math.abs(x-5)>7 && (space || Math.hypot(x+20,z-7)>18) && colliders.every(c=>Math.hypot(c.x-x,c.z-z)>c.radius+4))
+  group.add(details); if (!space) colliders.push(...details.userData.colliders)
   return {
     group,
     ground,
     water,
-    spawn: new T.Vector3(5, 0.08, 29),
+    spawn: new T.Vector3(5, space ? .12 : .08, 29),
     colliders,
-    heightAt: () => 0.08,
+    heightAt: (x, z) => {
+      if (!space) return .08
+      // Match the raised platforms when walking or placing decorations.
+      if (Math.abs(x - 5) <= 3.5 && Math.abs(z) <= 36) return .12
+      const padDistance = Math.hypot(x + 20, z - 7)
+      if (padDistance <= 7.1) return .25
+      if (padDistance <= 7.8) return .15
+      return .08 + lunarHeight(x, z)
+    },
     isWalkable: (x, z) =>
       Math.abs(x) < 40 &&
       Math.abs(z) < 35 &&

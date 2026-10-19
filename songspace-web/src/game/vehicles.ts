@@ -1,6 +1,9 @@
 import * as T from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 
+export const AE86_DRIVER_EYE = new T.Vector3(.28, 1.015, .035)
+export const AE86_DRIVER_LOOK = new T.Vector3(.28, .94, -8)
+
 export type VehicleModel = 'bicycle-rack' | 'ae86' | 'motorcycle'
 export const VEHICLES = {
   'bicycle-rack': { name: '后货架旧式单车', speed: 14, radius: .48 },
@@ -165,7 +168,7 @@ export function buildVehicle(kind: VehicleModel) {
   } else {
     // Three-door Trueno: long wedge bonnet, narrow low cabin and sloping liftback.
     const white = '#f2f1ea', black = '#242727', glass = '#52656a'
-    const paint = new T.MeshStandardMaterial({ color: white, roughness: .3, metalness: .16 })
+    const paint = new T.MeshPhysicalMaterial({ color: white, roughness: .26, metalness: .12, clearcoat: .65, clearcoatRoughness: .22, side: T.DoubleSide })
     for (const x of [-.655, .655]) for (const z of [-1.04, .94]) wheel(x, z, .285, .15, false)
     const bodyOutline: number[][] = [[-1.67, .40], [-1.67, .60], [-1.45, .64], [-.57, .73], [.98, .73], [1.62, .65], [1.67, .42]]
     for (const center of [.94, -1.04]) {
@@ -252,6 +255,52 @@ export function buildVehicle(kind: VehicleModel) {
     tube('exhaust-tip', '#929792', [-.46, .23, 1.41], [-.46, .23, 1.77], .032)
     const steering = mesh('steering-wheel', new T.TorusGeometry(.10, .013, 8, 24), black, .28, .895, -.325); steering.rotation.x = -.4
     box('dashboard', '#333936', 0, .77, -.43, 1.16, .105, .18)
+    // Right-hand-drive analog cockpit, visible through transparent glazing.
+    box('instrument-binnacle', '#222726', .28, .839, -.425, .39, .08, .16, .02)
+    for (const [index, x] of [.18, .37].entries()) {
+      const dial = mesh('analog-gauge', new T.CircleGeometry(.068, 40), '#121918', x, .835, -.327)
+      dial.material = new T.MeshStandardMaterial({ color: '#111918', emissive: '#557560', emissiveIntensity: .15 })
+      mesh('gauge-bezel', new T.TorusGeometry(.069, .004, 6, 32), '#888f83', x, .835, -.324)
+      for (let k = 0; k < 13; k++) {
+        const a = -.7 + k / 12 * Math.PI * 1.45
+        tube('gauge-tick', k > 10 ? '#ce7156' : '#e4deba', [x + Math.sin(a) * .054, .835 + Math.cos(a) * .054, -.322], [x + Math.sin(a) * .062, .835 + Math.cos(a) * .062, -.322], .0014)
+      }
+      tube('gauge-needle', '#e17b47', [x, .835, -.318], [x - .035 + index * .055, .872, -.318], .002)
+    }
+    box('center-console', '#303432', -.035, .64, -.27, .19, .25, .14, .012)
+    box('radio-face', '#171d1c', -.035, .727, -.19, .15, .044, .015, .003)
+    box('radio-display', '#b0b889', -.045, .729, -.18, .077, .016, .003, .001)
+    for (const x of [-.10, .027]) mesh('radio-knob', new T.SphereGeometry(.009, 8, 6), '#9ca18e', x, .728, -.175)
+    for (const x of [-.43, -.11, .04, .48]) {
+      box('dash-vent', '#101a18', x, .79, -.332, .095, .032, .012, .003)
+      for (let j = 0; j < 3; j++) box('vent-slat', '#656c62', x, .78 + j * .009, -.323, .084, .002, .003, .001)
+    }
+    tube('steering-column', '#2e3431', [.28, .79, -.43], [.28, .895, -.325], .024)
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI * 2 / 3
+      tube('steering-spoke', '#565d56', [.28, .895, -.32], [.28 + Math.sin(a) * .087, .895 + Math.cos(a) * .08, -.32 - Math.cos(a) * .034], .009)
+    }
+    box('steering-horn-pad', '#292f2b', .28, .895, -.31, .065, .037, .021, .007)
+    box('transmission-tunnel', '#353a34', 0, .47, .13, .16, .14, .54, .02)
+    tube('gear-lever', '#828b7c', [0, .52, .03], [0, .67, -.01], .009)
+    mesh('gear-knob', new T.SphereGeometry(.025, 12, 8), '#252e28', 0, .68, -.01)
+    tube('handbrake', '#242c25', [.07, .53, .30], [.07, .57, .12], .015)
+    box('interior-rearview-mirror', '#29342f', 0, 1.055, -.145, .16, .05, .022, .007)
+    box('rearview-mirror-face', '#a8bfc1', 0, 1.055, -.131, .14, .034, .003, .002)
+    for (const side of [-1, 1]) {
+      box('door-card', '#454840', side * .614, .61, .04, .025, .22, .84, .009)
+      box('door-armrest', '#292f29', side * .575, .61, .10, .065, .035, .26, .008)
+      box('mirror-glass', '#a2b8ba', side * .74, .81, -.332, .083, .041, .005, .005)
+      for (let j = 0; j < 5; j++) box('seat-upholstery-seam', '#555a4e', side * .28, .635, .13 + j * .044, .22, .003, .004, .001)
+      tube('bonnet-panel-gap', '#646e66', [side * .60, .62, -1.6], [side * .60, .736, -.60], .0025)
+    }
+    group.traverse(object => {
+      if (!(object instanceof T.Mesh) || !/windshield$|rear-hatch-glass|front-side-window|rear-quarter-window/.test(object.name)) return
+      const glazing = object.material as T.MeshStandardMaterial
+      glazing.transparent = true; glazing.opacity = .16; glazing.depthWrite = false
+      glazing.roughness = .15; glazing.metalness = .05
+      object.castShadow = false
+    })
     for (let i = 0; i < 2; i++) tube('windshield-wiper', black, [-.46 + i * .47, .755, -.562], [-.20 + i * .42, .80, -.515], .006)
     tube('rear-wiper', black, [.03, .798, 1.26], [.32, .87, 1.10], .006)
     tube('radio-aerial', '#969e96', [-.56, .77, 1.12], [-.56, 1.11, 1.10], .004)

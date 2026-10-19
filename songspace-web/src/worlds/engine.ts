@@ -234,10 +234,12 @@ export class WorldEngine {
       this.mode === 'overview' ? 310 : 170,
     )
     this.sunlight.position.set(sunset ? -55 : -40, sunset ? 20 : 75, 35)
-    this.sunlight.color.set(muted ? '#d0dfeb' : sunset ? '#ffb978' : '#fff2ce')
-    this.sunlight.intensity = muted ? 0.65 : sunset ? 2.6 : 3.1
+    this.sunlight.color.set(muted ? '#d0dfeb' : this.world === 'space' ? '#bed8f3' : sunset ? '#ffb978' : '#fff2ce')
+    this.sunlight.intensity = muted ? 0.65 : this.world === 'space' ? 2.4 : sunset ? 2.6 : 3.1
     this.sunlight.castShadow = !muted
     this.ambient.intensity = muted ? 1.7 : sunset ? 1.6 : 2.1
+    this.ambient.color.set(this.world === 'space' ? '#8da8ca' : '#f6f5e7')
+    this.ambient.groundColor.set(this.world === 'space' ? '#202b44' : '#889c78')
   }
 
   private keyDown = (event: KeyboardEvent) => {
@@ -309,9 +311,9 @@ export class WorldEngine {
           (collider) => Math.hypot(x - collider.x, z - collider.z) < collider.radius + 0.4,
         ) ||
         this.decorations.some(
-          (item) =>
+          (item, index) =>
             item.kind !== 'flowers' &&
-            Math.hypot(x - item.x, z - item.z) < (item.kind === 'bench' ? 1.2 : 0.45),
+            Math.hypot(x - item.x, z - item.z) < (this.placed.children[index]?.userData.radius ?? (item.kind === 'bench' ? 1.2 : 0.45)) + .3,
         )
       if (this.model.isWalkable(x, z) && !blocked) {
         this.distance += Math.hypot(x - this.position.x, z - this.position.z)
@@ -351,7 +353,7 @@ export class WorldEngine {
     this.clearPlacement()
     if (!songId || this.mode !== 'overview') return
     const song = catalog.songs.find(s => s.id === songId)
-    if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || availableImagery(songId) < 1) {
+    if (!song || kindFor(song) !== 'decoration' || imageryFor(song.title).weather || imageryFor(song.title).wearable || availableImagery(songId) < 1) {
       this.onMessage('这件意象没有可用库存，撤回一件后可以重新摆放。')
       this.onCancelPlacement()
       return
@@ -395,15 +397,21 @@ export class WorldEngine {
     )
     this.raycaster.setFromCamera(this.pointer, this.camera)
     const intersection = this.raycaster.intersectObject(this.model.ground)[0]
+    const radius = this.ghost.userData.radius ?? 2.9
     this.validPlacement =
       !!intersection &&
       this.model.isWalkable(intersection.point.x, intersection.point.z) &&
       !this.model.colliders.some(
-        (c) => Math.hypot(c.x - intersection.point.x, c.z - intersection.point.z) < c.radius + 1,
+        (c) => Math.hypot(c.x - intersection.point.x, c.z - intersection.point.z) < c.radius + radius,
       ) &&
       !this.decorations.some(
-        (item) => Math.hypot(item.x - intersection.point.x, item.z - intersection.point.z) < 4,
-      )
+        (item, index) => Math.hypot(item.x - intersection.point.x, item.z - intersection.point.z) < radius + (this.placed.children[index]?.userData.radius ?? 2) + .3,
+      ) &&
+      Array.from({ length: 8 }, (_, i) => i * Math.PI / 4).every(a => {
+        const x = intersection.point.x + Math.cos(a) * radius, z = intersection.point.z + Math.sin(a) * radius
+        return this.model.isWalkable(x, z) && Math.abs(this.model.heightAt(x, z) - this.model.heightAt(intersection.point.x, intersection.point.z)) < .45
+      }) &&
+      Math.hypot(this.model.spawn.x - intersection.point.x, this.model.spawn.z - intersection.point.z) > radius + 1.2
     this.ghost.visible = this.validPlacement
     if (intersection)
       this.ghost.position.set(

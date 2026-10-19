@@ -1,4 +1,5 @@
 import * as T from 'three'
+import { qinghuaToken } from './qinghua.ts'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import type { OutfitDefinition, OutfitId, OutfitSlot } from '../game/outfits.ts'
 
@@ -6,6 +7,7 @@ import type { OutfitDefinition, OutfitId, OutfitSlot } from '../game/outfits.ts'
 export function buildOutfit(id: OutfitId, pose: 'riding' | 'standing' = 'standing'): T.Group {
   const group = new T.Group()
   group.name = id
+  if (id === 'qinghua-token') { const token = qinghuaToken(); token.scale.setScalar(.34); group.add(token) }
   if (id === 'red-high-heels') {
     for (const side of [-1, 1]) {
       const shoe = buildHighHeel(); shoe.name = `heel-${side}`
@@ -79,6 +81,10 @@ export function addCharacterOutfits(character: T.Group, outfits: readonly Outfit
     } else {
       model.position.set(...anchor.position)
       model.rotation.x = anchor.tilt
+    }
+    if (outfit.id === 'qinghua-token') {
+      model.position.set(.34, pose === 'standing' ? .77 : 1.41, pose === 'standing' ? .08 : .39)
+      model.rotation.set(0, .4, .04)
     }
     attachments.add(model)
   }
